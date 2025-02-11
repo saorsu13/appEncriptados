@@ -10,7 +10,8 @@ npm cache clean --force
 
 # 3. Configura las variables de entorno
 export NODE_ENV=production
-export ANDROID_NDK_HOME=/Users/admin/Library/Android/sdk/ndk/28.0.12916984
+# CHANGE THIS ANDROID_NDK_HOME
+export ANDROID_NDK_HOME=/Users/admin/Library/Android/sdk/ndk/28.0.12916984 
 
 # 4. Reinstala las dependencias
 npm install --legacy-peer-deps
