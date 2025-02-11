@@ -1,0 +1,10 @@
+input,
+select {
+  outline: none !important;
+}
+
+[aria-label="dropdown"] .r-backgroundColor-14lw9ot {
+  background-color: #161616;
+  border-top: 0;
+  border-color: #2e2e2e;
+}

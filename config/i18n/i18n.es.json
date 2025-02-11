@@ -1,0 +1,337 @@
+{
+  "hello_world": "Hola mundo",
+  "filterText": "Filtro",
+  "modalCountry": {
+    "error": "Se ha producido un error cambiando el país. Por favor, inténtalo de nuevo"
+  },
+  "modalProfile": {
+    "error": "Se ha producido un error cambiando el perfil de red. Por favor, inténtalo de nuevo"
+  },
+  "modalVoiceFilter": {
+    "error": "Ha ocurrido un error al cambiar el filtro. Por favor, inténtalo de nuevo."
+  },
+  "modalCallback": {
+    "error": "Se ha producido un error cambiando la devolución de llamadas.",
+    "successful": "Se ha activado la devolución de llamadas satisfactoriamente",
+    "successfuldesactivate": "Se ha desactivado la devolución de llamadas satisfactoriamente",
+    "title": "Devolución de llamadas"
+  },
+  "modalIMSI": {
+    "resetMobileIMSI": "Al cambiar la IMSI se debe reiniciar el dispositivo móvil para efectuar el cambio correctamente,  este cambio puede demorar hasta 2 horas",
+    "error": "Se ha producido un error cambiando el IMSI de red. Por favor, inténtalo de nuevo",
+    "successful": "IMSI cambiado correctamente.",
+    "description": "IMSI cambiado correctamente."
+  },
+
+  "type": {
+    "error": "Error"
+  },
+  "settings": {
+    "lang": {
+      "es": "Español",
+      "en": "Inglés",
+      "fr": "Francés"
+    }
+  },
+  "states": {
+    "activated": "Activado",
+    "disabled": "Desactivado"
+  },
+  "validators": {
+    "required": "Campo requerido",
+    "invalidSim": "ID SIM de 6 digitos incorrecto"
+  },
+  "helpMessages": {
+    "recommended": "Recomendado",
+    "copied": "Copiado!",
+    "howToWork": "¿Cómo funciona?",
+    "newPassword": "No tienes una contraseña asignada.",
+    "actualPassword": "Contraseña actual",
+    "configPassword": "Configurar contraseña",
+    "changePassword": "Cambiar contraseña"
+  },
+  "actions": {
+    "close": "Cerrar",
+    "changeNumber": "Cambiar número",
+    "changeNow": "Cambiar ahora",
+    "right": "Entiendo",
+    "toActive": "Activar",
+    "toEditNumber": "Editar numero"
+  },
+  "molecules": {
+    "dropdown": {
+      "placeholder": "Selecciona un elemento"
+    }
+  },
+  "organism": {
+    "balanceDetails": {
+      "minutes": "Minutos",
+      "mobileData": "Datos mobiles",
+      "imsi": "Cambios IMSI",
+      "helpMessages": {
+        "title": "Importante",
+        "message": "Selecciona el país donde te encuentras para calcular correctamente tu saldo, este saldo se calcula basado en el perfil recomendado",
+        "closeBtnText": "Cerrar"
+      }
+    }
+  },
+  "pages": {
+    "home-tab": {
+      "welcomebanner-title": "Bienvenido a la comunicación segura",
+      "welcomebanner-description": "Productos y servicios que protegen todas tus comunicaciones",
+      "goToStore": "Ir a la tienda",
+      "encryptedOffers": "Ofertas encriptadas",
+      "encryptedSim": "SIM Card Encriptada",
+      "protectYourself": "Protégete de los ciberdelincuentes y mantén tu información personal segura",
+      "buy": "Comprar",
+      "moreInfo": "Más información",
+      "freeEsim": "eSIM gratis",
+      "withYourPurchase": "por tu compra",
+      "plans": "Planes, datos o minutos",
+      "distributors": "Distribuidores",
+      "distributors-title": "¿Quieres ser nuestro aliado comercial para revender nuestros productos?",
+      "distributors-description": "Si tienes contactos que requieran celulares, apps o equipos encriptados, ¡comunícate con nosotros! Puedes ser distribuidor de nuestros producto",
+      "joinUs": "Únete a nuestra red",
+      "blog": "Blog Encriptados",
+      "aboutUs": "Nosotros",
+      "aboutUsDescription": "Somos especialistas en equipos y softwares de comunicación segura como celulares, aplicaciones y sim cards. Buscamos acercar la seguridad digital a cualquier persona o empresa que desee proteger su información y privacidad. Trabajamos con los sistemas más seguros y reconocidos alrededor del mundo, los cuales han sido puestos a prueba durante años y han probado ser impenetrables.",
+      "paySecure": "Pago seguro",
+      "shipping": "Envíos",
+      "initMenu": "Inicio",
+      "productsMenu": "Productos",
+      "simsMenu": "SIM's",
+      "ourProducts": "Nuestros productos",
+      "cellPhone": "Celulares",
+      "from": "Desde",
+      "communicate": "Comunícate con total privacidad en todo lugar",
+      "securityPrivacy": "Seguridad y privacidad en tus comunicaciones con chats y llamadas encriptadas",
+      "useEasy": "Usarla es fácil",
+      "threeSteps": "Sigue estos tres simples pasos",
+      "buyIt": "Cómprala",
+      "receiveIt": "Recíbela",
+      "activateIt": "Actívala",
+      "activeSim": "SIM ACTIV",
+      "received": "Recibido",
+      "active": "Activo",
+      "whyUseEncriptados": "¿Por qué usar la SIM de Encriptados?",
+      "noMSI": "Nuestra SIM no emite un IMSI, protegiendo el origen de conexión.",
+      "noLimit": "No tienes límite de tiempo para consumir los recursos de tu plan.",
+      "simEconomy": "La SIM Encriptados funciona en más de 200 países con facilidad de conexión y economía.",
+      "locationSIM": "Tendrás cifrado en los datos de geolocalización.",
+      "noHistory": "No almacenamos historial de llamadas.",
+      "anonimateSIM": "Te brinda mayor anonimato en las llamadas por medio de herramientas como DID, sustitución de identificador y callback.",
+      "simAlt": "La SIM genera un número sustituto aleatoriamente en cada llamada.",
+      "frequentQuestions": "Preguntas frecuentes",
+      "noFrontier": "Sin fronteras",
+      "comunicate": "Comunicación segura y",
+      "200country": "Con cobertura en más de 200 países",
+      "offers": "Ofertas",
+      "offerdescription": "Descubre nuestras ofertas y obtén hasta un 25% más de saldo en tu compra.",
+      "versiontitle": "Nueva versión disponible",
+      "versiondescription": "Hay una nueva versión disponible. ¿Desea actualizar"
+    },
+    "login": {
+      "header": {
+        "title": "Configura tu SIM Encriptados",
+        "message": "Lleva a otro nivel tu seguridad con la SIM Encriptada",
+        "changeNameSimBanner": "Cambiar el nombre de tu SIM.",
+        "newNameOfYourSim": "Ingresa el nuevo nombre de tu SIM.",
+        "placeholderSim": "NOMBRE SIM",
+        "numberOfCharacters": "Solo se admiten un máximo de 9 caracteres.",
+        "nameOfSimMax": "* El nombre de SIM debe tener un máximo de 9 caracteres."
+      },
+      "form": {
+        "title": "Configura tu SIM",
+        "link": "Cómo funciona",
+        "stepsList": {
+          "title": "Cómo activar tu SIM",
+          "step1": "Coloca la SIM en el teléfono",
+          "step2": "Marca *500# para obtener el código de conexión.",
+          "step3": "Ingresa el código de 6 dígidos en “SIM ID”. "
+        }
+      },
+      "verification": {
+        "success": {
+          "title": "Verificación exitosa",
+          "message": "Añadiste la SIM #{{value}}"
+        },
+        "failed": {
+          "title": "Verificación fallida",
+          "message": "Revisa el ID y el código de confirmación. He intenta nuevamente."
+        }
+      },
+      "requestCode": {
+        "title": "Ingresa el código",
+        "message": "Marca el *500# para obtener el código de conexión"
+      },
+      "actions": {
+        "requestCode": "Solicitar código",
+        "mySims": "Ir a MIS SIMS",
+        "addSim": "Agregar otra SIM",
+        "retry": "Intentar nuevamente",
+        "verify": "Verificar SIM"
+      },
+      "fields": {
+        "name": {
+          "label": "Nombre de la SIM:",
+          "placeholder": "Nombre de la SIM"
+        },
+        "sim": {
+          "label": "ID SIM:",
+          "placeholder": "ID SIM",
+          "electronicSim": "E-SIM DETECTADO",
+          "physicalSim": "SIM FISICO DETECTADO",
+          "invalidSim": "ID SIM de 6 digitos incorrecto"
+        }
+      },
+      "helpMessages": {
+        "howToWorkHelpTittle": "Importante",
+        "howToWorkHelpMessage": "Solicita el código con tu sim ID y marca *500# con la sim para obtener el código de verificación",
+        "SimHelpTittle": "Importante",
+        "SimHelpMessage": "El id sim es un número de 6 dígitos que identifica tu sim, se puede ver marcando *110#",
+        "closeBtnText": "Cerrar"
+      }
+    },
+    "home": {
+      "useFive": "Puedes utilizar hasta 5 SIMs en la app.",
+      "howToReset": "Establece una nueva contraseña de 4 dígitos. Si ingresas tu contraseña actual incorrectamente más de 4 veces, el dispositivo eliminará tu configuración y las SIMs por razones de seguridad.",
+      "introducePasswordDevice": "Ingresa la contraseña del dispositivo",
+      "introducePassword": "Ingresa una contraseña de 4 dígitos",
+      "confirmPassword": "Confirma tu contraseña de 4 dígitos",
+      "introduceActualPassword": "Ingresa una contraseña de 4 dígitos",
+      "tryAgainPasswordTitle": "Contraseña incorrecta. Inténtelo nuevamente",
+      "confirmNewPassword": "¿Estás seguro de que deseas establecer esta nueva contraseña?",
+      "confirmDeletePassword": "¿Estás seguro de que deseas eliminar la contraseña?",
+      "attempt": "intento(s).",
+      "youHave": "Te quedan",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "currentSim": "SIM ACTUAL",
+      "currency": "MONEDA",
+      "country": "PAÍS",
+      "currentBalance": "Saldo actual",
+      "networkProfile": "Perfil de red",
+      "networkProfileDescription": "¿Desea cambiar el perfil de red?",
+      "timeLeft": "Tiempo restante para realizar otro cambio de perfil:",
+      "timeUnit": "seg",
+      "settings": "Configuración",
+      "requiredpassword": "Contraseña de acceso",
+      "titlerequiredpassword": "Crea una contraseña de acceso rápido",
+      "descriptionrequiredpassword": "Configura una contraseña de 4 dígitos para mantener tu privacidad al máximo.",
+      "passwordDontMatch": "Las contraseñas no coinciden",
+      "tryAgain": "Volver a intentarlo.",
+      "backToPasswords": "Volver a la configuración de contraseñas.",
+      "titleResetDevice": "Advertencia: Restauración de Información",
+      "descriptionResetDevice": "Este proceso ha eliminado todas las tarjetas SIM, la configuración actual y la contraseña por razones de seguridad.",
+      "simOptions": {
+        "title": "Opciones de SIM",
+        "voiceChange": "Cambio de voz",
+        "settings": "Configurar sustituto",
+        "callback": "Devolución de llamada",
+        "imsi": "Cambiar IMSI",
+        "delete": "Borrar SIM"
+      },
+      "modalActivatePasswordTitle": "¿Estás seguro que deseas activar la contraseña?",
+      "modalDesactivatePasswordTitle": "¿Estás seguro que deseas desactivar la contraseña?",
+      "profileHelp": {
+        "title": "Perfil de red ayuda",
+        "message": "Cada país tiene un perfil de roaming recomendado, que es considerado el más estable y menos costoso, usa el perfil recomendado para mayor eficiencia de consumo y mejor estabilidad en la red.",
+        "closeBtnText": "Cerrar"
+      },
+      "profileWarning": {
+        "title": "Importante",
+        "description": "Si eliges un perfil no recomendado podría aumentar el costo del servicio"
+      },
+      "simList": "Mis SIMs disponibles",
+      "newSim": "Añadir nueva SIM"
+    },
+
+    "voiceFilter": {
+      "title": "Voice change",
+
+      "titleFilters": "Elige filtro de voz",
+      "description": {
+        "title": "Cambia tu voz durante las llamadas.",
+        "message": "Con esta función, puedes modificar tu voz durante llamadas entrantes y salientes."
+      },
+      "tutorial": {
+        "title": "¿Cómo funciona el cambio de voz?",
+        "message": "Avec cette fonctionnalité, vous pouvez modifier votre voix pendant les appels entrants et sortants.",
+        "close": "Cerrar"
+      },
+      "enabled": "Habilitado",
+      "disabled": "Desactivado"
+    },
+    "changeImsi": {
+      "title": "Cambiar IMSI",
+      "description": "Con esta función puedes cambiar el número único de identificación de tu tarjeta SIM. El equivalente a cambiar de chip SIM.",
+      "success": {
+        "title": "Solicitud de cambio exitoso",
+        "description": "Por favor reinicia tu dispositivo para aplicar el cambio de IMSI."
+      },
+      "failed": {
+        "title": "No tienes saldo suficiente",
+        "description": "Realiza una recarga de saldo para activar esta funcionalidad."
+      }
+    },
+    "substitute": {
+      "title": "Configurar sustituto",
+      "titleCountry": "Introduce un número con el código del país",
+      "dynamic": {
+        "areYouSureDynamic": "¿Desea cambiar a sustitución dinámica de número?",
+        "label": "Sustitución dinámica de número",
+        "description": "Genera números aleatorios",
+        "tutorial": "Se generará un número aleatorio cada vez que llames"
+      },
+      "manual": {
+        "label": "Número sustituto manual",
+        "tutorial": "Algunos números pueden estar bloqueados por prevención de fraude o suplantación de identidad.",
+        "simNumber": "Introduce un número con el código del país",
+        "messageSuccess": "Número de sustitución está activo",
+        "messageError": "No se puedo activar número de sustitución"
+      },
+      "help": {
+        "title": "¿Cómo funciona?",
+        "message": "Introduce el número telefónico que quieres usar como sustituto en tus llamadas. Este número aparecerá en el identificador de la persona que llamas.",
+        "close": "Cerrar"
+      }
+    },
+    "callback": {
+      "title": "Devolución de llamada",
+      "callback": "Devolución de llamadas",
+      "callbackDescription": "Utilice un operador intermedio que le devolverá la llamada para enlazarla de forma segura y sin un enlace directo."
+    },
+    "settings": {
+      "title": "Configuración",
+      "language": "Idioma",
+      "es": "Español",
+      "en": "Inglés",
+      "fr": "Francés"
+    },
+    "language": {
+      "title": "Seleccionar idioma"
+    },
+    "deleteSimModal": {
+      "deleteSim": "Eliminar SIM",
+      "cancel": "Cancelar",
+      "deleteTitle": "¿Seguro que deseas eliminar tu SIM"
+    },
+    "newSim": {
+      "title": "Añade una nueva SIM",
+      "pageTitle": "Nueva SIM"
+    }
+  },
+  "copied": "¡Copiado!",
+  "defaultErrorMessage": "Lo siento, ha ocurrido un error.",
+  "modalSimActivate": {
+    "errors": {
+      "failed": "Código para SIM no válido"
+    },
+    "successfully": {
+      "oktitle": "SIM añadido",
+      "ok": "¡Tu SIM se ha añadido exitosamente!"
+    },
+    "goToPanel": "Ir al panel de control",
+    "changeNameSimTitle": "Tu SIM ha cambiado de nombre exitosamente."
+  }
+}
