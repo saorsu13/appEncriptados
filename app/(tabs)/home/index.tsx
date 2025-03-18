@@ -237,6 +237,7 @@ const Home = () => {
   const data = mutation?.data;
 
   const simType = determineType(currentSim?.idSim);
+  
 
   return (
     <ScrollView

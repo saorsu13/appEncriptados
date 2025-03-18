@@ -1,4 +1,5 @@
 import { View, StyleSheet, ScrollView, Button } from "react-native";
+import { useRouter } from "expo-router"; // 👈 Importamos el hook de navegación
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import WelcomeBanner from "@/components/organisms/HomeTab/WelcomeBanner/WelcomeBanner";
 import OfferBannerHome from "@/components/organisms/HomeTab/OfferBannerHome/OfferBannerHome";
@@ -16,18 +17,15 @@ import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeMode } from "@/context/theme";
 import { t } from "i18next";
 import OffersHome from "@/components/organisms/HomeTab/OffersHome/OffersHome";
-import { useQuery } from "@tanstack/react-query";
-import { getVersion } from "@/api/version";
 
 export default function HomeTab() {
   const { colors } = useTheme<ThemeCustom>();
-
   const { themeMode } = useDarkModeTheme();
+  const router = useRouter(); // 👈 Hook para manejar navegación
+  
 
   return (
-    <ScrollView
-      style={{ ...styles.container, backgroundColor: colors.background }}
-    >
+    <ScrollView style={{ ...styles.container, backgroundColor: colors.background }}>
       <HeaderEncrypted settingsLink="home-tab/settings/home" />
 
       {themeMode === ThemeMode.Dark ? (
@@ -51,6 +49,7 @@ export default function HomeTab() {
           />
         </View>
       ) : null}
+
       <View style={{ marginTop: 0 }}>
         <OfferBannerHome />
       </View>
@@ -64,40 +63,25 @@ export default function HomeTab() {
         <DistributorsHome />
       </View>
 
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: colors.background,
-        }}
-      >
+      <View style={{ marginTop: 20, backgroundColor: colors.background }}>
         <BlogEncriptados />
       </View>
 
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: "#171717",
-        }}
-      >
+      <View style={{ marginTop: 20, backgroundColor: "#171717" }}>
         <AboutUsHome />
       </View>
 
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: "#171717",
-        }}
-      >
+      <View style={{ marginTop: 20, backgroundColor: "#171717" }}>
         <PaymentsHome />
       </View>
 
-      <View
-        style={{
-          marginTop: 20,
-          marginBottom: 50,
-        }}
-      >
+      <View style={{ marginTop: 20, marginBottom: 50 }}>
         <SocialNetworks />
+      </View>
+
+      {/* 🚀 Nuevo botón para redirigir a la vista balance */}
+      <View style={styles.buttonContainer}>
+        <Button title="Ver Balance" onPress={() => router.push("/balance")} />
       </View>
     </ScrollView>
   );
@@ -107,37 +91,9 @@ const styles = StyleSheet.create({
   container: {
     display: "flex",
   },
-
-  containerHeader: {
-    gap: 40,
+  buttonContainer: {
+    marginTop: 20,
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    display: "flex",
-    justifyContent: "space-between",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  iconButton: {
-    alignItems: "center",
-
-    aspectRatio: 1,
-    borderRadius: 100,
-    display: "flex",
-    justifyContent: "center",
-    width: 44,
-  },
-  bellIcon: {
-    alignItems: "center",
-    backgroundColor: "#1E1E1E",
-    aspectRatio: 1,
-    borderRadius: 100,
-    display: "flex",
-    justifyContent: "center",
-    width: 44,
-  },
-  image: {
-    width: 50,
-    height: 50,
+    marginBottom: 50,
   },
 });

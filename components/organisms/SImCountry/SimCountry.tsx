@@ -60,15 +60,16 @@ const SimCountry = ({ sim = "", country, handleCountry }) => {
     return state.sims.currentSim.idSim;
   });
 
-  const {
-    data: balance,
-    isFetching: fetchingbalance,
-    refetch,
-  } = useQuery({
-    queryKey: ["getCurrentBalanceByCurrency", globalCurrency],
+  const { data: balance, isFetching: fetchingbalance, refetch } = useQuery({
+    queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency], 
     gcTime: 0,
-    queryFn: () => getCurrentBalanceByCurrency(currentSim, globalCurrency),
+    enabled: !!currentSim,
+    queryFn: async () => {
+      if (!currentSim) return null;
+      return await getCurrentBalanceByCurrency(currentSim, globalCurrency);
+    },
   });
+  
 
   const { openModal } = useModalAdminSims();
 
