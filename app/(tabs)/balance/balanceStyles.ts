@@ -5,30 +5,17 @@ export const balanceStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#191919",
   },
-  backgroundImage: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover", // Para que se ajuste a la pantalla
-  },
   content: {
     flexGrow: 1,
-    padding: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 10, // 🔹 Menos espacio arriba
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  buttonContainer: {
-    marginTop: 20,
+  separator: {
     width: "100%",
-    alignItems: "center",
+    height: 1,
+    backgroundColor: "#3A3A3A", // 🔹 Línea separadora gris claro
+    marginVertical: 10,
+    marginTop: 25,
   },
+  
 });

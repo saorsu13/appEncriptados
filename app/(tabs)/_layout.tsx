@@ -211,6 +211,12 @@ export function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="balance"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

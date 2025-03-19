@@ -30,7 +30,7 @@ const DataBalanceCard = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#191919",
+    backgroundColor: "#121212",
     padding: 25,
     borderRadius: 15,
     borderColor: "#00AEEF",

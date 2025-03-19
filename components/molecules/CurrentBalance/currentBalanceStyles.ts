@@ -5,10 +5,10 @@ export const currentBalanceStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#191919", // Fondo oscuro
-    padding: 15,
+    backgroundColor: "#000",
+    marginTop: 10,
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 25,
     width: "100%",
   },
   balanceHeader: {

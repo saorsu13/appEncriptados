@@ -1,36 +1,58 @@
-import { View, Text, Image, ScrollView } from "react-native";
-import { useRouter, Stack } from "expo-router";
-import { Button } from "react-native";
-import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance"; // ✅ Componente de saldo
-import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
-import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
-import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted"; // ✅ Menú y ajustes
+import { View, ScrollView, BackHandler, Platform } from "react-native";
+import { useEffect } from "react";
+import { useRouter, Stack } from "expo-router"; // ✅ Volvemos a usar useRouter()
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
-import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
-import { balanceStyles } from "./balanceStyles"; // ✅ Importación de estilos
+import { balanceStyles } from "./balanceStyles";
+
+import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
+import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
+import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance";
+import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
+import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimButton";
-import { useEffect } from "react";
 
 const BalanceScreen = () => {
-  const router = useRouter();
+  const router = useRouter(); // ✅ Volvemos a usar useRouter() de expo-router
   const { colors } = useTheme<ThemeCustom>();
-  const { themeMode } = useDarkModeTheme();
 
   useEffect(() => {
-    console.log("BalanceScreen loaded, ensuring header is hidden.");
-  }, []);
+    const handleBack = () => {
+      router.back(); // ✅ Vuelve a la pantalla anterior correctamente en expo-router
+      return true;
+    };
+
+    if (Platform.OS === "android") {
+      const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBack);
+      return () => backHandler.remove();
+    }
+  }, [router]);
 
   return (
     <>
-      {/* 🔹 Ocultar header explícitamente */}
-      <Stack.Screen options={{ headerShown: false }} />
+      {/* ✅ Se mantiene el header en iOS para permitir gestos de swipe-back */}
+      <Stack.Screen
+        options={{
+          headerShown: true, // ✅ Se debe mostrar el header para habilitar el gesto en iOS
+          headerTitle: "",
+          headerTransparent: true,
+          headerBackTitleVisible: false,
+          headerTintColor: "white",
+          gestureEnabled: true, // ✅ Habilita el gesto de swipe-back en iOS
+        }}
+      />
 
       <View style={{ ...balanceStyles.container, backgroundColor: colors.background }}>
-        {/* 🔹 Header con botón de configuración (Si quieres quitarlo, comenta esta línea) */}
+        {/* 🔹 Header con botón de configuración */}
         <HeaderEncrypted settingsLink="balance/settings" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
+          {/* 🔹 Selector de SIM y Divisa */}
+          <SimCurrencySelector />
+
+          {/* 🔹 Línea separadora gris */}
+          <View style={balanceStyles.separator} />
+
           {/* 🔹 Saldo actual */}
           <CurrentBalance />
 
@@ -40,12 +62,8 @@ const BalanceScreen = () => {
           {/* 🔹 Tarjeta de recarga */}
           <TopUpCard />
 
+          {/* 🔹 Botón para borrar SIM con mayor espacio */}
           <DeleteSimButton onPress={() => console.log("SIM borrada")} />
-
-          {/* 🔹 Botón para regresar a Home */}
-          <View style={balanceStyles.buttonContainer}>
-            <Button title="Volver a Inicio" onPress={() => router.push("/home")} />
-          </View>
         </ScrollView>
       </View>
     </>

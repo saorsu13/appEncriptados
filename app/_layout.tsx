@@ -143,9 +143,13 @@ export default function RootLayout() {
                               {appIsReady ? (
                                 <>
                                   {/* ⚠️ Reemplazo de NavigationContainer con Stack de expo-router */}
-                                  <Stack screenOptions={{ headerShown: false }}>
+                                  <Stack
+                                    screenOptions={{
+                                      headerShown: false,
+                                      gestureEnabled: true,
+                                    }}
+                                  >
                                     <Stack.Screen name="(tabs)" />
-                                    <Stack.Screen name="balance" />
                                     <Stack.Screen name="index" />
                                   </Stack>
                                 </>
