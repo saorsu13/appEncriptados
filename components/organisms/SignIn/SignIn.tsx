@@ -87,20 +87,29 @@ const SignIn = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
+      console.log("Formik Values =>", values);
+  
       try {
+        console.log("Llamando a getSubscriberData con =>", values.simNumber);
+  
         const data = await getSubscriberData(values.simNumber);
+  
+        console.log("Respuesta del endpoint =>", data);
+  
         const firstProvider = data?.providers?.[0]?.provider;
-
+        console.log("Primer provider =>", firstProvider);
+  
         if (firstProvider === "telco-vision") {
-          router.push("/home"); 
+          router.push("/balance");
         } else {
-          router.push("/new-sim"); 
+          router.push("/new-sim");
         }
       } catch (error) {
         console.log("Error validando SIM:", error);
       }
     },
   });
+  
 
   useEffect(() => {
     setCurrentIdSim(formik.values.simNumber);
