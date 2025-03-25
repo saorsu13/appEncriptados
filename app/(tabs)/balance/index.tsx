@@ -11,6 +11,7 @@ import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance
 import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
 import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimButton";
+import HeaderEncriptados from "@/components/molecules/HeaderEncriptados/HeaderEncriptados";
 
 const BalanceScreen = () => {
   const router = useRouter(); // ✅ Volvemos a usar useRouter() de expo-router
@@ -44,7 +45,7 @@ const BalanceScreen = () => {
 
       <View style={{ ...balanceStyles.container, backgroundColor: colors.background }}>
         {/* 🔹 Header con botón de configuración */}
-        <HeaderEncrypted settingsLink="balance/settings" />
+        <HeaderEncriptados settingsLink="balance/settings" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
           {/* 🔹 Selector de SIM y Divisa */}
