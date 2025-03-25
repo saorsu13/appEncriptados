@@ -22,7 +22,6 @@ import VerificationSim from "@/components/organisms/VerificationSim/Verification
 import { useAuth } from "@/context/auth";
 import { useLogin } from "@/features/sign-in/useLogin";
 import { determineType } from "@/utils/utils";
-
 import { router, useFocusEffect } from "expo-router";
 import { useDispatch } from "react-redux";
 import api from "@/config/api";
@@ -37,6 +36,8 @@ import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncryp
 import { useModalActivateSim } from "@/context/modalactivatesim";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { resetModalUpdate } from "@/features/settings/settingsSlice";
+
+import { getSubscriberData } from "@/api/subscriberApi";
 
 const LoginHeaderImage = require("@/assets/images/login-header.png");
 const LoginHeaderImageLight = require("@/assets/images/login-header-light.png");
@@ -85,7 +86,20 @@ const SignIn = () => {
       simNumber: "",
     },
     validationSchema: validationSchema,
-    onSubmit: handleSubmit,
+    onSubmit: async (values) => {
+      try {
+        const data = await getSubscriberData(values.simNumber);
+        const firstProvider = data?.providers?.[0]?.provider;
+
+        if (firstProvider === "telco-vision") {
+          router.push("/home"); 
+        } else {
+          router.push("/new-sim"); 
+        }
+      } catch (error) {
+        console.log("Error validando SIM:", error);
+      }
+    },
   });
 
   useEffect(() => {
@@ -183,15 +197,15 @@ const SignIn = () => {
               </Pressable>
             </View>
             <View style={styles.containerFormFields}>
-              {/* <InputField
-                label={t(`${baseMsg}.fields.name.label`)}
-                onChangeText={formik.handleChange("simName")}
-                handleBlur={formik.handleBlur("simName")}
-                value={formik.values.simName}
-                error={formik.touched.simName ? formik.errors.simName : null}
-                required={true}
-                placeholder={t(`${baseMsg}.fields.name.placeholder`)}
-              /> */}
+            <InputField
+              label="Número de SIM"
+              onChangeText={formik.handleChange("simNumber")}
+              onBlur={formik.handleBlur("simNumber")}
+              value={formik.values.simNumber}
+              error={formik.touched.simNumber ? formik.errors.simNumber : null}
+              maxLength={6}
+              placeholder="Ingresa tu número de SIM"
+            />
 
               <InputField
                 label={t(`${baseMsg}.fields.sim.label`)}
