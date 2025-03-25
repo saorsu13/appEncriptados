@@ -3,25 +3,30 @@ import { View, Text, StyleSheet } from "react-native";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg"; // ✅ Importamos el Icono correcto
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-const DataBalanceCard = () => {
+type Props = {
+  totalData?: string; 
+  format?: string; 
+  region?: string; 
+};
+
+const DataBalanceCard = ({ totalData = "0", format = "mb", region = "REGIÓN" }: Props) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>DATOS MÓVILES</Text>
 
       <View style={styles.content}>
-        {/* Icono de datos móviles y cantidad de GB */}
         <View style={styles.leftSection}>
           <IconSvg type="wifi" height={30} width={30} color="#00AEEF" />
-          <Text style={styles.dataText}>10 GB</Text>
+          <Text style={styles.dataText}>
+            {totalData} {format.toUpperCase()}
+          </Text>
         </View>
 
-        {/* Separador */}
         <View style={styles.separator} />
 
-        {/* Icono de región */}
         <View style={styles.rightSection}>
           <Icon name="earth" size={24} color="white" />
-          <Text style={styles.regionText}>EUROPA</Text>
+          <Text style={styles.regionText}>{region.toUpperCase()}</Text>
         </View>
       </View>
     </View>

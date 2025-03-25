@@ -5,24 +5,26 @@ import { BalanceResponse } from "@/api/simbalance";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { formatNumber } from "@/utils/utils";
 import { currentBalanceStyles } from "./currentBalanceStyles";
+import { getCurrentBalance } from "@/api/simbalance";
 
-const CurrentBalance = () => {
+type Props = {
+  usedData?: string;
+  totalData?: string;
+  format?: string;
+};
+
+const CurrentBalance = ({ usedData = "0", totalData = "0", format = "mb" }: Props) => {
   const { data: getbalance, isFetching } = useQuery<BalanceResponse>({
-    gcTime: 0,
     queryKey: ["getCurrentBalance"],
+    queryFn: () => getCurrentBalance(),
   });
 
   return (
     <View style={currentBalanceStyles.container}>
       <View style={currentBalanceStyles.balanceHeader}>
         <Text style={currentBalanceStyles.balanceLabel}>Saldo actual</Text>
-
         <View style={currentBalanceStyles.balanceAmount}>
-          
-          <Text
-            allowFontScaling={false}
-            style={currentBalanceStyles.balanceValue}
-          >
+          <Text allowFontScaling={false} style={currentBalanceStyles.balanceValue}>
             {isFetching
               ? "..."
               : getbalance
@@ -31,6 +33,12 @@ const CurrentBalance = () => {
           </Text>
         </View>
       </View>
+
+      {usedData && totalData && (
+        <Text style={{ color: "white", marginTop: 5 }}>
+          {usedData}/{totalData} {format.toUpperCase()} usados
+        </Text>
+      )}
 
       <TouchableOpacity>
         <IconSvg
@@ -43,5 +51,6 @@ const CurrentBalance = () => {
     </View>
   );
 };
+
 
 export default CurrentBalance;

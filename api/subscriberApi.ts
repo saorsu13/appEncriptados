@@ -24,7 +24,7 @@ export const getSubscriberData = async (idSim: string) => {
       }
   
       const data = await response.json();
-      console.log("getSubscriberData => data parseada:", data);
+      console.log("Plan completo =>", JSON.stringify(data.providers?.[0]?.plans?.[0], null, 2));
   
       return data;
     } catch (error) {

@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 
+
 export const MIN_PASSWORD_LENGTH = 10;
 // Set this to true to require remembered users to enter their password.
 const ALWAYS_REQUIRE_LOGIN = true;
@@ -23,14 +24,31 @@ export type User = {
   code: number;
 } & Partial<UserInfo>;
 
+type ProviderPlan = {
+  name: string;
+  pckdatabyte: string;
+  useddatabyte: string;
+  format: string;
+};
+
+type ProviderType = {
+  provider: string;
+  iccid: string;
+  imsi: string;
+  plans: ProviderPlan[];
+};
+
 const AuthContext = createContext<{
-  signIn: (user: User) => void;
+  signIn: (user: User, providers?: ProviderType[]) => void;
   signOut: () => void;
   user: User | null;
   isLoggedIn: boolean;
   isLoading: boolean;
   getSignInRoute: () => any;
+  providers: ProviderType[];
 } | null>(null);
+
+const [providers, setProviders] = useState<ProviderType[]>([]);
 
 // This hook can be used to access the user info.
 export function useAuth() {
@@ -100,22 +118,25 @@ export function AuthProvider({
   return (
     <AuthContext.Provider
       value={{
-        signIn: (user: User) => {
+        signIn: (user: User, newProviders: ProviderType[] = []) => {
           setUser(user);
           setIsLoggedIn(true);
+          setProviders(newProviders);
           dispatch(addSim(user));
           dispatch(updateCurrentSim(user.idSim));
           storeUser(user);
-        },
+        },        
         signOut: () => {
           setUser(null);
           setIsLoggedIn(false);
+          setProviders([]);
           deleteUser();
-        },
+        },        
         user: user,
         isLoggedIn,
         isLoading,
         getSignInRoute,
+        providers,
       }}
     >
       {children}

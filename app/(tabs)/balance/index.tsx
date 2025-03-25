@@ -1,9 +1,11 @@
 import { View, ScrollView, BackHandler, Platform } from "react-native";
-import { useEffect } from "react";
-import { useRouter, Stack } from "expo-router"; // ✅ Volvemos a usar useRouter()
+import { useEffect, useMemo } from "react";
+import { useRouter, Stack } from "expo-router"; 
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 import { balanceStyles } from "./balanceStyles";
+
+import { useAuth } from "@/context/auth";
 
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
@@ -14,12 +16,22 @@ import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimBut
 import HeaderEncriptados from "@/components/molecules/HeaderEncriptados/HeaderEncriptados";
 
 const BalanceScreen = () => {
-  const router = useRouter(); // ✅ Volvemos a usar useRouter() de expo-router
+  const router = useRouter(); 
   const { colors } = useTheme<ThemeCustom>();
+  const { providers } = useAuth();
+  const currentPlan = useMemo(() => {
+    const validProvider = providers?.find((p) => p?.plans?.length > 0);
+    return validProvider?.plans?.[0];
+  }, [providers]);
+   
 
   useEffect(() => {
+    console.log("💡 currentPlan en BalanceScreen:", currentPlan);
+  }, [currentPlan]);
+  
+  useEffect(() => {
     const handleBack = () => {
-      router.back(); // ✅ Vuelve a la pantalla anterior correctamente en expo-router
+      router.back();
       return true;
     };
 
@@ -55,10 +67,18 @@ const BalanceScreen = () => {
           <View style={balanceStyles.separator} />
 
           {/* 🔹 Saldo actual */}
-          <CurrentBalance />
+          <CurrentBalance
+            usedData={currentPlan?.useddatabyte}
+            totalData={currentPlan?.pckdatabyte}
+            format={currentPlan?.format}
+          />
 
           {/* 🔹 Tarjeta de datos móviles */}
-          <DataBalanceCard />
+          <DataBalanceCard
+            totalData={currentPlan?.pckdatabyte}
+            format={currentPlan?.format}
+            region={currentPlan?.name}
+          />
 
           {/* 🔹 Tarjeta de recarga */}
           <TopUpCard />
