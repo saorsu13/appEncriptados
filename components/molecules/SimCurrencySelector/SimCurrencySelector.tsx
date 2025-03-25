@@ -37,7 +37,7 @@ const SimCurrencySelector = () => {
       </View>
 
       {/* Divisa */}
-      <View style={styles.currencyContainer}>
+      {/* <View style={styles.currencyContainer}>
         <Text style={styles.label}>DIVISA</Text>
         <View style={styles.currencyWrapper}>
           <TouchableOpacity style={styles.selector} onPress={() => setCurrencyModalVisible(true)}>
@@ -47,11 +47,11 @@ const SimCurrencySelector = () => {
             <Ionicons name="chevron-down" size={20} color="gray" />
           </TouchableOpacity>
           {/* Contenedor de la bandera */}
-          <View style={styles.flagContainer}>
+          {/* <View style={styles.flagContainer}>
             <Image source={selectedCurrency.flag} style={styles.currencyFlag} />
           </View>
         </View>
-      </View>
+      </View> */} 
 
       {/* SIM Modal */}
       <Modal visible={simModalVisible} transparent animationType="fade" onRequestClose={() => setSimModalVisible(false)}>
@@ -88,7 +88,7 @@ const SimCurrencySelector = () => {
       </Modal>
 
       {/* Currency Modal */}
-      <Modal visible={currencyModalVisible} transparent animationType="fade" onRequestClose={() => setCurrencyModalVisible(false)}>
+      {/* <Modal visible={currencyModalVisible} transparent animationType="fade" onRequestClose={() => setCurrencyModalVisible(false)}>
         <TouchableOpacity style={styles.modalBackground} activeOpacity={1} onPress={() => setCurrencyModalVisible(false)}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Seleccionar Divisa</Text>
@@ -110,7 +110,7 @@ const SimCurrencySelector = () => {
             />
           </View>
         </TouchableOpacity>
-      </Modal>
+      </Modal> */}
     </View>
   );
 };
