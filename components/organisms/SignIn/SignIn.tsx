@@ -6,15 +6,11 @@ import {
   StyleSheet,
   ScrollView,
   Text,
-  ActivityIndicator,
   ImageBackground,
-  TouchableOpacity,
-  Modal,
   Pressable,
 } from "react-native";
 import { useFormik } from "formik";
 import InputField from "@/components/molecules/InputField/InputFIeld";
-
 import Button from "@/components/atoms/Button/Button";
 import theme from "@/config/theme";
 import StepList from "@/components/molecules/StepList/StepList";
@@ -24,10 +20,7 @@ import { useLogin } from "@/features/sign-in/useLogin";
 import { determineType } from "@/utils/utils";
 import { router, useFocusEffect } from "expo-router";
 import { useDispatch } from "react-redux";
-import api from "@/config/api";
-import VerificationModal from "@/components/molecules/VerificationModal/VerificationModal";
-import VerificationInput from "@/components/molecules/VerificationDigit/VerificationDigit";
-
+import { getSubscriberData } from "@/api/subscriberApi";
 import ModalInfo from "@/components/molecules/ModalInfo";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
@@ -37,17 +30,12 @@ import { useModalActivateSim } from "@/context/modalactivatesim";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { resetModalUpdate } from "@/features/settings/settingsSlice";
 
-import { getSubscriberData } from "@/api/subscriberApi";
-
 const LoginHeaderImage = require("@/assets/images/login-header.png");
 const LoginHeaderImageLight = require("@/assets/images/login-header-light.png");
 
 const SignIn = () => {
   const {
     setCurrentIdSim,
-    currentIdSim,
-    currentSimCode,
-    typeOfProcess,
     showModal,
     setTypeOfProcess,
   } = useModalActivateSim();
@@ -58,65 +46,52 @@ const SignIn = () => {
     }, [])
   );
 
-  const { themeMode, toggleThemeMode } = useDarkModeTheme();
+  const { themeMode } = useDarkModeTheme();
   const [requestCodeModal, setRequestCodeModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [type, setType] = useState<any>(false);
+  const [simType, setSimType] = useState(null);
   const { t } = useTranslation();
   const baseMsg = "pages.login";
   const loginQuery = useLogin();
   const auth = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
+  const dispatch = useDispatch();
 
   const validationSchema = Yup.object().shape({
-    simName: Yup.string(),
     simNumber: Yup.string()
       .required(t("validators.required"))
-      .test("len", t("validators.invalidSim"), (val) => val.length === 6),
+      .test("len", t("validators.invalidSim"), (val) => val && val.length === 6),
   });
-
-  const handleSubmit = (values) => {
-    showModal();
-  };
 
   const formik = useFormik({
     initialValues: {
-      simName: "SIM 1",
       simNumber: "",
     },
-    validationSchema: validationSchema,
+    validationSchema,
     onSubmit: async (values) => {
-      console.log("Formik Values =>", values);
-  
+      setCurrentIdSim(values.simNumber);
       try {
-        console.log("Llamando a getSubscriberData con =>", values.simNumber);
-  
+        setIsLoading(true);
         const data = await getSubscriberData(values.simNumber);
-  
-        console.log("Respuesta del endpoint =>", data);
-  
-        const firstProvider = data?.providers?.[0]?.provider;
-        console.log("Primer provider =>", firstProvider);
-  
+        const firstProvider = data?.[0]?.provider;
+        console.log("firstProvider:", firstProvider);
         if (firstProvider === "telco-vision") {
           router.push("/balance");
         } else {
-          router.push("/new-sim");
+          setRequestCodeModal(true);
         }
       } catch (error) {
         console.log("Error validando SIM:", error);
+      } finally {
+        setIsLoading(false);
       }
     },
   });
-  
 
   useEffect(() => {
     setCurrentIdSim(formik.values.simNumber);
-  }, [formik.values.simNumber, formik.values.Name]);
-
-  useEffect(() => {
-    setType(determineType(formik.values.simNumber));
+    setSimType(determineType(formik.values.simNumber));
   }, [formik.values.simNumber]);
 
   const handleInfoModal = () => {
@@ -133,11 +108,7 @@ const SignIn = () => {
     }
   }, [auth]);
 
-  const stateModal = useAppSelector((state) => {
-    return state.modalReset.modalReset;
-  });
-
-  const dispatch = useDispatch();
+  const stateModal = useAppSelector((state) => state.modalReset.modalReset);
 
   return (
     <ScrollView>
@@ -146,34 +117,21 @@ const SignIn = () => {
         style={[
           themeMode === ThemeMode.Dark
             ? styles.container
-            : {
-                ...styles.container,
-                backgroundColor: theme.lightMode.colors.cyanSuperLight,
-              },
+            : { ...styles.container, backgroundColor: theme.lightMode.colors.cyanSuperLight },
         ]}
       >
         <View style={{ gap: 50 }}>
           <View style={styles.containerHeader}>
             <ImageBackground
-              source={
-                themeMode === ThemeMode.Dark
-                  ? LoginHeaderImage
-                  : LoginHeaderImageLight
-              }
+              source={themeMode === ThemeMode.Dark ? LoginHeaderImage : LoginHeaderImageLight}
               resizeMode="cover"
               imageStyle={styles.background}
             >
               <View style={styles.containerHeaderImage}>
-                <Text
-                  allowFontScaling={false}
-                  style={styles.containerHeaderTitle}
-                >
+                <Text allowFontScaling={false} style={styles.containerHeaderTitle}>
                   {t(`${baseMsg}.header.title`)}
                 </Text>
-                <Text
-                  allowFontScaling={false}
-                  style={styles.containerHeaderMessage}
-                >
+                <Text allowFontScaling={false} style={styles.containerHeaderMessage}>
                   {t(`${baseMsg}.header.message`)}
                 </Text>
               </View>
@@ -206,33 +164,17 @@ const SignIn = () => {
               </Pressable>
             </View>
             <View style={styles.containerFormFields}>
-            <InputField
-              label="Número de SIM"
-              onChangeText={formik.handleChange("simNumber")}
-              onBlur={formik.handleBlur("simNumber")}
-              value={formik.values.simNumber}
-              error={formik.touched.simNumber ? formik.errors.simNumber : null}
-              maxLength={6}
-              placeholder="Ingresa tu número de SIM"
-            />
-
               <InputField
                 label={t(`${baseMsg}.fields.sim.label`)}
                 onChangeText={formik.handleChange("simNumber")}
                 handleBlur={formik.handleBlur("simNumber")}
                 value={formik.values.simNumber}
-                error={
-                  formik.touched.simNumber ? formik.errors.simNumber : null
-                }
+                error={formik.touched.simNumber ? formik.errors.simNumber : null}
                 required={true}
                 placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
                 suffixIcon={
                   <IconSvg
-                    color={
-                      themeMode === ThemeMode.Dark
-                        ? theme.colors.iconDefault
-                        : "#A1A1A1"
-                    }
+                    color={themeMode === ThemeMode.Dark ? theme.colors.iconDefault : "#A1A1A1"}
                     height={25}
                     width={25}
                     type="info"
@@ -241,25 +183,21 @@ const SignIn = () => {
                 inputMode="numeric"
                 maxLength={6}
                 status={
-                  type
+                  simType
                     ? "success"
                     : formik.values.simNumber.length === 6
                     ? "info"
                     : null
                 }
                 statusMessage={
-                  !type
+                  !simType
                     ? t(`${baseMsg}.fields.sim.invalidSim`)
-                    : t(`${baseMsg}.fields.sim.${type}Sim`)
+                    : t(`${baseMsg}.fields.sim.${simType}Sim`)
                 }
                 onPressIcon={handleInfoModal}
               />
             </View>
-            <Button
-              onClick={formik.handleSubmit}
-              variant="primaryPress"
-              disabled={type === false}
-            >
+            <Button onClick={formik.handleSubmit} variant="primaryPress" disabled={!simType}>
               <Text allowFontScaling={false} style={styles.loadingButton}>
                 {t(`${baseMsg}.actions.requestCode`)}
               </Text>
@@ -277,10 +215,12 @@ const SignIn = () => {
         {requestCodeModal && (
           <VerificationSim
             showModal={requestCodeModal}
-            validateCode={validateCode}
             resetModal={() => setRequestCodeModal(false)}
             isLoading={isLoading}
-          />
+            onVerified={() => {
+              router.push("/home/");
+            }}
+        />
         )}
 
         <ModalInfo
@@ -353,12 +293,6 @@ const styles = StyleSheet.create({
     display: "flex",
     gap: 20,
   },
-  containerHeaderBar: {
-    alignItems: "center",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
   containerHeaderImage: {
     aspectRatio: 2.196,
     borderRadius: 18,
@@ -386,28 +320,5 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     height: 158,
     width: "100%",
-  },
-  notificationsButton: {
-    alignItems: "center",
-    aspectRatio: 1,
-    backgroundColor: theme.colors.roundedGray,
-    borderRadius: 100,
-    display: "flex",
-    justifyContent: "center",
-    width: 44,
-  },
-  containerAction: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 32,
-  },
-  iconButton: {
-    alignItems: "center",
-    aspectRatio: 1,
-    backgroundColor: theme.colors.roundedGray,
-    borderRadius: 100,
-    display: "flex",
-    justifyContent: "center",
-    width: 44,
   },
 });
