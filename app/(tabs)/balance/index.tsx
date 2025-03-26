@@ -1,34 +1,32 @@
+import React, { useEffect, useMemo } from "react";
 import { View, ScrollView, BackHandler, Platform } from "react-native";
-import { useEffect, useMemo } from "react";
-import { useRouter, Stack } from "expo-router"; 
+import { useRouter, Stack } from "expo-router";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 import { balanceStyles } from "./balanceStyles";
-
 import { useAuth } from "@/context/auth";
+import { LinearGradient } from "expo-linear-gradient";
+import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 
-import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
+import HeaderEncriptados from "@/components/molecules/HeaderEncriptados/HeaderEncriptados";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
 import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance";
 import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
 import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimButton";
-import HeaderEncriptados from "@/components/molecules/HeaderEncriptados/HeaderEncriptados";
 
 const BalanceScreen = () => {
-  const router = useRouter(); 
+  const router = useRouter();
   const { colors } = useTheme<ThemeCustom>();
+  const { themeMode } = useDarkModeTheme();
+  const isDarkMode = themeMode === "dark";
   const { providers } = useAuth();
+
   const currentPlan = useMemo(() => {
     const validProvider = providers?.find((p) => p?.plans?.length > 0);
     return validProvider?.plans?.[0];
   }, [providers]);
-   
 
-  useEffect(() => {
-    console.log("💡 currentPlan en BalanceScreen:", currentPlan);
-  }, [currentPlan]);
-  
   useEffect(() => {
     const handleBack = () => {
       router.back();
@@ -41,12 +39,21 @@ const BalanceScreen = () => {
     }
   }, [router]);
 
+  const BackgroundWrapper = isDarkMode ? View : LinearGradient;
+  const backgroundProps = isDarkMode
+    ? { style: [balanceStyles.container, { backgroundColor: colors.background }] }
+    : {
+        colors: ["#E6F9FF", "#FFFFFF"],
+        start: { x: 0, y: 0 },
+        end: { x: 0, y: 1 },
+        style: balanceStyles.container,
+      };
+
   return (
     <>
-      {/* ✅ Se mantiene el header en iOS para permitir gestos de swipe-back */}
       <Stack.Screen
         options={{
-          headerShown: true, 
+          headerShown: true,
           headerTitle: "",
           headerTransparent: true,
           headerBackTitleVisible: false,
@@ -55,38 +62,31 @@ const BalanceScreen = () => {
         }}
       />
 
-      <View style={{ ...balanceStyles.container, backgroundColor: colors.background }}>
-        {/* 🔹 Header con botón de configuración */}
+      <BackgroundWrapper {...backgroundProps}>
         <HeaderEncriptados settingsLink="balance/settings" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
-          {/* 🔹 Selector de SIM y Divisa */}
           <SimCurrencySelector />
 
-          {/* 🔹 Línea separadora gris */}
           <View style={balanceStyles.separator} />
 
-          {/* 🔹 Saldo actual */}
           <CurrentBalance
             usedData={currentPlan?.useddatabyte}
             totalData={currentPlan?.pckdatabyte}
             format={currentPlan?.format}
           />
 
-          {/* 🔹 Tarjeta de datos móviles */}
           <DataBalanceCard
             totalData={currentPlan?.pckdatabyte}
             format={currentPlan?.format}
             region={currentPlan?.name}
           />
 
-          {/* 🔹 Tarjeta de recarga */}
           <TopUpCard />
 
-          {/* 🔹 Botón para borrar SIM con mayor espacio */}
           <DeleteSimButton onPress={() => console.log("SIM borrada")} />
         </ScrollView>
-      </View>
+      </BackgroundWrapper>
     </>
   );
 };
