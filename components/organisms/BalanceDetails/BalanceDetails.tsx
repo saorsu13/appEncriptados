@@ -34,6 +34,7 @@ import { useFocusEffect } from "expo-router";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
+import { getCurrency, getCurrentBalanceByCurrency } from "@/api/simbalance";
 
 import { WebView } from "react-native-webview";
 import { setBalance } from "@/features/balance/balanceSlice";
@@ -50,14 +51,16 @@ const BalanceDetails = ({ data }: any) => {
   const globalCurrency = useAppSelector((state) => state.currency.currency);
   const sims = useAppSelector((state: any) => state.sims.sims);
 
-  const {
-    data: getbalance,
-    isFetching,
-    refetch,
-  } = useQuery<BalanceResponse>({
+  const { data: getbalance, isFetching, refetch } = useQuery<BalanceResponse>({
     gcTime: 0,
-    queryKey: ["getCurrentBalanceByCurrency", globalCurrency],
+    queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency],
+    queryFn: async () => {
+      if (!currentSim) return null;
+      return await getCurrentBalanceByCurrency(currentSim, globalCurrency);
+    },
+    enabled: !!currentSim,
   });
+  
 
   const baseMsg = "pages.home";
   const currentSim = useSelector((state: any) => state.sims.currentSim);

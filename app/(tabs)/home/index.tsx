@@ -35,6 +35,7 @@ import { ActivityIndicator } from "react-native-paper";
 import Label from "@/components/atoms/Label/Label";
 import { Linking } from "react-native";
 import Constants from "expo-constants";
+import { getCurrentBalanceByCurrency } from "@/api/simbalance";
 
 import { determineType } from "@/utils/utils";
 import {
@@ -131,8 +132,14 @@ const Home = () => {
 
   const { refetch: refetchCurrency } = useQuery<BalanceResponse>({
     gcTime: 0,
-    queryKey: ["getCurrentBalanceByCurrency", globalCurrency],
+    queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency],
+    queryFn: async () => {
+      if (!currentSim) return null;
+      return await getCurrentBalanceByCurrency(currentSim, globalCurrency);
+    },
+    enabled: !!currentSim,
   });
+  
 
   const handleCountry = (value) => {
     setPrevCountryValue(`${countryValue}`);

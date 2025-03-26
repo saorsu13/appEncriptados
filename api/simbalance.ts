@@ -61,7 +61,7 @@ export const getCurrentBalanceByCurrency = async (
     return response.data;
   } catch (error) {
     console.error("Error en getCurrentBalanceByCurrency:", error);
-    throw error; // Permite que useQuery maneje el error
+    throw error;
   }
 };
 

@@ -6,16 +6,13 @@ import {
   useEffect,
   useState,
 } from "react";
-
 import api from "../config/api";
 import { UserInfo } from "@/features/sign-in/types";
 import { useDispatch } from "react-redux";
 import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 
-
 export const MIN_PASSWORD_LENGTH = 10;
-// Set this to true to require remembered users to enter their password.
 const ALWAYS_REQUIRE_LOGIN = true;
 
 export type User = {
@@ -24,21 +21,21 @@ export type User = {
   code: number;
 } & Partial<UserInfo>;
 
-type ProviderPlan = {
+export type ProviderPlan = {
   name: string;
   pckdatabyte: string;
   useddatabyte: string;
   format: string;
 };
 
-type ProviderType = {
+export type ProviderType = {
   provider: string;
   iccid: string;
   imsi: string;
   plans: ProviderPlan[];
 };
 
-const AuthContext = createContext<{
+export type AuthContextType = {
   signIn: (user: User, providers?: ProviderType[]) => void;
   signOut: () => void;
   user: User | null;
@@ -46,13 +43,17 @@ const AuthContext = createContext<{
   isLoading: boolean;
   getSignInRoute: () => any;
   providers: ProviderType[];
-} | null>(null);
+  setProviders: (providers: ProviderType[]) => void;
+};
 
-const [providers, setProviders] = useState<ProviderType[]>([]);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// This hook can be used to access the user info.
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }
 
 const storeUser = async (user: User) => {
@@ -67,17 +68,16 @@ const deleteUser = async () => {
   try {
     await AsyncStorage.removeItem("@user");
   } catch (e) {
-    console.error("Failed to save the data to the storage", e);
+    console.error("Failed to delete the data from storage", e);
   }
 };
 
 export const loadUser = async (): Promise<User | null> => {
   try {
     const storedUser = await AsyncStorage.getItem("@user");
-
     return storedUser ? JSON.parse(storedUser) : null;
   } catch (e) {
-    console.error("Failed to save the data to the storage", e);
+    console.error("Failed to load the data from storage", e);
   }
   return null;
 };
@@ -94,18 +94,19 @@ export function AuthProvider({
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [providers, setProviders] = useState<ProviderType[]>([]);
+
   const getSignInRoute = () => "/sign-in/";
   const dispatch = useDispatch();
 
-  const modalRequiredPassword = useAppSelector((state) => {
-    return state.modalPasswordRequired.isModalVisible;
-  });
+  const modalRequiredPassword = useAppSelector(
+    (state) => state.modalPasswordRequired.isModalVisible
+  );
 
   useEffect(() => {
     userPromise.then(async (user) => {
       if (user) {
         setUser(user);
-
         if (!modalRequiredPassword) {
           setIsLoggedIn(true);
         }
@@ -125,18 +126,19 @@ export function AuthProvider({
           dispatch(addSim(user));
           dispatch(updateCurrentSim(user.idSim));
           storeUser(user);
-        },        
+        },
         signOut: () => {
           setUser(null);
           setIsLoggedIn(false);
           setProviders([]);
           deleteUser();
-        },        
-        user: user,
+        },
+        user,
         isLoggedIn,
         isLoading,
         getSignInRoute,
         providers,
+        setProviders,
       }}
     >
       {children}

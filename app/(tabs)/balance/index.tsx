@@ -18,16 +18,17 @@ import HeaderEncriptados from "@/components/molecules/HeaderEncriptados/HeaderEn
 const BalanceScreen = () => {
   const router = useRouter(); 
   const { colors } = useTheme<ThemeCustom>();
+  
   const { providers } = useAuth();
-  const currentPlan = useMemo(() => {
-    const validProvider = providers?.find((p) => p?.plans?.length > 0);
-    return validProvider?.plans?.[0];
-  }, [providers]);
-   
-
   useEffect(() => {
-    console.log("💡 currentPlan en BalanceScreen:", currentPlan);
-  }, [currentPlan]);
+    console.log("providers:", providers);
+  }, [providers]);
+
+  const plans = useMemo(() => {
+    const validProvider = providers?.find((p) => Array.isArray(p.plans) && p.plans.length > 0);
+    return validProvider ? validProvider.plans : [];
+  }, [providers]);
+    
   
   useEffect(() => {
     const handleBack = () => {
@@ -67,18 +68,18 @@ const BalanceScreen = () => {
           <View style={balanceStyles.separator} />
 
           {/* 🔹 Saldo actual */}
-          <CurrentBalance
-            usedData={currentPlan?.useddatabyte}
-            totalData={currentPlan?.pckdatabyte}
-            format={currentPlan?.format}
-          />
+          <CurrentBalance/>
 
           {/* 🔹 Tarjeta de datos móviles */}
-          <DataBalanceCard
-            totalData={currentPlan?.pckdatabyte}
-            format={currentPlan?.format}
-            region={currentPlan?.name}
-          />
+          {plans.map((plan, index) => (
+            <DataBalanceCard
+              key={index}
+              totalData={plan.pckdatabyte}
+              format={plan.format}
+              region={plan.name}
+            />
+          ))}
+
 
           {/* 🔹 Tarjeta de recarga */}
           <TopUpCard />

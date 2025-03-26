@@ -34,18 +34,14 @@ const LoginHeaderImage = require("@/assets/images/login-header.png");
 const LoginHeaderImageLight = require("@/assets/images/login-header-light.png");
 
 const SignIn = () => {
-  const {
-    setCurrentIdSim,
-    showModal,
-    setTypeOfProcess,
-  } = useModalActivateSim();
-
+  const { setCurrentIdSim, showModal, setTypeOfProcess } = useModalActivateSim();
+  const { setProviders, isLoggedIn } = useAuth();
+  
   useFocusEffect(
     useCallback(() => {
       setTypeOfProcess("signin");
     }, [])
   );
-
   const { themeMode } = useDarkModeTheme();
   const [requestCodeModal, setRequestCodeModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,9 +70,9 @@ const SignIn = () => {
       try {
         setIsLoading(true);
         const data = await getSubscriberData(values.simNumber);
-        const firstProvider = data?.[0]?.provider;
-        console.log("firstProvider:", firstProvider);
-        if (firstProvider === "telco-vision") {
+        console.log("firstProvider:", data.provider);
+        setProviders(data.providers);
+        if (data.provider === "telco-vision") {
           router.push("/balance");
         } else {
           setRequestCodeModal(true);
