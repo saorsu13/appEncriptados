@@ -21,16 +21,12 @@ const BalanceScreen = () => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const { providers } = useAuth();
-  const currentPlan = useMemo(() => {
-    const validProvider = providers?.find((p) => p?.plans?.length > 0);
-    return validProvider?.plans?.[0];
+  const plans = useMemo(() => {
+    const validProvider = providers?.find((p) => Array.isArray(p.plans) && p.plans.length > 0);
+    return validProvider ? validProvider.plans : [];
   }, [providers]);
-   
-
-  useEffect(() => {
-    console.log("💡 currentPlan en BalanceScreen:", currentPlan);
-  }, [currentPlan]);
   
+   
   useEffect(() => {
     const handleBack = () => {
       router.back();
@@ -75,11 +71,7 @@ const BalanceScreen = () => {
           <View style={balanceStyles.separator} />
 
           {/* 🔹 Saldo actual */}
-          <CurrentBalance
-            usedData={currentPlan?.useddatabyte}
-            totalData={currentPlan?.pckdatabyte}
-            format={currentPlan?.format}
-          />
+          <CurrentBalance/>
 
           {/* 🔹 Tarjeta de datos móviles */}
           {plans.map((plan, index) => (
