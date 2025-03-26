@@ -72,13 +72,13 @@ const HeaderEncriptados = ({
         ) : owner === "app-fantasma" ? (
           <Image
             style={{
-              width: 250,
-              height: 38,
+              width: 90,
+              height: 65,
             }}
             source={
               themeMode === ThemeMode.Dark
-                ? require("@/assets/images/logoEncriptadosW.png")
-                : require("@/assets/images/logoEncriptadosW.png")
+                ? require("@/assets/images/encriptados_logo_adaptive-icon_003.png")
+                : require("@/assets/images/encriptados_logo_adaptive-icon_003.png")
             }
           />
         ) : null}
