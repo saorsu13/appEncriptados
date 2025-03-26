@@ -40,40 +40,35 @@ export default function TabOneScreen() {
   const unsubscribe = NetInfo.addEventListener((state) => {
     state;
   });
-
   unsubscribe();
 
   const loading = useAppSelector((state) => state.loading.isLoading);
-  const { isModalOpen, closeModal, openModal } = useModalAdminSims();
+  const { isModalOpen } = useModalAdminSims();
 
   const modalRequiredPassword = useAppSelector((state) => {
     return state.modalPasswordRequired.isModalVisible;
   });
 
   return (
-    <>
-      <ModalActivateSimProvider>
-        <ModalPaymentProvider>
-          <ModalAdminSimsProvider>
-            <ModalProvider>
-              <InsertSimCardModal />
-              <SimListModal />
-              {!modalRequiredPassword ? <Loader visible={loading} /> : null}
-              <TabLayout />
-              <ModalPaymentController />
-            </ModalProvider>
-          </ModalAdminSimsProvider>
-        </ModalPaymentProvider>
-      </ModalActivateSimProvider>
-    </>
+    <ModalActivateSimProvider>
+      <ModalPaymentProvider>
+        <ModalAdminSimsProvider>
+          <ModalProvider>
+            <InsertSimCardModal />
+            <SimListModal />
+            {!modalRequiredPassword ? <Loader visible={loading} /> : null}
+            <TabLayout />
+            <ModalPaymentController />
+          </ModalProvider>
+        </ModalAdminSimsProvider>
+      </ModalPaymentProvider>
+    </ModalActivateSimProvider>
   );
 }
 
 export function TabLayout() {
   const { themeMode } = useDarkModeTheme();
-
   const { isMenuVisible } = useMenu();
-
   const { colors } = useTheme<ThemeCustom>();
 
   return (
@@ -86,7 +81,6 @@ export function TabLayout() {
       }}
       screenOptions={{
         tabBarActiveTintColor: "white",
-        tabBarLabelStyle: {},
         tabBarStyle: {
           height: isMenuVisible ? (Platform.OS === "ios" ? 100 : 100) : 0,
           paddingTop: Platform.OS === "ios" ? 40 : 0,
@@ -100,6 +94,7 @@ export function TabLayout() {
         },
       }}
     >
+      {/* Tabs reales */}
       <Tabs.Screen
         name="home-tab"
         options={{
@@ -107,15 +102,8 @@ export function TabLayout() {
           headerShown: false,
           href: isMenuVisible ? "/home-tab" : null,
           tabBarIcon: ({ focused }) => (
-            <View
-              style={[styles.iconContainer, focused && styles.focusedCircle]}
-            >
-              <IconSvg
-                height={25}
-                width={25}
-                color="#969696"
-                type="homeiconmenu"
-              />
+            <View style={[styles.iconContainer, focused && styles.focusedCircle]}>
+              <IconSvg height={25} width={25} color="#969696" type="homeiconmenu" />
               <Text allowFontScaling={false} style={styles.tabText}>
                 {t("pages.home-tab.initMenu")}
               </Text>
@@ -131,15 +119,8 @@ export function TabLayout() {
           headerShown: false,
           href: isMenuVisible ? "products-tab" : null,
           tabBarIcon: ({ focused }) => (
-            <View
-              style={[styles.iconContainer, focused && styles.focusedCircle]}
-            >
-              <IconSvg
-                height={25}
-                width={25}
-                color="#969696"
-                type="shopiconmenu"
-              />
+            <View style={[styles.iconContainer, focused && styles.focusedCircle]}>
+              <IconSvg height={25} width={25} color="#969696" type="shopiconmenu" />
               <Text allowFontScaling={false} style={styles.tabText}>
                 {t("pages.home-tab.productsMenu")}
               </Text>
@@ -155,9 +136,7 @@ export function TabLayout() {
           href: isMenuVisible ? "/home" : null,
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <View
-              style={[styles.iconContainer, focused && styles.focusedCircle]}
-            >
+            <View style={[styles.iconContainer, focused && styles.focusedCircle]}>
               <IconSvg height={25} width={25} color="#969696" type="sim" />
               <Text allowFontScaling={false} style={styles.tabText}>
                 {t("pages.home-tab.simsMenu")}
@@ -167,56 +146,14 @@ export function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
-        name="callback/index"
-        options={{
-          headerShown: false,
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="new-sim/index"
-        options={{
-          headerShown: false,
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="new-sim/edit-sim/[id]/index"
-        options={{
-          headerShown: false,
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="substitute/index"
-        options={{
-          headerShown: false,
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="settings-sign"
-        options={{ headerShown: false, href: null }}
-      />
-
-      <Tabs.Screen
-        name="voice-filter/index"
-        options={{
-          headerShown: false,
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="balance"
-        options={{
-          headerShown: false,
-        }}
-      />
+      {/* Estas rutas probablemente no deberían estar en Tabs. Se mantienen por ahora como pediste */}
+      <Tabs.Screen name="callback/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="new-sim/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="new-sim/edit-sim/[id]/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="substitute/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="settings-sign" options={{ headerShown: false }} />
+      <Tabs.Screen name="voice-filter/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="balance" options={{ headerShown: false }} />
     </Tabs>
   );
 }

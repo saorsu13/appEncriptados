@@ -11,7 +11,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -109,7 +109,10 @@ export default function RootLayout() {
   }, [appIsReady]);
 
   useEffect(() => {
-    const onBackPress = () => true;
+    const onBackPress = () => {
+      router.back();
+      return true;
+    };
     BackHandler.addEventListener("hardwareBackPress", onBackPress);
     return () =>
       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
@@ -145,12 +148,30 @@ export default function RootLayout() {
                                   {/* ⚠️ Reemplazo de NavigationContainer con Stack de expo-router */}
                                   <Stack
                                     screenOptions={{
-                                      headerShown: false,
+                                      headerShown: true,
                                       gestureEnabled: true,
                                     }}
                                   >
-                                    <Stack.Screen name="(tabs)" />
-                                    <Stack.Screen name="index" />
+                                    <Stack.Screen name="(tabs)"
+                                      options={{
+                                        headerShown: true,
+                                        gestureEnabled: true,
+                                        headerTransparent: true,
+                                        headerTitle: '',
+                                        headerBackTitleVisible: false,
+                                        headerTintColor: 'transparent',
+                                      }}
+                                    />
+                                    <Stack.Screen name="index"
+                                      options={{
+                                        headerShown: true,
+                                        gestureEnabled: true,
+                                        headerTransparent: true,
+                                        headerTitle: '',
+                                        headerBackTitleVisible: false,
+                                        headerTintColor: 'transparent',
+                                      }}
+                                    />
                                   </Stack>
                                 </>
                               ) : null}

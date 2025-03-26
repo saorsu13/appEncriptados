@@ -63,7 +63,7 @@ const VerificationSim = ({
 
   const goHome = () => {
     closeSuccessModal();
-    router.replace("/home/");
+    router.push("/home/");
   };
 
   const addNewSim = () => {

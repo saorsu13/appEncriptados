@@ -1,7 +1,7 @@
 import { ThemeCustom } from "@/config/theme2";
 import { useModalPassword } from "@/context/modalpasswordprovider";
 import { useTheme } from "@shopify/restyle";
-import { Stack } from "expo-router/stack";
+import { Stack } from "expo-router";
 
 export default function Layout() {
   const { colors } = useTheme<ThemeCustom>();
@@ -10,15 +10,20 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen
+      <Stack.Screen name="index"
         options={{
-          headerShown: false,
+          headerShown: true,
+          gestureEnabled: true,
+          headerTransparent: true,
+          headerTitle: '',
+          headerBackTitleVisible: false,
+          headerTintColor: 'transparent',
         }}
-        name="index"
       />
     </Stack>
   );

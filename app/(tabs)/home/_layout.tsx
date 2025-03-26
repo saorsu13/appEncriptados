@@ -3,7 +3,7 @@ import { useModalPassword } from "@/context/modalpasswordprovider";
 import { openModalRequired } from "@/features/modalPasswordRequired/modalPasswordRequiredSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { useTheme } from "@shopify/restyle";
-import { Stack } from "expo-router/stack";
+import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { AppState, AppStateStatus } from "react-native";
@@ -54,11 +54,21 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index" />
+      <Stack.Screen name="index"
+        options={{
+          headerShown: true,
+          gestureEnabled: true,
+          headerTransparent: true,
+          headerTitle: '',
+          headerBackTitleVisible: false,
+          headerTintColor: 'transparent',
+        }}
+      />
     </Stack>
   );
 }

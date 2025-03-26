@@ -46,12 +46,12 @@ const BalanceScreen = () => {
       {/* ✅ Se mantiene el header en iOS para permitir gestos de swipe-back */}
       <Stack.Screen
         options={{
-          headerShown: true, // ✅ Se debe mostrar el header para habilitar el gesto en iOS
+          headerShown: true, 
           headerTitle: "",
           headerTransparent: true,
           headerBackTitleVisible: false,
           headerTintColor: "white",
-          gestureEnabled: true, // ✅ Habilita el gesto de swipe-back en iOS
+          gestureEnabled: true,
         }}
       />
 

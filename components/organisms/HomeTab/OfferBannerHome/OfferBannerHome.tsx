@@ -94,8 +94,12 @@ const OfferBannerHome = () => {
         <View style={{ flex: 1, alignItems: "center" }}>
           <TouchableOpacity
             onPress={() => {
-              router.push(`/products-tab/aboutproduct/50228`);
+              router.push({
+                pathname: "/products-tab/aboutproduct/50228",
+                params: { fromHome: "true" },
+              });
             }}
+            
             style={{
               marginBottom: 10,
               backgroundColor: "#E3F8FF",

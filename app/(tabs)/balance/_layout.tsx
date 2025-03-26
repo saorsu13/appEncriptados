@@ -8,16 +8,16 @@ export default function BalanceLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true, // ✅ iOS necesita esto para permitir swipe-back
-        gestureEnabled: true, // ✅ Habilita el gesto de retroceso en iOS
-        contentStyle: { backgroundColor: colors.background }, // ✅ Mantiene el fondo
+        headerShown: true,
+        gestureEnabled: true,
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Screen
         name="index"
         options={{
-          headerShown: true, // ✅ iOS necesita el header visible para el swipe-back
-          gestureEnabled: true, // ✅ Habilita el gesto de retroceso en iOS
+          headerShown: true,
+          gestureEnabled: true,
           headerTitle: "",
           headerTransparent: true,
           headerBackTitleVisible: false,

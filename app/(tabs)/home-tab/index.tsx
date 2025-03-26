@@ -78,11 +78,6 @@ export default function HomeTab() {
       <View style={{ marginTop: 20, marginBottom: 50 }}>
         <SocialNetworks />
       </View>
-
-      {/* 🚀 Nuevo botón para redirigir a la vista balance */}
-      <View style={styles.buttonContainer}>
-        <Button title="Ver Balance" onPress={() => router.push("/balance")} />
-      </View>
     </ScrollView>
   );
 }

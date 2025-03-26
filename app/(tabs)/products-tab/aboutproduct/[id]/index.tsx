@@ -10,7 +10,10 @@ import {
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { router, useLocalSearchParams } from "expo-router";
+import { useFocusEffect, router, useLocalSearchParams } from "expo-router";
+import { BackHandler, Platform } from "react-native";
+import { useCallback } from "react";
+
 
 import { getProductsById } from "@/api/productsTab";
 import Button from "@/components/atoms/Button/Button";
@@ -68,6 +71,26 @@ const ProductPage = () => {
     gcTime: 0,
     queryFn: () => getProductsById(id as string),
   });
+
+  useFocusEffect(
+  useCallback(() => {
+    const onBack = () => {
+      router.push("/home"); // Redirige a home directamente
+      return true;
+    };
+
+    if (Platform.OS === 'android') {
+      BackHandler.addEventListener("hardwareBackPress", onBack);
+    }
+
+    return () => {
+      if (Platform.OS === 'android') {
+        BackHandler.removeEventListener("hardwareBackPress", onBack);
+      }
+    };
+  }, [])
+);
+
 
   const product = data as unknown as Product;
   const { openModalWithParams } = useModalPayment();
