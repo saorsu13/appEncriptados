@@ -13,14 +13,15 @@ export default function Layout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index"
+      <Stack.Screen
+        name="index"
         options={{
           headerShown: true,
           gestureEnabled: true,
           headerTransparent: true,
           headerTitle: '',
           headerBackTitleVisible: false,
-          headerTintColor: 'transparent',
+          headerTintColor: 'white',
         }}
       />
     </Stack>

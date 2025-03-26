@@ -148,13 +148,13 @@ export default function RootLayout() {
                                   {/* ⚠️ Reemplazo de NavigationContainer con Stack de expo-router */}
                                   <Stack
                                     screenOptions={{
-                                      headerShown: true,
+                                      headerShown: false,
                                       gestureEnabled: true,
                                     }}
                                   >
                                     <Stack.Screen name="(tabs)"
                                       options={{
-                                        headerShown: true,
+                                        headerShown: false,
                                         gestureEnabled: true,
                                         headerTransparent: true,
                                         headerTitle: '',
@@ -164,7 +164,7 @@ export default function RootLayout() {
                                     />
                                     <Stack.Screen name="index"
                                       options={{
-                                        headerShown: true,
+                                        headerShown: false,
                                         gestureEnabled: true,
                                         headerTransparent: true,
                                         headerTitle: '',

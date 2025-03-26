@@ -1,5 +1,4 @@
 import { ThemeCustom } from "@/config/theme2";
-import { useModalPassword } from "@/context/modalpasswordprovider";
 import { useTheme } from "@shopify/restyle";
 import { Stack } from "expo-router";
 
@@ -9,7 +8,7 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}

@@ -154,6 +154,8 @@ export function TabLayout() {
       <Tabs.Screen name="settings-sign" options={{ headerShown: false }} />
       <Tabs.Screen name="voice-filter/index" options={{ headerShown: false }} />
       <Tabs.Screen name="balance" options={{ headerShown: false }} />
+      <Tabs.Screen name="offers/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="distributors/index" options={{ headerShown: false }} />
     </Tabs>
   );
 }

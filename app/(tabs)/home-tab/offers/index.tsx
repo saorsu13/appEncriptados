@@ -7,13 +7,22 @@ import { useTheme } from "@shopify/restyle";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollView, View, StyleSheet } from "react-native";
 import { Text } from "react-native";
+import { useNavigation } from "expo-router";
+import { useLayoutEffect } from "react";
 
 const Offers = () => {
+  const navigation = useNavigation();
   const { data: productsApp, isFetching } = useQuery({
     queryKey: ["productsSim"],
     gcTime: 0, // Corregido gcTime a cacheTime
     queryFn: () => getProducts("app"),
   });
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   const { colors } = useTheme<ThemeCustom>();
 
