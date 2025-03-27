@@ -36,7 +36,11 @@ const DataBalanceCard = ({
 
         <View style={styles.rightSection}>
           <Icon name="earth" size={24} color={styles.regionText.color} />
-          <Text style={styles.regionText}>{region.toUpperCase()}</Text>
+          <View style={styles.textWrapper}>
+            <Text style={styles.regionText}>
+              {region.toUpperCase()}
+            </Text>
+          </View>
         </View>
       </View>
     </View>

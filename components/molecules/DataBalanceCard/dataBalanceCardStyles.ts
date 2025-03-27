@@ -44,10 +44,18 @@ export const getStyles = (isDarkMode: boolean) =>
     rightSection: {
       flexDirection: "row",
       alignItems: "center",
+      flex: 1,
+      maxWidth: "55%",
+    },
+    textWrapper: {
+      marginLeft: 10,
+      flexShrink: 1,
+      flexGrow: 1,
     },
     regionText: {
       color: isDarkMode ? "#FFFFFF" : "#1E1E1E",
-      fontSize: 14,
-      marginLeft: 10,
+      fontSize: 12,
+      lineHeight: 16,
+      flexWrap: "wrap",
     },
   });
