@@ -23,16 +23,18 @@ export const getSubscriberData = async (idSim: string) => {
       throw new Error(`Error en el request: ${response.status}`);
     }
 
-    const data = await response.json(); 
+    const data = await response.json();
+    const providers = data.providers || [];
+
     console.log(
       "Plan completo =>",
-      JSON.stringify(data[0]?.plans?.[0], null, 2)
+      JSON.stringify(providers[0]?.plans?.[0], null, 2)
     );
 
     return {
-      providers: data, 
-      provider: data[0]?.provider,
-      plan: data[0]?.plans?.[0]
+      providers,
+      provider: providers[0]?.provider,
+      plan: providers[0]?.plans?.[0],
     };
   } catch (error) {
     console.error("Error obteniendo data del subscriber:", error);

@@ -56,8 +56,8 @@ const SignIn = () => {
 
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
-      .required(t("validators.required"))
-      .test("len", t("validators.invalidSim"), (val) => val && val.length === 6),
+    .required(t("validators.required"))
+    .matches(/^\d+$/, t("validators.invalidSim")),
   });
 
   const formik = useFormik({
@@ -87,8 +87,10 @@ const SignIn = () => {
 
   useEffect(() => {
     setCurrentIdSim(formik.values.simNumber);
-    setSimType(determineType(formik.values.simNumber));
+    const isValid = /^\d+$/.test(formik.values.simNumber);
+    setSimType(isValid);
   }, [formik.values.simNumber]);
+  
 
   const handleInfoModal = () => {
     setModalVisible(!modalVisible);
@@ -177,14 +179,14 @@ const SignIn = () => {
                   />
                 }
                 inputMode="numeric"
-                maxLength={6}
+                maxLength={undefined}
                 status={
                   simType
                     ? "success"
-                    : formik.values.simNumber.length === 6
+                    : formik.values.simNumber.length > 0
                     ? "info"
                     : null
-                }
+                }                
                 statusMessage={
                   !simType
                     ? t(`${baseMsg}.fields.sim.invalidSim`)
@@ -193,7 +195,11 @@ const SignIn = () => {
                 onPressIcon={handleInfoModal}
               />
             </View>
-            <Button onClick={formik.handleSubmit} variant="primaryPress" disabled={!simType}>
+            <Button
+              onClick={formik.handleSubmit}
+              variant="primaryPress"
+              disabled={!formik.isValid || !formik.values.simNumber}
+            >
               <Text allowFontScaling={false} style={styles.loadingButton}>
                 {t(`${baseMsg}.actions.requestCode`)}
               </Text>
