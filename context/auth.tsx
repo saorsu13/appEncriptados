@@ -36,7 +36,7 @@ export type ProviderType = {
 };
 
 export type AuthContextType = {
-  signIn: (user: User, providers?: ProviderType[]) => void;
+  signIn: (user: User, providers?: ProviderType[], balance?: string) => void;
   signOut: () => void;
   user: User | null;
   isLoggedIn: boolean;
@@ -44,6 +44,7 @@ export type AuthContextType = {
   getSignInRoute: () => any;
   providers: ProviderType[];
   setProviders: (providers: ProviderType[]) => void;
+  balance: string | null;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -95,6 +96,7 @@ export function AuthProvider({
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [providers, setProviders] = useState<ProviderType[]>([]);
+  const [balance, setBalance] = useState<string | null>(null);
 
   const getSignInRoute = () => "/sign-in/";
   const dispatch = useDispatch();
@@ -119,18 +121,24 @@ export function AuthProvider({
   return (
     <AuthContext.Provider
       value={{
-        signIn: (user: User, newProviders: ProviderType[] = []) => {
+        signIn: (user: User, newProviders: ProviderType[] = [],  userBalance?: string) => {
+          console.log("🪙 Balance recibido en signIn:", userBalance);
+
+          setBalance(userBalance ?? null);
+          console.log("✅ Balance seteado en contexto:", userBalance);
+
           setUser(user);
-          setIsLoggedIn(true);
           setProviders(newProviders);
           dispatch(addSim(user));
           dispatch(updateCurrentSim(user.idSim));
           storeUser(user);
+          setIsLoggedIn(true);
         },
         signOut: () => {
           setUser(null);
           setIsLoggedIn(false);
           setProviders([]);
+          setBalance(null);
           deleteUser();
         },
         user,
@@ -139,6 +147,7 @@ export function AuthProvider({
         getSignInRoute,
         providers,
         setProviders,
+        balance,
       }}
     >
       {children}

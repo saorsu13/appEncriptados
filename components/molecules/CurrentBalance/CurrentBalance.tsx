@@ -6,6 +6,7 @@ import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { formatNumber } from "@/utils/utils";
 import { getStyles } from "./currentBalanceStyles";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
+import { useAuth } from "@/context/auth";
 
 type Props = {
   usedData?: string;
@@ -18,6 +19,8 @@ const CurrentBalance = ({ usedData = "0", totalData = "0", format = "mb" }: Prop
     queryKey: ["getCurrentBalance"],
     queryFn: () => getCurrentBalance(),
   });
+  const { balance } = useAuth();
+  console.log("💰 Balance en CurrentBalance:", balance);
 
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
@@ -29,11 +32,7 @@ const CurrentBalance = ({ usedData = "0", totalData = "0", format = "mb" }: Prop
         <Text style={styles.balanceLabel}>Saldo actual</Text>
         <View style={styles.balanceAmount}>
           <Text allowFontScaling={false} style={styles.balanceValue}>
-            {isFetching
-              ? "..."
-              : getbalance
-              ? `${formatNumber(getbalance?.balance?.toFixed(2))} ${getbalance?.currency_code}`
-              : "~"}
+          {balance ? `${parseFloat(balance).toFixed(2)} USD` : "~"}
           </Text>
         </View>
       </View>

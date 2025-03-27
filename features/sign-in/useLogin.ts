@@ -17,30 +17,36 @@ export function useLogin() {
   
   async function loginRequest(id: number, code: number, name: string) {
     try {
-      const response = await login({ id, code });
-      if (
-        response.ok &&
-        response.data &&
-        response?.data?.["status"] != "fail"
-      ) {
-        const providers = await getSubscriberData(id.toString());
-        const validProviders = providers?.filter(Boolean) || [];
+      const loginRes = await login({ id, code });
 
-        auth?.signIn({
-          simName: name,
-          idSim: id,
-          code: code,
-        },
-        validProviders
-      );
+      if (
+        loginRes.ok &&
+        loginRes.data &&
+        loginRes?.data?.["status"] !== "fail"
+      ) {
+        const subscriberRes = await getSubscriberData(id.toString());
+        const validProviders = subscriberRes?.providers?.filter(Boolean) || [];
+        const firstProvider = validProviders?.[0];
+
+        console.log("🧪 Balance que se enviará al contexto:", firstProvider?.balance);
+
+        auth?.signIn(
+          {
+            simName: name,
+            idSim: id,
+            code: code,
+          },
+          validProviders,
+          firstProvider?.balance
+        );
 
         return {
-          data: response.data,
+          data: loginRes.data,
           error: null,
         };
       }
 
-      return { error: response.originalError.code };
+      return { error: loginRes.originalError?.code };
     } catch (err) {
       return { error: err };
     }
@@ -48,3 +54,4 @@ export function useLogin() {
 
   return { loginRequest };
 }
+

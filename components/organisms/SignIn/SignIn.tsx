@@ -71,7 +71,16 @@ const SignIn = () => {
         setIsLoading(true);
         const data = await getSubscriberData(values.simNumber);
         console.log("firstProvider:", data.provider);
-        setProviders(data.providers);
+        console.log("Balance obtenido", data.balance)
+        auth.signIn(
+          {
+            simName: values.simNumber,
+            idSim: parseInt(values.simNumber),
+            code: 0,
+          },
+          data.providers,
+          data.balance
+        );
         if (data.provider === "telco-vision") {
           router.push("/balance");
         } else {
