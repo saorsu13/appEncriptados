@@ -57,13 +57,15 @@ export function useAuth() {
   return context;
 }
 
-const storeUser = async (user: User) => {
+const storeUser = async (user: User, balance: string | null) => {
   try {
     await AsyncStorage.setItem("@user", JSON.stringify(user));
+    await AsyncStorage.setItem("@balance", balance ?? "");
   } catch (e) {
     console.error("Failed to save the data to the storage", e);
   }
 };
+
 
 const deleteUser = async () => {
   try {
@@ -73,15 +75,20 @@ const deleteUser = async () => {
   }
 };
 
-export const loadUser = async (): Promise<User | null> => {
+export const loadUser = async (): Promise<{ user: User | null, balance: string | null }> => {
   try {
     const storedUser = await AsyncStorage.getItem("@user");
-    return storedUser ? JSON.parse(storedUser) : null;
+    const storedBalance = await AsyncStorage.getItem("@balance");
+    return {
+      user: storedUser ? JSON.parse(storedUser) : null,
+      balance: storedBalance ?? null,
+    };
   } catch (e) {
     console.error("Failed to load the data from storage", e);
   }
-  return null;
+  return { user: null, balance: null };
 };
+
 
 export function AuthProvider({
   children,
@@ -89,7 +96,7 @@ export function AuthProvider({
   onLoaded,
 }: {
   children: ReactNode;
-  userPromise: Promise<User | null>;
+  userPromise: Promise<{ user: User | null; balance: string | null }>;
   onLoaded: () => void;
 }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -106,9 +113,10 @@ export function AuthProvider({
   );
 
   useEffect(() => {
-    userPromise.then(async (user) => {
-      if (user) {
+    userPromise.then(async ({ user, balance }) => {
+      if (user && user.idSim && user.code) {
         setUser(user);
+        setBalance(balance);
         if (!modalRequiredPassword) {
           setIsLoggedIn(true);
         }
@@ -117,6 +125,7 @@ export function AuthProvider({
       onLoaded();
     });
   }, []);
+  
 
   return (
     <AuthContext.Provider
@@ -131,7 +140,7 @@ export function AuthProvider({
           setProviders(newProviders);
           dispatch(addSim(user));
           dispatch(updateCurrentSim(user.idSim));
-          storeUser(user);
+          storeUser(user, userBalance);
           setIsLoggedIn(true);
         },
         signOut: () => {

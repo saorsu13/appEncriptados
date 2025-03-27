@@ -35,7 +35,7 @@
     "@testing-library/react-native": "^12.6.1",
     "apisauce": "^3.0.1",
     "babel-plugin-inline-import": "^3.0.0",
-    "expo": "~52.0.36",
+    "expo": "~52.0.41",
     "expo-application": "~6.0.2",
     "expo-custom-switch": "^1.0.2",
     "expo-dev-client": "~5.0.12",

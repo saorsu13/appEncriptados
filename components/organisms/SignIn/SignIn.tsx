@@ -73,17 +73,19 @@ const SignIn = () => {
         console.log("firstProvider:", data.provider);
         console.log("Balance obtenido", data.balance)
         auth.signIn(
-          {
-            simName: values.simNumber,
-            idSim: parseInt(values.simNumber),
-            code: 0,
-          },
-          data.providers,
-          data.balance
-        );
+      {
+        simName: values.simNumber,
+        idSim: parseInt(values.simNumber),
+        code: 0, // Ajusta si tienes el código desde otro lugar
+      },
+      data.providers,
+      data.balance
+    );
         if (data.provider === "telco-vision") {
           router.push("/balance");
-        } else {
+        } else if (data.provider === "tottoli") {
+          router.push("/home");
+        }else {
           setRequestCodeModal(true);
         }
       } catch (error) {
