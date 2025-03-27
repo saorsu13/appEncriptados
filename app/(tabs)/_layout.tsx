@@ -33,6 +33,7 @@ import { ModalActivateSimProvider } from "@/context/modalactivatesim";
 import InsertSimCardModal from "@/components/molecules/InsertSimCardModal/InsertSimCardModal";
 import { t } from "i18next";
 
+
 export default function TabOneScreen() {
   const { isLoggedIn, isLoading, getSignInRoute } = useAuth();
   const path = usePathname();
@@ -147,15 +148,15 @@ export function TabLayout() {
       />
 
       {/* Estas rutas probablemente no deberían estar en Tabs. Se mantienen por ahora como pediste */}
-      <Tabs.Screen name="callback/index" options={{ headerShown: false }} />
-      <Tabs.Screen name="new-sim/index" options={{ headerShown: false }} />
-      <Tabs.Screen name="new-sim/edit-sim/[id]/index" options={{ headerShown: false }} />
-      <Tabs.Screen name="substitute/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="callback" options={{ headerShown: false }} />
+      <Tabs.Screen name="new-sim" options={{ headerShown: false }} />
+      <Tabs.Screen name="new-sim/edit-sim/[id]" options={{ headerShown: false }} />
+      <Tabs.Screen name="substitute" options={{ headerShown: false }} />
       <Tabs.Screen name="settings-sign" options={{ headerShown: false }} />
-      <Tabs.Screen name="voice-filter/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="voice-filter" options={{ headerShown: false }} />
       <Tabs.Screen name="balance" options={{ headerShown: false }} />
-      <Tabs.Screen name="offers/index" options={{ headerShown: false }} />
-      <Tabs.Screen name="distributors/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="offers" options={{ headerShown: false }} />
+      <Tabs.Screen name="distributors" options={{ headerShown: false }} />
     </Tabs>
   );
 }

@@ -49,11 +49,14 @@ import { isPending } from "@reduxjs/toolkit";
 import useModalAll from "@/hooks/useModalAll";
 import { STORE_URLS } from "@/config/links/allLinks";
 
+
 const baseMsg = "pages.home";
 
 const Home = () => {
   const { isLoggedIn, isLoading, signOut } = useAuth();
-
+  useEffect(() => {
+    console.log("🏠 Vista HOME cargada correctamente");
+  }, []);
   const isActive = useAppSelector(
     (state) => state.activePasswordRequired.isActive
   );

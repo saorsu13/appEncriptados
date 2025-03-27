@@ -58,27 +58,29 @@ export default function RootLayout() {
   }
 
   useEffect(() => {
-    async function prepare() {
-      try {
-        await Promise.all([
-          loadAsync({
-            Inter_300Light,
-            Inter_400Regular,
-            Inter_500Medium,
-            Inter_600SemiBold,
-            Inter_700Bold,
-          }),
-          userRef.current,
-        ]);
-      } catch (e) {
-        console.warn(e);
-      } finally {
+    const prepare = async () => {
+      console.log("⏳ Preparando app...");
+      await SplashScreen.preventAutoHideAsync();
+  
+      await loadAsync({
+        Inter_300Light,
+        Inter_400Regular,
+        Inter_500Medium,
+        Inter_600SemiBold,
+        Inter_700Bold,
+      });
+  
+      // Espera 500ms como buffer para asegurar que todo está listo
+      setTimeout(async () => {
+        console.log("✅ Recursos cargados, ocultando splash");
+        await SplashScreen.hideAsync();
         setAppIsReady(true);
-      }
-    }
-
+      }, 500);
+    };
+  
     prepare();
   }, []);
+  
 
   useEffect(() => {
     if (appIsReady) {
@@ -121,7 +123,7 @@ export default function RootLayout() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <BottomSheetModalProvider>
         <SafeAreaProvider>
           <DarkModeProvider>
@@ -136,7 +138,6 @@ export default function RootLayout() {
                       >
                         <QueryClientProvider client={queryClient}>
                           <SafeAreaView
-                            onLayout={onLayoutRootView}
                             style={styles.container}
                           >
                             {showRequestPasswordComponent && (
@@ -146,6 +147,7 @@ export default function RootLayout() {
                               {appIsReady ? (
                                 <>
                                   {/* ⚠️ Reemplazo de NavigationContainer con Stack de expo-router */}
+                                  {console.log("🎬 appIsReady = true → renderizando Stack...")}
                                   <Stack
                                     screenOptions={{
                                       headerShown: false,
