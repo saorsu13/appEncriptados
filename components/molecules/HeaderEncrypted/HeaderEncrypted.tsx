@@ -72,13 +72,13 @@ const HeaderEncrypted = ({
         ) : owner === "app-fantasma" ? (
           <Image
             style={{
-              width: 35,
+              width: 230,
               height: 35,
             }}
             source={
               themeMode === ThemeMode.Dark
-                ? require("@/assets/images/logo-l.png")
-                : require("@/assets/images/logo-d.png")
+                ? require("@/assets/images/encriptados_logo_b.png")
+                : require("@/assets/images/encriptados_logo.png")
             }
           />
         ) : null}
@@ -105,20 +105,21 @@ export default HeaderEncrypted;
 const styles = StyleSheet.create({
   containerHeader: {
     paddingHorizontal: 15,
-    paddingVertical: 15,
-    display: "flex",
-    justifyContent: "space-between",
+    paddingVertical: 20, // Aumenta el padding vertical
+    minHeight: 70,       // Por si quieres forzar un alto mínimo mayor
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   iconButton: {
     alignItems: "center",
-    aspectRatio: 1,
-    borderRadius: 100,
-    display: "flex",
     justifyContent: "center",
-    width: 44,
-  },
+    width: 60,     // Aumenta este valor según tu preferencia
+    height: 60,    // Agrega una altura fija para que sea un contenedor cuadrado
+    borderRadius: 30,  // La mitad de la altura/anchura para conservar la forma circular
+    backgroundColor: "rgba(0,0,0,0.2)", // Solo un ejemplo, para que veas el contenedor
+  }
+  ,
   titleContainer: {
     alignItems: "center",
     justifyContent: "center",

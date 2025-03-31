@@ -20,7 +20,6 @@ const CurrentBalance = ({ usedData = "0", totalData = "0", format = "mb" }: Prop
     queryFn: () => getCurrentBalance(),
   });
   const { balance } = useAuth();
-  console.log("💰 Balance en CurrentBalance:", balance);
 
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";

@@ -1,6 +1,5 @@
 export const getSubscriberData = async (idSim: string) => {
   try {
-    console.log("📩 getSubscriberData => idSim recibido:", idSim);
 
     const response = await fetch(
       "https://encriptados.es/wp-json/encriptados/v1/subscriber",
@@ -17,7 +16,6 @@ export const getSubscriberData = async (idSim: string) => {
       }
     );
 
-    console.log("📡 getSubscriberData => status del response:", response.status);
 
     if (!response.ok) {
       throw new Error(`❌ Error en el request: ${response.status}`);
@@ -29,9 +27,6 @@ export const getSubscriberData = async (idSim: string) => {
     const firstProvider = providers[0];
     const firstPlan = firstProvider?.plans?.[0];
 
-    console.log("📦 Respuesta completa del endpoint:", JSON.stringify(data, null, 2));
-    console.log("🪙 Balance recibido:", firstProvider?.balance);
-    console.log("📶 Plan completo:", JSON.stringify(firstPlan, null, 2));
 
     return {
       providers,

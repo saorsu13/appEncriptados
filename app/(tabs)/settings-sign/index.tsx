@@ -33,10 +33,6 @@ const Settigns = () => {
           value={t(`${baseMsg}.${currentLang}`)}
           path={"settings-sign/LaguageConf"}
         />
-        {/* <SettingsMenuItem
-          title={"Cambiar logo de APP"}
-          path={"home-tab/settings/home/change-icon"}
-        /> */}
       </View>
     </ScrollView>
   );

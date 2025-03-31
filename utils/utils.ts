@@ -9,7 +9,7 @@ export const determineType = (id) => {
 };
 
 export const formatNumber = (number) => {
-  const floatNumber = parseFloat(number);
+  const floatNumber = parseFloat(number); 
   if (isNaN(floatNumber)) {
     return "";
   }

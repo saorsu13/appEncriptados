@@ -10,7 +10,7 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}

@@ -77,17 +77,6 @@ const FilterMenu = () => {
         ]}
         onPress={() => dispatch(setProduct(SECTIONS.PHONE))}
       >
-        <Text
-          allowFontScaling={false}
-          style={[
-            styles.menuText,
-            selectedValue === SECTIONS.PHONE && {
-              color: colors.primaryText,
-            },
-          ]}
-        >
-          {t("pages.home-tab.cellPhone")}
-        </Text>
       </TouchableOpacity>
     </View>
   );

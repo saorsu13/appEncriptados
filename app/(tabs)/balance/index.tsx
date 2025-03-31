@@ -8,7 +8,7 @@ import { useAuth } from "@/context/auth";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 
-import HeaderEncriptados from "@/components/molecules/HeaderEncriptados/HeaderEncriptados";
+import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
 import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance";
 import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
@@ -63,22 +63,33 @@ const BalanceScreen = () => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-        <HeaderEncriptados settingsLink="balance/settings" />
+        <HeaderEncrypted settingsLink="balance/settings" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
-          <SimCurrencySelector />
+        <SimCurrencySelector
+          sims={
+            providers?.map((provider) => ({
+              id: provider.iccid,          // Usamos el iccid como identificador único.
+              name: "Sim TIM",             // Nombre fijo.
+              logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"), // Ícono por default.
+              number: provider.iccid,      // Mostramos el iccid.
+            })) || []
+          }
+        />
+
+
 
           <View style={balanceStyles.separator} />
 
           {/* 🔹 Saldo actual */}
-          <CurrentBalance/>
+          {/* <CurrentBalance/> */}
 
           {/* 🔹 Tarjeta de datos móviles */}
           {plans.map((plan, index) => (
             <DataBalanceCard
               key={index}
               totalData={plan.pckdatabyte}
-              format={plan.format}
+              format="GB"
               region={plan.name}
             />
           ))}

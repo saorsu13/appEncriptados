@@ -8,6 +8,12 @@ import { updateLanguage } from "@/features/settings/settingsSlice";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeMode } from "@/context/theme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
+
+export const unstable_settings = {
+  headerShown: false,
+};
+
+
 const baseMsg = "pages.language";
 
 const mockData = [

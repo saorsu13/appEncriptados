@@ -28,8 +28,6 @@ export function useLogin() {
         const validProviders = subscriberRes?.providers?.filter(Boolean) || [];
         const firstProvider = validProviders?.[0];
 
-        console.log("🧪 Balance que se enviará al contexto:", firstProvider?.balance);
-
         auth?.signIn(
           {
             simName: name,

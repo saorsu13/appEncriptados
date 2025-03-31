@@ -88,7 +88,10 @@ export const getStyles = (isDarkMode: boolean) =>
       fontSize: 14,
       marginLeft: 15,
       fontWeight: "bold",
+      maxWidth: 150,   
+      flexShrink: 1, 
     },
+    
     addSimButton: {
       backgroundColor: "#00AEEF",
       paddingVertical: 12,

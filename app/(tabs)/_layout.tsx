@@ -96,39 +96,6 @@ export function TabLayout() {
       }}
     >
       {/* Tabs reales */}
-      <Tabs.Screen
-        name="home-tab"
-        options={{
-          title: "",
-          headerShown: false,
-          href: isMenuVisible ? "/home-tab" : null,
-          tabBarIcon: ({ focused }) => (
-            <View style={[styles.iconContainer, focused && styles.focusedCircle]}>
-              <IconSvg height={25} width={25} color="#969696" type="homeiconmenu" />
-              <Text allowFontScaling={false} style={styles.tabText}>
-                {t("pages.home-tab.initMenu")}
-              </Text>
-            </View>
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="products-tab"
-        options={{
-          title: "",
-          headerShown: false,
-          href: isMenuVisible ? "products-tab" : null,
-          tabBarIcon: ({ focused }) => (
-            <View style={[styles.iconContainer, focused && styles.focusedCircle]}>
-              <IconSvg height={25} width={25} color="#969696" type="shopiconmenu" />
-              <Text allowFontScaling={false} style={styles.tabText}>
-                {t("pages.home-tab.productsMenu")}
-              </Text>
-            </View>
-          ),
-        }}
-      />
 
       <Tabs.Screen
         name="home"
@@ -147,7 +114,6 @@ export function TabLayout() {
         }}
       />
 
-      {/* Estas rutas probablemente no deberían estar en Tabs. Se mantienen por ahora como pediste */}
       <Tabs.Screen name="callback" options={{ headerShown: false }} />
       <Tabs.Screen name="new-sim" options={{ headerShown: false }} />
       <Tabs.Screen name="new-sim/edit-sim/[id]" options={{ headerShown: false }} />

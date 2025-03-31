@@ -55,7 +55,6 @@ const baseMsg = "pages.home";
 const Home = () => {
   const { isLoggedIn, isLoading, signOut } = useAuth();
   useEffect(() => {
-    console.log("🏠 Vista HOME cargada correctamente");
   }, []);
   const isActive = useAppSelector(
     (state) => state.activePasswordRequired.isActive

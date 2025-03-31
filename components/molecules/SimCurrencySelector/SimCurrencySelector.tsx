@@ -11,37 +11,27 @@ import { Ionicons } from "@expo/vector-icons";
 import { getStyles } from "./simCurrencySelectorStyles";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 
-const sims = [
-  {
-    id: "1",
-    name: "Nicolas",
-    logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
-    number: "23442345911",
-  },
-];
+type SimData = {
+  id: string;
+  name: string;
+  logo: any;
+  number: string;
+};
 
-const currencies = [
-  {
-    id: "COP",
-    name: "COP",
-    flag: require("@/assets/images/Colombia.png"),
-  },
-  {
-    id: "CAD",
-    name: "CAD",
-    flag: require("@/assets/images/Canada.png"),
-  },
-];
+type Props = {
+  sims: SimData[];
+};
 
-const SimCurrencySelector = () => {
+const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const styles = getStyles(isDarkMode);
 
-  const [selectedSim, setSelectedSim] = useState(sims[0]);
-  const [selectedCurrency, setSelectedCurrency] = useState(currencies[0]);
+  const [selectedSim, setSelectedSim] = useState<SimData | null>(
+    sims.length > 0 ? sims[0] : null
+  );
+
   const [simModalVisible, setSimModalVisible] = useState(false);
-  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -53,7 +43,9 @@ const SimCurrencySelector = () => {
         >
           <View style={styles.selectorContent}>
             <View style={styles.simNameContainer}>
-              <Text style={styles.selectorText}>{selectedSim.name}</Text>
+              <Text style={styles.selectorText}>
+              {selectedSim ? selectedSim.name : "Sin SIM"}
+              </Text>
             </View>
             <Image source={selectedSim.logo} style={styles.icon} />
           </View>
@@ -94,7 +86,14 @@ const SimCurrencySelector = () => {
                       <Text style={styles.simName}>{item.name}</Text>
                     </View>
                     <Image source={item.logo} style={styles.icon} />
-                    <Text style={styles.simNumber}>{item.number}</Text>
+                    <Text
+                        style={styles.simNumber}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.number}
+                      </Text>
+
                   </View>
                   <Ionicons
                     name="create-outline"

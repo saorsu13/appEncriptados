@@ -59,7 +59,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     const prepare = async () => {
-      console.log("⏳ Preparando app...");
       await SplashScreen.preventAutoHideAsync();
   
       await loadAsync({
@@ -70,9 +69,7 @@ export default function RootLayout() {
         Inter_700Bold,
       });
   
-      // Espera 500ms como buffer para asegurar que todo está listo
       setTimeout(async () => {
-        console.log("✅ Recursos cargados, ocultando splash");
         await SplashScreen.hideAsync();
         setAppIsReady(true);
       }, 500);
@@ -146,8 +143,6 @@ export default function RootLayout() {
                             <CountdownProvider>
                               {appIsReady ? (
                                 <>
-                                  {/* ⚠️ Reemplazo de NavigationContainer con Stack de expo-router */}
-                                  {console.log("🎬 appIsReady = true → renderizando Stack...")}
                                   <Stack
                                     screenOptions={{
                                       headerShown: false,

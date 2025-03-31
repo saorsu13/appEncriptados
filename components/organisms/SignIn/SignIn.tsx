@@ -70,8 +70,6 @@ const SignIn = () => {
       try {
         setIsLoading(true);
         const data = await getSubscriberData(values.simNumber);
-        console.log("firstProvider:", data.provider);
-        console.log("Balance obtenido", data.balance)
         auth.signIn(
       {
         simName: values.simNumber,
@@ -98,9 +96,9 @@ const SignIn = () => {
 
   useEffect(() => {
     setCurrentIdSim(formik.values.simNumber);
-    const isValid = /^\d+$/.test(formik.values.simNumber);
-    setSimType(isValid);
+    setSimType(determineType(formik.values.simNumber));
   }, [formik.values.simNumber]);
+  
   
 
   const handleInfoModal = () => {

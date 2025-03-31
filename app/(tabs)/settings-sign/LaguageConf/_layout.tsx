@@ -8,14 +8,14 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Screen name="index"
         options={{
-          headerShown: true,
+          headerShown: false,
           gestureEnabled: true,
           headerTransparent: true,
           headerTitle: '',
@@ -23,6 +23,11 @@ export default function Layout() {
           headerTintColor: 'transparent',
         }}
       />
+      <Stack.Screen
+  name="language-conf"
+  options={{ headerShown: false }}
+/>
+
     </Stack>
   );
 }

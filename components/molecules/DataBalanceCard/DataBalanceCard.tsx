@@ -13,7 +13,7 @@ type Props = {
 
 const DataBalanceCard = ({
   totalData = "0",
-  format = "mb",
+  format = "GB",
   region = "REGIÓN",
 }: Props) => {
   const { themeMode } = useDarkModeTheme();

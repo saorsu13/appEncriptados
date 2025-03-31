@@ -131,10 +131,8 @@ export function AuthProvider({
     <AuthContext.Provider
       value={{
         signIn: (user: User, newProviders: ProviderType[] = [],  userBalance?: string) => {
-          console.log("🪙 Balance recibido en signIn:", userBalance);
 
           setBalance(userBalance ?? null);
-          console.log("✅ Balance seteado en contexto:", userBalance);
 
           setUser(user);
           setProviders(newProviders);
