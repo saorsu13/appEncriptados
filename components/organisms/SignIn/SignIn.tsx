@@ -119,7 +119,7 @@ const SignIn = () => {
 
   return (
     <ScrollView>
-      <HeaderEncrypted settingsLink="/settings-sign" />
+      <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
       <View
         style={[
           themeMode === ThemeMode.Dark

@@ -63,7 +63,7 @@ const BalanceScreen = () => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-        <HeaderEncrypted settingsLink="balance/settings" />
+        <HeaderEncrypted owner="encriptados" settingsLink="balance/settings" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
         <SimCurrencySelector

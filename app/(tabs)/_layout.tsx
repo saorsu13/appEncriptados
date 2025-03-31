@@ -120,9 +120,10 @@ export function TabLayout() {
       <Tabs.Screen name="substitute" options={{ headerShown: false }} />
       <Tabs.Screen name="settings-sign" options={{ headerShown: false }} />
       <Tabs.Screen name="voice-filter" options={{ headerShown: false }} />
-      <Tabs.Screen name="balance" options={{ headerShown: false }} />
       <Tabs.Screen name="offers" options={{ headerShown: false }} />
       <Tabs.Screen name="distributors" options={{ headerShown: false }} />
+      <Tabs.Screen name="balance" options={{ headerShown: false }} />
+      <Tabs.Screen name="new-sim-encrypted" options={{ headerShown: false }} />
     </Tabs>
   );
 }

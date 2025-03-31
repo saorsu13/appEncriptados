@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
 import {
   View,
   Text,
@@ -26,6 +27,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const styles = getStyles(isDarkMode);
+  const router = useRouter();
 
   const [selectedSim, setSelectedSim] = useState<SimData | null>(
     sims.length > 0 ? sims[0] : null
@@ -44,7 +46,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
           <View style={styles.selectorContent}>
             <View style={styles.simNameContainer}>
               <Text style={styles.selectorText}>
-              {selectedSim ? selectedSim.name : "Sin SIM"}
+                {selectedSim ? selectedSim.name : "Sin SIM"}
               </Text>
             </View>
             <Image source={selectedSim.logo} style={styles.icon} />
@@ -87,25 +89,40 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
                     </View>
                     <Image source={item.logo} style={styles.icon} />
                     <Text
-                        style={styles.simNumber}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {item.number}
-                      </Text>
+                      style={styles.simNumber}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {item.number}
+                    </Text>
 
                   </View>
-                  <Ionicons
-                    name="create-outline"
-                    size={20}
-                    color={isDarkMode ? "black" : "#1E1E1E"}
-                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSimModalVisible(false);
+                      router.push(`/balance/new-sim-encrypted/edit-sim-encrypted/${item.id}`);
+                    }}
+                  >
+                    <Ionicons
+                      name="create-outline"
+                      size={20}
+                      color={isDarkMode ? "black" : "#1E1E1E"}
+                    />
+                  </TouchableOpacity>
+
                 </TouchableOpacity>
               )}
             />
-            <TouchableOpacity style={styles.addSimButton}>
+            <TouchableOpacity
+              style={styles.addSimButton}
+              onPress={() => {
+                setSimModalVisible(false);
+                router.push("/(tabs)/balance/new-sim-encrypted");
+              }}
+            >
               <Text style={styles.addSimText}>+ Añadir nueva SIM</Text>
             </TouchableOpacity>
+
           </View>
         </TouchableOpacity>
       </Modal>

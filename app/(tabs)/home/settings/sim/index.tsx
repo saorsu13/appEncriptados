@@ -26,7 +26,7 @@ const Settigns = () => {
           : null,
       ]}
     >
-      <HeaderEncrypted title={t(`pages.home.settings`)} iconBack={"/home"} />
+      <HeaderEncrypted owner="app-fantasma" title={t(`pages.home.settings`)} iconBack={"/home"} />
       <View style={styles.containerBody}>
         <SettingsMenuItem
           title={t(`${baseMsg}.language`)}

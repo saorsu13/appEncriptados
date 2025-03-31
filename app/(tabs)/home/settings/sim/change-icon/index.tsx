@@ -17,7 +17,7 @@ const ChangeIcon = () => {
   return (
     <>
       <View style={{ backgroundColor: colors.background }}>
-        <HeaderEncrypted iconBack="home/settings/sim" />
+        <HeaderEncrypted owner="app-fantasma" iconBack="home/settings/sim" />
       </View>
       <View style={styles.container}>
         <ScrollView
