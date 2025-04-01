@@ -97,7 +97,7 @@ const BalanceScreen = () => {
                 .filter((sim) => sim != null)
                 .map((sim) => ({
                   id: sim.iccid,
-                  name: sim.provider === "telco-vision" ? "Sim TIM" : "Sim Tottoli",
+                  name: sim.name,
                   logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
                   number: sim.iccid,
                 })) || []
