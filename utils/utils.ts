@@ -1,5 +1,7 @@
 export const determineType = (id) => {
-  if (/^(26|27|28|29|30|31|32)\d{4,}$/.test(id)) {
+  if (/^89\d{17}$/.test(id)) {
+    return "electronic";
+  } else if (/^(26|27|28|29|30|31|32)\d{4,}$/.test(id)) {
     return "physical";
   } else if (/^(78|79|80)\d{4,}$/.test(id)) {
     return "electronic";
@@ -7,6 +9,7 @@ export const determineType = (id) => {
     return false;
   }
 };
+
 
 export const formatNumber = (number) => {
   const floatNumber = parseFloat(number); 

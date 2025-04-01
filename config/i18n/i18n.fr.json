@@ -38,7 +38,7 @@
   },
   "validators": {
     "required": "champs requis",
-    "invalidSim": "ID SIM à 6 chiffres incorrect"
+    "invalidSim": "ID SIM incorrect à 6 ou 19 chiffres"
   },
   "helpMessages": {
     "recommended": "Recommandé",
@@ -179,7 +179,7 @@
           "placeholder": "Carte ID SIM",
           "electronicSim": "E-SIM DÉTECTÉE",
           "physicalSim": "CARTE SIM PHYSIQUE DÉTECTÉE",
-          "invalidSim": "ID SIM à 6 chiffres incorrect"
+          "invalidSim": "ID SIM à 6 chiffres ou 19 chiffres incorrect"
         }
       },
       "helpMessages": {

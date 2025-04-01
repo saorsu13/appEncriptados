@@ -36,6 +36,8 @@ const LoginHeaderImageLight = require("@/assets/images/login-header-light.png");
 const SignIn = () => {
   const { setCurrentIdSim, showModal, setTypeOfProcess } = useModalActivateSim();
   const { setProviders, isLoggedIn } = useAuth();
+  const [provider, setProvider] = useState(null);
+
   
   useFocusEffect(
     useCallback(() => {
@@ -56,9 +58,10 @@ const SignIn = () => {
 
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
-    .required(t("validators.required"))
-    .matches(/^\d+$/, t("validators.invalidSim")),
+      .required(t("validators.required"))
+      .test("len", t("validators.invalidSim"), (val) => val.length === 6 || val.length === 19),
   });
+  
 
   const formik = useFormik({
     initialValues: {
@@ -74,7 +77,7 @@ const SignIn = () => {
       {
         simName: values.simNumber,
         idSim: parseInt(values.simNumber),
-        code: 0, // Ajusta si tienes el código desde otro lugar
+        code: 0, 
       },
       data.providers,
       data.balance
@@ -95,8 +98,34 @@ const SignIn = () => {
   });
 
   useEffect(() => {
-    setCurrentIdSim(formik.values.simNumber);
-    setSimType(determineType(formik.values.simNumber));
+    const sim = formik.values.simNumber;
+    setCurrentIdSim(sim);
+    setSimType(determineType(sim));
+    if (sim.length === 19) {
+      setProvider("telco-vision");
+      (async () => {
+        try {
+          const data = await getSubscriberData(sim);
+          setProvider(data.provider); 
+        } catch (error) {
+          console.error("Error al obtener el provider:", error);
+          setProvider(null);
+        }
+      })();
+    } else if (sim.length === 6) {
+      setProvider("tottoli");
+      (async () => {
+        try {
+          const data = await getSubscriberData(sim);
+          setProvider(data.provider);
+        } catch (error) {
+          console.error("Error al obtener el provider:", error);
+          setProvider(null);
+        }
+      })();
+    } else {
+      setProvider(null);
+    }
   }, [formik.values.simNumber]);
   
   
@@ -210,7 +239,7 @@ const SignIn = () => {
               disabled={!formik.isValid || !formik.values.simNumber}
             >
               <Text allowFontScaling={false} style={styles.loadingButton}>
-                {t(`${baseMsg}.actions.requestCode`)}
+                {provider === "telco-vision" ? "Activar SIM" : "Solicitar código"}
               </Text>
             </Button>
             <StepList

@@ -40,7 +40,7 @@
   },
   "validators": {
     "required": "Required field",
-    "invalidSim": "Incorrect 6-digit SIM ID"
+    "invalidSim": "Incorrect 6-digit or 19-digit SIM ID"
   },
   "helpMessages": {
     "recommended": "Recommended",
@@ -147,7 +147,7 @@
           "title": "How to activate your SIM",
           "step1": "Put the SIM in the phone",
           "step2": "Dial *500# to get the connection code.",
-          "step3": "Enter the 6-digit code in “SIM ID”."
+          "step3": "Enter the 6-digit or 19-digit code in “SIM ID”."
         }
       },
       "verification": {
