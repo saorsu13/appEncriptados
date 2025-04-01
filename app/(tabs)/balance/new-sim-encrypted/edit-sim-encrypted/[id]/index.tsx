@@ -12,21 +12,19 @@ import { useFormik } from "formik";
 import InputField from "@/components/molecules/InputField/InputFIeld";
 import Button from "@/components/atoms/Button/Button";
 import theme from "@/config/theme";
-import { useAuth } from "@/context/auth";
-import { useLogin } from "@/features/sign-in/useLogin";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 
-import { useModalPassword } from "@/context/modalpasswordprovider";
 import { router, useFocusEffect } from "expo-router";
 import useModalAll from "@/hooks/useModalAll";
 import { useModalAdminSims } from "@/context/modaladminsims";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { updateSimName } from "@/features/sims/simSlice";
+import { updateSubscriber } from "@/api/subscriberApi"; 
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
@@ -41,7 +39,6 @@ const Login = () => {
   const { themeMode } = useDarkModeTheme();
   const { params } = useRoute<MyRouteProp>();
   const { showModal } = useModalAll();
-  const { openModal } = useModalAdminSims();
   const dispatch = useDispatch();
 
   const validationSchema = Yup.object().shape({
@@ -50,7 +47,13 @@ const Login = () => {
       .max(12, t("validators.invalidSim")),
   });
 
-  const handleSubmit = (values) => {
+  const handleSubmit = async (values) => {
+    try {
+      await updateSubscriber(params.id, {
+        provider: "telco-vision", 
+        name: values.simName,
+      });
+
     showModal({
       type: "confirm",
       buttonColorConfirm: colors.primaryColor,
@@ -59,15 +62,16 @@ const Login = () => {
       textConfirm: t("modalSimActivate.goToPanel"),
       title: t("modalSimActivate.changeNameSimTitle"),
       onConfirm: () => {
-        openModal();
         router.push("/balance");
         formik.resetForm();
       },
     });
     dispatch(
-      updateSimName({ idSim: params.id, newName: formik.values.simName })
-    );
-  };
+      updateSimName({ idSim: params.id, newName: formik.values.simName }));
+  }catch (error) {
+    console.error("🚨 Error al actualizar el subscriber:", error);
+      }
+    };
 
   const formik = useFormik({
     initialValues: {
