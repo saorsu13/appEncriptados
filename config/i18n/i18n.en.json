@@ -169,7 +169,8 @@
         "mySims": "Go to MY SIMS",
         "addSim": "Add another SIM",
         "retry": "Try again",
-        "verify": "Check SIM"
+        "verify": "Check SIM",
+        "active": "Activate"
       },
       "fields": {
         "name": {

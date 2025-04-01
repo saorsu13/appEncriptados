@@ -8,20 +8,14 @@ import {
   ScrollView,
   Text,
   ImageBackground,
-  Pressable,
 } from "react-native";
 import { useFormik } from "formik";
 import InputField from "@/components/molecules/InputField/InputFIeld";
+import SuccessModal from "@/components/molecules/SuccessModal/SuccessModa";
 import Button from "@/components/atoms/Button/Button";
 import theme from "@/config/theme";
-import StepList from "@/components/molecules/StepList/StepList";
-import VerificationSim from "@/components/organisms/VerificationSim/VerificationSim";
-import { useAuth } from "@/context/auth";
-import { useLogin } from "@/features/sign-in/useLogin";
 import { determineType } from "@/utils/utils";
-import ModalInfo from "@/components/molecules/ModalInfo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Alert from "@/components/molecules/Alert";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -31,7 +25,6 @@ import { ThemeCustom } from "@/config/theme2";
 import { useModalPassword } from "@/context/modalpasswordprovider";
 import AlertButton from "@/components/molecules/AlertButton/AlertButton";
 import { router, useFocusEffect } from "expo-router";
-import InsertSimCardModal from "@/components/molecules/InsertSimCardModal/InsertSimCardModal";
 import { useModalActivateSim } from "@/context/modalactivatesim";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero.png");
@@ -56,28 +49,18 @@ const Login = () => {
   const [type, setType] = useState<any>(false);
   const { t } = useTranslation();
   const baseMsg = "pages.login";
-  const loginQuery = useLogin();
-  const auth = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
+  const [modalSuccessVisible, setModalSuccessVisible] = useState(false);
   const { themeMode } = useDarkModeTheme();
 
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
       .required(t("validators.required"))
-      .test("len", t("validators.invalidSim"), (val) => val.length === 6),
+      .test("len", t("validators.invalidSim"), (val) => val.length === 19),
   });
 
   const handleSubmit = async (values) => {
-    if (Object.keys(formik.errors).length > 0) {
-      setRequestCodeModal(false);
-      return;
-    }
-    setRequestCodeModal(true);
-    await handleCreateSubscriber(values);
-  };
-
-  const handleCreateSubscriber = async (values) => {
+    if (Object.keys(formik.errors).length > 0) return;
     try {
       setIsLoading(true);
       const subscriberData = {
@@ -85,21 +68,21 @@ const Login = () => {
         provider: "telco-vision",
         name: "Sim Tim",
       };
-      
-  
       const result = await createSubscriber(subscriberData);
       console.log("SIM agregada con éxito:", result);
-      setAlertMessage("SIM agregada exitosamente");
-      setAlertType("success");
-      formik.resetForm();
-      router.push("/balance");
+      setModalSuccessVisible(true);
     } catch (error) {
-      console.error("Error al agregar la SIM:", error);
+      console.error("Error al crear la SIM:", error);
       setAlertMessage("Error al agregar la SIM");
       setAlertType("error");
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleSuccessModalClose = () => {
+    setModalSuccessVisible(false);
+    router.push("/balance");
   };
   
   useEffect(() => {
@@ -129,43 +112,6 @@ const Login = () => {
     setCurrentIdSim(formik.values.simNumber);
   }, [formik.values.simNumber]);
 
-  const validateCode = async (code) => {
-    setIsLoading(true);
-    setAlertMessage("");
-    setAlertType("");
-    setShowAlertButton(false);
-
-    let successMessage = "";
-
-    try {
-      const query = await loginQuery.loginRequest(
-        formik.values.simNumber,
-        code,
-        "SIM"
-      );
-
-      if (query.error) {
-        successMessage = "SIM o Código no válido. Vuelve a intentarlo";
-        setAlertType("error");
-      } else {
-        successMessage = `SIM activada. Undir aquí para acceder a la configuración de la SIM recién añadida.`;
-        setAlertType("success");
-
-        formik.resetForm();
-      }
-    } catch (error) {
-      successMessage = "Ocurrió un error al realizar la petición";
-
-      setAlertType("error");
-    }
-
-    setAlertMessage(successMessage);
-    setIsLoading(false);
-    setRequestCodeModal(false);
-    setShowAlertButton(true);
-    return successMessage;
-  };
-
   useEffect(() => {
     setType(determineType(formik.values.simNumber));
   }, [formik.values.simNumber]);
@@ -182,10 +128,6 @@ const Login = () => {
     setModalVisible(!modalVisible);
   };
 
-  const handleInfoHowToWorkModal = () => {
-    setModalHowToWorkVisible(!modalHowToWorkVisible);
-  };
-
   const { colors } = useTheme<ThemeCustom>();
 
   useFocusEffect(
@@ -197,7 +139,6 @@ const Login = () => {
   return (
     <ScrollView>
       <HeaderEncrypted owner="encriptados"  iconBack="/balance" />
-
       <View
         style={[
           styles.container,
@@ -226,39 +167,6 @@ const Login = () => {
 
         <View style={styles.containerForm}>
           <View style={styles.containerTitleForm}>
-            <Text
-              allowFontScaling={false}
-              style={[
-                styles.titleForm,
-                {
-                  color:
-                    themeMode === "dark"
-                      ? theme.colors.textContrast
-                      : "#454545",
-                },
-              ]}
-            >
-              {t(`${baseMsg}.form.title`)}
-            </Text>
-            <Pressable
-              onPress={handleInfoHowToWorkModal}
-              style={{ display: "flex" }}
-            >
-              <Text
-                allowFontScaling={false}
-                style={[
-                  styles.titleLink,
-                  {
-                    color:
-                      themeMode === "dark"
-                        ? theme.colors.textContrast
-                        : "#454545",
-                  },
-                ]}
-              >
-                {t(`${baseMsg}.form.link`)}
-              </Text>
-            </Pressable>
           </View>
           <View style={styles.containerFormFields}>
             <InputField
@@ -278,11 +186,11 @@ const Login = () => {
                 />
               }
               inputMode="numeric"
-              maxLength={6}
+              maxLength={19}
               status={
                 type
                   ? "success"
-                  : formik.values.simNumber.length === 6
+                  : formik.values.simNumber.length === 19
                   ? "info"
                   : null
               }
@@ -306,48 +214,21 @@ const Login = () => {
               type={alertType as any}
             />
           )}
-          <Button
-            onClick={() => showModal()}
-            variant="primaryPress"
-            disabled={type === false}
-          >
-            <Text allowFontScaling={false} style={styles.loadingButton}>
-              {t(`${baseMsg}.actions.requestCode`)}
-            </Text>
-          </Button>
-          <StepList
-            title={t(`${baseMsg}.form.stepsList.title`)}
-            items={[
-              t(`${baseMsg}.form.stepsList.step1`),
-              t(`${baseMsg}.form.stepsList.step2`),
-              t(`${baseMsg}.form.stepsList.step3`),
-            ]}
-          />
-          <Alert
-            description={t("pages.home.useFive")}
-            message=""
-            showIcon
-            type="warning"
-          />
+          <Text style={{ marginTop: 100, alignSelf: "center", color: "#9A9A9A" }}>
+            {t("pages.home.useFive")}
+          </Text>
+          
+          <View style={styles.bottomButtonContainer}>
+            <Button onClick={formik.handleSubmit} variant="primaryPress" disabled={!formik.isValid || !formik.values.simNumber}>
+              <Text style={styles.buttonText}>{t(`${baseMsg}.actions.active`)}</Text>
+            </Button>
+          </View>
         </View>
       </View>
-      {/* 
-      {requestCodeModal && (
-        <VerificationSim
-          showModal={requestCodeModal}
-          validateCode={validateCode}
-          resetModal={() => setRequestCodeModal(false)}
-          isLoading={isLoading}
-          addNewSimDisabled={true}
-        />
-      )} */}
-
-      <ModalInfo
-        visible={modalHowToWorkVisible}
-        onClose={handleInfoHowToWorkModal}
-        title={t(`${baseMsg}.helpMessages.howToWorkHelpTittle`)}
-        description={t(`${baseMsg}.helpMessages.howToWorkHelpMessage`)}
-        buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)}
+      <SuccessModal
+        visible={modalSuccessVisible}
+        simNumber={formik.values.simNumber}
+        onClose={handleSuccessModalClose}
       />
     </ScrollView>
   );
@@ -396,7 +277,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   containerHeaderImage: {
-    aspectRatio: 2.196,
+    aspectRatio: 2.1919,
     borderRadius: 18,
     display: "flex",
     alignItems: "center",
@@ -411,9 +292,14 @@ const styles = StyleSheet.create({
     ...theme.textVariants.buttonGroup,
   },
   background: {
-    aspectRatio: 2.196,
+    aspectRatio: 2.1919,
     borderRadius: 18,
     height: 158,
     width: "100%",
   },
+  bottomButtonContainer: {
+    marginTop: 100,
+    marginBottom: 40,
+    alignItems: "center",
+  },  
 });

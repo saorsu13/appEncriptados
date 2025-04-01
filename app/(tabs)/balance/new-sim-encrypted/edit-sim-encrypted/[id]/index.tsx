@@ -7,20 +7,13 @@ import {
   ScrollView,
   Text,
   ImageBackground,
-  Pressable,
 } from "react-native";
 import { useFormik } from "formik";
 import InputField from "@/components/molecules/InputField/InputFIeld";
 import Button from "@/components/atoms/Button/Button";
 import theme from "@/config/theme";
-import StepList from "@/components/molecules/StepList/StepList";
-import VerificationSim from "@/components/organisms/VerificationSim/VerificationSim";
 import { useAuth } from "@/context/auth";
 import { useLogin } from "@/features/sign-in/useLogin";
-import { determineType } from "@/utils/utils";
-import ModalInfo from "@/components/molecules/ModalInfo";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Alert from "@/components/molecules/Alert";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -28,7 +21,6 @@ import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 
 import { useModalPassword } from "@/context/modalpasswordprovider";
-import AlertButton from "@/components/molecules/AlertButton/AlertButton";
 import { router, useFocusEffect } from "expo-router";
 import useModalAll from "@/hooks/useModalAll";
 import { useModalAdminSims } from "@/context/modaladminsims";
@@ -38,41 +30,24 @@ import { updateSimName } from "@/features/sims/simSlice";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
-  MyRoute: { id: string }; // O el tipo adecuado para tu ID
+  MyRoute: { id: string }; 
 };
 
-// Define el tipo de la ruta usando RouteProp
 type MyRouteProp = RouteProp<RootStackParamList, "MyRoute">;
 const Login = () => {
-  const { isModalVisible } = useModalPassword();
-
-  const [requestCodeModal, setRequestCodeModal] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
-  const [showAlertButton, setShowAlertButton] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
   const [type, setType] = useState<any>(false);
   const { t } = useTranslation();
   const baseMsg = "pages.login";
-  const loginQuery = useLogin();
-  const auth = useAuth();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
   const { themeMode } = useDarkModeTheme();
-
   const { params } = useRoute<MyRouteProp>();
-
   const { showModal } = useModalAll();
-
   const { openModal } = useModalAdminSims();
-
   const dispatch = useDispatch();
 
   const validationSchema = Yup.object().shape({
     simName: Yup.string()
       .required(t("validators.required"))
-      .max(9, t("validators.invalidSim")),
+      .max(12, t("validators.invalidSim")),
   });
 
   const handleSubmit = (values) => {
@@ -116,6 +91,7 @@ const Login = () => {
 
       <View
         style={[
+          
           styles.container,
           {
             backgroundColor:
@@ -124,26 +100,22 @@ const Login = () => {
         ]}
       >
         <View style={styles.containerHeader}>
-          <ImageBackground
-            source={LoginHeaderImage}
-            resizeMode="cover"
-            imageStyle={styles.background}
-          >
-            <View style={{ ...styles.containerHeaderImage }}>
-              <Text
-                allowFontScaling={false}
-                style={styles.containerHeaderTitle}
-              >
-                {t("pages.login.header.changeNameSimBanner")}
-              </Text>
-              {/* <Text
-                allowFontScaling={false}
-                style={styles.containerHeaderTitle}
-              >
-                {params.id}
-              </Text> */}
-            </View>
-          </ImageBackground>
+        <ImageBackground
+  source={LoginHeaderImage}
+  resizeMode="cover"
+  imageStyle={styles.background}
+  style={styles.imageBackground}
+>
+  <View style={styles.containerHeaderImage}>
+    <Text
+      allowFontScaling={false}
+      style={styles.containerHeaderTitle}
+    >
+      {t("pages.login.header.changeNameSimBanner")}
+    </Text>
+  </View>
+</ImageBackground>
+
         </View>
 
         <View style={styles.containerForm}>
@@ -155,11 +127,11 @@ const Login = () => {
               required={true}
               placeholder={t(`pages.login.header.placeholderSim`)}
               inputMode="text"
-              maxLength={9}
+              maxLength={12}
               status={
                 type
                   ? "success"
-                  : formik.values.simName.length === 9
+                  : formik.values.simName.length === 12
                   ? "info"
                   : null
               }
@@ -175,16 +147,6 @@ const Login = () => {
               }
             />
           </View>
-
-          <Button
-            disabled={!formik.values.simName.length ? true : false}
-            onClick={formik.handleSubmit}
-            variant="primaryPress"
-          >
-            <Text allowFontScaling={false} style={styles.loadingButton}>
-              {t("pages.home.confirm")}
-            </Text>
-          </Button>
         </View>
       </View>
 
@@ -196,10 +158,22 @@ const Login = () => {
           display: "flex",
         }}
       >
-        <Text allowFontScaling={false} style={{ ...styles.defaultLabel }}>
+        <Text allowFontScaling={false} style={{ marginTop: 100, alignSelf: "center", color: "#5c5c5c" }}>
           {t(`pages.login.header.nameOfSimMax`)}
         </Text>
       </View>
+      <View style={styles.bottomButtonContainer}>
+        <Button
+          disabled={!formik.values.simName.length ? true : false}
+          onClick={formik.handleSubmit}
+          variant="primaryPress"
+        >
+          <Text allowFontScaling={false} style={styles.loadingButton}>
+            {t("pages.home.confirm")}
+          </Text>
+        </Button>
+      </View>
+      
     </ScrollView>
   );
 };
@@ -255,14 +229,16 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   containerHeaderImage: {
-    aspectRatio: 2.196,
+    aspectRatio: 2.1126,
     borderRadius: 18,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: 5,
     height: 158,
+    width: "100%",
   },
+  
   containerHeaderTitle: {
     color: theme.colors.contrast,
     fontFamily: theme.textVariants.input,
@@ -275,4 +251,18 @@ const styles = StyleSheet.create({
     height: 158,
     width: "100%",
   },
+  bottomButtonContainer: {
+    marginTop: 150,
+    marginBottom: 40,
+    alignItems: "center",
+  },  
+  imageBackground: {
+    width: "100%",
+    height: 158,
+    borderRadius: 18,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  
 });

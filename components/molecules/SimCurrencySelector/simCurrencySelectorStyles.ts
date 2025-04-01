@@ -80,13 +80,13 @@ export const getStyles = (isDarkMode: boolean) =>
     },
     simName: {
       color: isDarkMode ? "white" : "#1E1E1E",
-      fontSize: 15,
+      fontSize: 12,
       fontWeight: "bold",
     },
     simNumber: {
       color: "#1E1E1E",
       fontSize: 14,
-      marginLeft: 15,
+      marginLeft: 10,
       fontWeight: "bold",
       maxWidth: 150,   
       flexShrink: 1, 

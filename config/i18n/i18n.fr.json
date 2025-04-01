@@ -167,7 +167,8 @@
         "mySims": "Allez dans MES SIMS",
         "addSim": "Ajouter une autre carte SIM",
         "retry": "Essayez à nouveau",
-        "verify": "Vérifier la carte SIM"
+        "verify": "Vérifier la carte SIM",
+        "active": "Activer"
       },
       "fields": {
         "name": {
