@@ -11,9 +11,9 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -42,17 +42,14 @@ import RequestPasswordComponent from "@/context/requestpasswordprovider";
 import { ModalPasswordProvider } from "@/context/modalpasswordprovider";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-// Evita que el splash screen se cierre automáticamente
 SplashScreen.preventAutoHideAsync();
-
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const [showRequestPasswordComponent, setShowRequestPasswordComponent] =
-    useState(false);
-  const userRef = useRef<Promise<User | null> | null>(null);
+  const [showRequestPasswordComponent, setShowRequestPasswordComponent] = useState(false);
 
+  const userRef = useRef<Promise<{ user: User | null; balance: string | null }> | null>(null);
   if (userRef.current === null) {
     userRef.current = loadUser();
   }
@@ -60,7 +57,6 @@ export default function RootLayout() {
   useEffect(() => {
     const prepare = async () => {
       await SplashScreen.preventAutoHideAsync();
-  
       await loadAsync({
         Inter_300Light,
         Inter_400Regular,
@@ -68,23 +64,19 @@ export default function RootLayout() {
         Inter_600SemiBold,
         Inter_700Bold,
       });
-  
       setTimeout(async () => {
         await SplashScreen.hideAsync();
         setAppIsReady(true);
       }, 500);
     };
-  
     prepare();
   }, []);
-  
 
   useEffect(() => {
     if (appIsReady) {
       const timer = setTimeout(() => {
         setShowRequestPasswordComponent(true);
       }, 1000);
-
       return () => clearTimeout(timer);
     }
   }, [appIsReady]);
@@ -97,7 +89,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", onAppStateChange);
-
     return () => subscription.remove();
   }, []);
 
@@ -106,16 +97,6 @@ export default function RootLayout() {
       await SplashScreen.hideAsync();
     }
   }, [appIsReady]);
-
-  useEffect(() => {
-    const onBackPress = () => {
-      router.back();
-      return true;
-    };
-    BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-  }, []);
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -134,45 +115,42 @@ export default function RootLayout() {
                         onLoaded={() => setAppIsReady(true)}
                       >
                         <QueryClientProvider client={queryClient}>
-                          <SafeAreaView
-                            style={styles.container}
-                          >
-                            {showRequestPasswordComponent && (
-                              <RequestPasswordComponent />
-                            )}
+                          <SafeAreaView style={styles.container}>
+                            {showRequestPasswordComponent && <RequestPasswordComponent />}
                             <CountdownProvider>
                               {appIsReady ? (
-                                <>
-                                  <Stack
-                                    screenOptions={{
+                                <Stack
+                                  screenOptions={{
+                                    headerShown: false,
+                                    gestureEnabled: true,
+                                    presentation: "transparentModal",
+                                  }}
+                                >
+                                  <Stack.Screen
+                                    name="(tabs)"
+                                    options={{
                                       headerShown: false,
                                       gestureEnabled: true,
+                                      headerTransparent: true,
+                                      headerTitle: '',
+                                      headerLeft: () => null,
+                                      headerTintColor: 'transparent',
+                                      animation: 'none', // importante para evitar el stack animation back
                                     }}
-                                  >
-                                    <Stack.Screen name="(tabs)"
-                                      options={{
-                                        headerShown: false,
-                                        gestureEnabled: true,
-                                        headerTransparent: true,
-                                        headerTitle: '',
-                                        headerLeft: () => null,
-                                        headerBackTitleVisible: false,
-                                        headerTintColor: 'transparent',
-                                      }}
-                                    />
-                                    <Stack.Screen name="index"
-                                      options={{
-                                        headerShown: false,
-                                        gestureEnabled: true,
-                                        headerTransparent: true,
-                                        headerTitle: '',
-                                        headerLeft: () => null,
-                                        headerBackTitleVisible: false,
-                                        headerTintColor: 'transparent',
-                                      }}
-                                    />
-                                  </Stack>
-                                </>
+                                  />
+                                  <Stack.Screen
+                                    name="index"
+                                    options={{
+                                      headerShown: false,
+                                      gestureEnabled: true,
+                                      headerTransparent: true,
+                                      headerTitle: '',
+                                      headerLeft: () => null,
+                                      headerTintColor: 'transparent',
+                                      animation: 'none',
+                                    }}
+                                  />
+                                </Stack>
                               ) : null}
                             </CountdownProvider>
                           </SafeAreaView>

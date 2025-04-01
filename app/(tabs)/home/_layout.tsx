@@ -6,7 +6,7 @@ import { useTheme } from "@shopify/restyle";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { AppState, AppStateStatus, Platform } from "react-native";
+import { AppState, AppStateStatus } from "react-native";
 
 export default function Layout() {
   const { colors } = useTheme<ThemeCustom>();
@@ -55,16 +55,18 @@ export default function Layout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        gestureEnabled: Platform.OS === "android" ? false : true,
+        gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen
-        name="index"
+      <Stack.Screen name="index"
         options={{
           headerShown: false,
-          gestureEnabled: false,
-          headerLeft: () => null,
+          gestureEnabled: true,
+          headerTransparent: true,
+          headerTitle: '',
+          headerBackTitleVisible: false,
+          headerTintColor: 'transparent',
         }}
       />
     </Stack>

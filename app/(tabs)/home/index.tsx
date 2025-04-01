@@ -115,16 +115,17 @@ const Home = () => {
     },
   });
 
-  useEffect(() => {
-    const handleBack = () => {
-      return true; // 👈 Esto bloquea el botón de retroceso
-    };
-  
-    if (Platform.OS === "android") {
-      const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBack);
-      return () => backHandler.remove();
-    }
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS === "android") {
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          () => true // ← Esto sí lo bloquea
+        );
+        return () => backHandler.remove();
+      }
+    }, [])
+  );
 
   useFocusEffect(
     useCallback(() => {
