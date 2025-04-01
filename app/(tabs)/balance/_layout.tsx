@@ -8,7 +8,7 @@ export default function BalanceLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}

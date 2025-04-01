@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { createSubscriber } from "@/api/subscriberApi";
 import * as Yup from "yup";
 import {
   View,
@@ -67,14 +68,40 @@ const Login = () => {
       .test("len", t("validators.invalidSim"), (val) => val.length === 6),
   });
 
-  const handleSubmit = (values) => {
+  const handleSubmit = async (values) => {
     if (Object.keys(formik.errors).length > 0) {
       setRequestCodeModal(false);
       return;
     }
     setRequestCodeModal(true);
+    await handleCreateSubscriber(values);
   };
 
+  const handleCreateSubscriber = async (values) => {
+    try {
+      setIsLoading(true);
+      const subscriberData = {
+        iccid: values.simNumber,
+        provider: "telco-vision",
+        name: "Sim Tim",
+      };
+      
+  
+      const result = await createSubscriber(subscriberData);
+      console.log("SIM agregada con éxito:", result);
+      setAlertMessage("SIM agregada exitosamente");
+      setAlertType("success");
+      formik.resetForm();
+      router.push("/balance");
+    } catch (error) {
+      console.error("Error al agregar la SIM:", error);
+      setAlertMessage("Error al agregar la SIM");
+      setAlertType("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   useEffect(() => {
     const fetchPersistedState = async () => {
       try {

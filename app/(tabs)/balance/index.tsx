@@ -8,6 +8,7 @@ import { useAuth } from "@/context/auth";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 
+import { deleteSubscriber } from "@/api/subscriberApi";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
 import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance";
@@ -26,7 +27,18 @@ const BalanceScreen = () => {
     return validProvider ? validProvider.plans : [];
   }, [providers]);
   
-   
+  const currentSimId = providers && providers.length ? providers[0].iccid : null;
+
+  const handleDeleteSim = async (idSim) => {
+    try {
+      await deleteSubscriber(idSim);
+      console.log("SIM borrada exitosamente");
+      router.push("/balance");
+    } catch (error) {
+      console.error("Error al borrar la SIM:", error);
+    }
+  };
+
   useEffect(() => {
     const handleBack = () => {
       router.back();
@@ -69,22 +81,16 @@ const BalanceScreen = () => {
         <SimCurrencySelector
           sims={
             providers?.map((provider) => ({
-              id: provider.iccid,          // Usamos el iccid como identificador único.
-              name: "Sim TIM",             // Nombre fijo.
-              logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"), // Ícono por default.
-              number: provider.iccid,      // Mostramos el iccid.
+              id: provider.iccid,          
+              name: "Sim TIM",             
+              logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"), 
+              number: provider.iccid,      
             })) || []
           }
         />
 
-
-
           <View style={balanceStyles.separator} />
 
-          {/* 🔹 Saldo actual */}
-          {/* <CurrentBalance/> */}
-
-          {/* 🔹 Tarjeta de datos móviles */}
           {plans.map((plan, index) => (
             <DataBalanceCard
               key={index}
@@ -97,7 +103,9 @@ const BalanceScreen = () => {
 
           <TopUpCard />
 
-          <DeleteSimButton onPress={() => console.log("SIM borrada")} />
+          {currentSimId && (
+            <DeleteSimButton onPress={() => handleDeleteSim(currentSimId)} />
+          )}
         </ScrollView>
       </BackgroundWrapper>
     </>
