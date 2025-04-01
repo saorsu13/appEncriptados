@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { View, ScrollView, BackHandler, Platform } from "react-native";
-import { useRouter, Stack } from "expo-router";
+import { useRouter, Stack, useFocusEffect } from "expo-router";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 import { balanceStyles } from "./balanceStyles";
@@ -52,17 +52,18 @@ const BalanceScreen = () => {
     }
 
     fetchSubscribers();
-
-    // ✅ Este bloque previene navegación hacia atrás
-    const handleBack = () => {
-      return true; // 👈 Bloquea el botón de retroceso
-    };
-
-    if (Platform.OS === "android") {
-      const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBack);
-      return () => backHandler.remove(); // Limpia el listener
-    }
   }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS === "android") {
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          () => true // ← Esto sí lo bloquea
+        );
+        return () => backHandler.remove();
+      }
+    }, [])
+  );
 
   const BackgroundWrapper = isDarkMode ? View : LinearGradient;
   const backgroundProps = isDarkMode

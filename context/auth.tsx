@@ -13,7 +13,7 @@ import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 
 export const MIN_PASSWORD_LENGTH = 10;
-const ALWAYS_REQUIRE_LOGIN = true;
+const ALWAYS_REQUIRE_LOGIN = false;
 
 export type User = {
   simName: string;
@@ -66,16 +66,16 @@ const storeUser = async (user: User, balance: string | null) => {
   }
 };
 
-
 const deleteUser = async () => {
   try {
     await AsyncStorage.removeItem("@user");
+    await AsyncStorage.removeItem("@balance");
   } catch (e) {
     console.error("Failed to delete the data from storage", e);
   }
 };
 
-export const loadUser = async (): Promise<{ user: User | null, balance: string | null }> => {
+export const loadUser = async (): Promise<{ user: User | null; balance: string | null }> => {
   try {
     const storedUser = await AsyncStorage.getItem("@user");
     const storedBalance = await AsyncStorage.getItem("@balance");
@@ -85,10 +85,9 @@ export const loadUser = async (): Promise<{ user: User | null, balance: string |
     };
   } catch (e) {
     console.error("Failed to load the data from storage", e);
+    return { user: null, balance: null };
   }
-  return { user: null, balance: null };
 };
-
 
 export function AuthProvider({
   children,
@@ -113,10 +112,12 @@ export function AuthProvider({
   );
 
   useEffect(() => {
-    userPromise.then(async ({ user, balance }) => {
+    userPromise.then(({ user, balance }) => {
       if (user && user.idSim && user.code) {
         setUser(user);
         setBalance(balance);
+        dispatch(addSim(user));
+        dispatch(updateCurrentSim(user.idSim));
         if (!modalRequiredPassword) {
           setIsLoggedIn(true);
         }
@@ -125,15 +126,16 @@ export function AuthProvider({
       onLoaded();
     });
   }, []);
-  
 
   return (
     <AuthContext.Provider
       value={{
-        signIn: (user: User, newProviders: ProviderType[] = [],  userBalance?: string) => {
-
+        signIn: (
+          user: User,
+          newProviders: ProviderType[] = [],
+          userBalance?: string
+        ) => {
           setBalance(userBalance ?? null);
-
           setUser(user);
           setProviders(newProviders);
           dispatch(addSim(user));
