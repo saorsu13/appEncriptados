@@ -83,15 +83,16 @@ export function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: "white",
         tabBarStyle: {
-          height: isMenuVisible ? (Platform.OS === "ios" ? 100 : 100) : 0,
-          paddingTop: Platform.OS === "ios" ? 40 : 0,
-          borderWidth: 1,
-          backgroundColor: isMenuVisible
-            ? theme.colors.darkBlack01
-            : colors.background,
-          borderBlockColor: isMenuVisible
-            ? theme.colors.darkBlack01
-            : colors.background,
+          display: "none",
+          // height: isMenuVisible ? (Platform.OS === "ios" ? 100 : 100) : 0,
+          // paddingTop: Platform.OS === "ios" ? 40 : 0,
+          // borderWidth: 1,
+          // backgroundColor: isMenuVisible
+          //   ? theme.colors.darkBlack01
+          //   : colors.background,
+          // borderBlockColor: isMenuVisible
+          //   ? theme.colors.darkBlack01
+          //   : colors.background,
         },
       }}
     >

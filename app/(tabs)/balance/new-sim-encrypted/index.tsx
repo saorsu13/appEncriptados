@@ -299,7 +299,7 @@ const Login = () => {
               onPress={() => {
                 if (alertType === "success") {
                   setAlertMessage("");
-                  router.push("/home");
+                  router.push("/balance");
                 }
               }}
               message={alertMessage}
