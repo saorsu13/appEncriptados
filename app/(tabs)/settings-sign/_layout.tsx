@@ -17,7 +17,7 @@ export default function Layout() {
     >
       <Stack.Screen name="index"
         options={{
-          headerShown: true,
+          headerShown: false,
           gestureEnabled: true,
           headerTransparent: true,
           headerTitle: '',

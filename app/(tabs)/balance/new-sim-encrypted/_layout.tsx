@@ -8,20 +8,28 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerShown: false, 
         gestureEnabled: true,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index"
+      <Stack.Screen
+        name="index"
         options={{
-          headerShown: true,
+          headerShown: false,
           gestureEnabled: true,
           headerTransparent: true,
-          headerTitle: '',
-          headerLeft: () => null,
-          headerBackTitleVisible: false,
-          headerTintColor: 'transparent',
+          headerTitle: "",
+          headerLeft: () => null,             
+          headerBackTitleVisible: false,        
+          headerTintColor: "transparent",       
+        }}
+      />
+      <Stack.Screen
+        name="[id]"
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
         }}
       />
     </Stack>

@@ -78,7 +78,7 @@ const BalanceScreen = () => {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
+          headerShown: false,
           headerTitle: "",
           headerTransparent: true,
           headerBackTitleVisible: false,

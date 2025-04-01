@@ -82,7 +82,7 @@ const Login = () => {
   
   const handleSuccessModalClose = () => {
     setModalSuccessVisible(false);
-    router.push("/balance");
+    router.replace("/balance");
   };
   
   useEffect(() => {
@@ -207,7 +207,7 @@ const Login = () => {
               onPress={() => {
                 if (alertType === "success") {
                   setAlertMessage("");
-                  router.push("/balance");
+                  router.replace("/balance");
                 }
               }}
               message={alertMessage}

@@ -16,7 +16,7 @@ export default function BalanceLayout() {
       <Stack.Screen
         name="index"
         options={{
-          headerShown: true,
+          headerShown: false,
           gestureEnabled: true,
           headerTitle: "",
           headerTransparent: true,

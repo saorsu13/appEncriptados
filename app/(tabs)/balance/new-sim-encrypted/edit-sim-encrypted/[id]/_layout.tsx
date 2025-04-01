@@ -13,17 +13,19 @@ export default function Layout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index"
-        options={{
-          headerShown: true,
-          gestureEnabled: true,
-          headerTransparent: true,
-          headerTitle: '',
-          headerLeft: () => null,
-          headerBackTitleVisible: false,
-          headerTintColor: 'transparent',
-        }}
-      />
+      <Stack.Screen
+  name="index"
+  options={{
+    headerShown: false,
+    headerTransparent: true,
+    headerTitle: '',
+    headerBackVisible: false,       
+    headerBackTitleVisible: false,  
+    gestureEnabled: false,
+  }}
+/>
+
+
     </Stack>
   );
 }

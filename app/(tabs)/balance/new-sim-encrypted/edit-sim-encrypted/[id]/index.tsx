@@ -62,9 +62,10 @@ const Login = () => {
       textConfirm: t("modalSimActivate.goToPanel"),
       title: t("modalSimActivate.changeNameSimTitle"),
       onConfirm: () => {
-        router.push("/balance");
+        router.replace("/balance"); 
         formik.resetForm();
       },
+      
     });
     dispatch(
       updateSimName({ idSim: params.id, newName: formik.values.simName }));
