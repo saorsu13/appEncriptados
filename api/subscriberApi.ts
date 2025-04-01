@@ -113,7 +113,7 @@ export const deleteSubscriber = async (id) => {
   }
 };
 
-export const listSubscriber = async (id) => {
+export const listSubscriber = async () => {
   try {
     const response = await fetch(
       `https://encriptados.es/wp-json/encriptados/v1/sims`,

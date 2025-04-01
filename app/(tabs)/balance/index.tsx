@@ -8,7 +8,7 @@ import { useAuth } from "@/context/auth";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 
-import { deleteSubscriber } from "@/api/subscriberApi";
+import { listSubscriber, deleteSubscriber } from "@/api/subscriberApi";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
 import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance";
@@ -22,24 +22,37 @@ const BalanceScreen = () => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const { providers } = useAuth();
+  const [sims, setSims] = React.useState([]);
+
   const plans = useMemo(() => {
     const validProvider = providers?.find((p) => Array.isArray(p.plans) && p.plans.length > 0);
     return validProvider ? validProvider.plans : [];
   }, [providers]);
   
-  const currentSimId = providers && providers.length ? providers[0].iccid : null;
+  const currentSimId = sims.length > 0 ? sims[0].iccid : null;
 
   const handleDeleteSim = async (idSim) => {
     try {
       await deleteSubscriber(idSim);
       console.log("SIM borrada exitosamente");
-      router.push("/balance");
+      setSims((prevSims) => prevSims.filter((sim) => sim.iccid !== idSim));
     } catch (error) {
       console.error("Error al borrar la SIM:", error);
     }
   };
+  
 
   useEffect(() => {
+    async function fetchSubscribers() {
+      try {
+        const data = await listSubscriber();
+        setSims(data || []);
+      } catch (error) {
+        console.error("Error listando las SIMs:", error);
+      }
+    }
+  
+    fetchSubscribers();
     const handleBack = () => {
       router.back();
       return true;
@@ -80,14 +93,17 @@ const BalanceScreen = () => {
         <ScrollView contentContainerStyle={balanceStyles.content}>
         <SimCurrencySelector
           sims={
-            providers?.map((provider) => ({
-              id: provider.iccid,          
-              name: "Sim TIM",             
-              logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"), 
-              number: provider.iccid,      
-            })) || []
+            sims
+            .filter((sim) => sim != null)
+            .map((sim) => ({
+              id: sim.iccid,
+              name: sim.provider === "telco-vision" ? "Sim TIM" : "Sim Tottoli",
+              logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
+              number: sim.iccid,
+            }))|| []
           }
         />
+
 
           <View style={balanceStyles.separator} />
 

@@ -46,10 +46,14 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
           <View style={styles.selectorContent}>
             <View style={styles.simNameContainer}>
               <Text style={styles.selectorText}>
-                {selectedSim ? selectedSim.name : "Sin SIM"}
+                {selectedSim ? selectedSim.name : "Sim TIM"}
               </Text>
-            </View>
-            <Image source={selectedSim.logo} style={styles.icon} />
+            </View> 
+            <Image
+              source={selectedSim ? selectedSim.logo : require("@/assets/images/tim_icon_app_600px_negativo 1.png")}
+              style={styles.icon}
+            />
+
           </View>
           <Ionicons
             name="chevron-down"
