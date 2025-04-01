@@ -85,7 +85,7 @@ const Login = () => {
       title: t("modalSimActivate.changeNameSimTitle"),
       onConfirm: () => {
         openModal();
-        router.push("/home");
+        router.push("/balance");
         formik.resetForm();
       },
     });
@@ -112,7 +112,7 @@ const Login = () => {
 
   return (
     <ScrollView>
-      <HeaderEncrypted owner="encriptados" iconBack="/home" />
+      <HeaderEncrypted owner="encriptados" iconBack="/balance" />
 
       <View
         style={[
@@ -136,12 +136,12 @@ const Login = () => {
               >
                 {t("pages.login.header.changeNameSimBanner")}
               </Text>
-              <Text
+              {/* <Text
                 allowFontScaling={false}
                 style={styles.containerHeaderTitle}
               >
                 {params.id}
-              </Text>
+              </Text> */}
             </View>
           </ImageBackground>
         </View>
@@ -267,6 +267,7 @@ const styles = StyleSheet.create({
     color: theme.colors.contrast,
     fontFamily: theme.textVariants.input,
     textAlign: "center",
+    justifyContent: "center",
     ...theme.textVariants.buttonGroup,
   },
   background: {
