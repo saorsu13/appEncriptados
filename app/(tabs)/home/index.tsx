@@ -5,6 +5,7 @@ import {
   RefreshControl,
   StyleSheet,
   Platform,
+  BackHandler,
 } from "react-native";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -113,6 +114,17 @@ const Home = () => {
       console.error(error);
     },
   });
+
+  useEffect(() => {
+    const handleBack = () => {
+      return true; // 👈 Esto bloquea el botón de retroceso
+    };
+  
+    if (Platform.OS === "android") {
+      const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBack);
+      return () => backHandler.remove();
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {

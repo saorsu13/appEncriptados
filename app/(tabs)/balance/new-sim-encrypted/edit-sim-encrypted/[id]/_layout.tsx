@@ -19,6 +19,7 @@ export default function Layout() {
           gestureEnabled: true,
           headerTransparent: true,
           headerTitle: '',
+          headerLeft: () => null,
           headerBackTitleVisible: false,
           headerTintColor: 'transparent',
         }}

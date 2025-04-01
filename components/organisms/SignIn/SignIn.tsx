@@ -83,9 +83,9 @@ const SignIn = () => {
       data.balance
     );
         if (data.provider === "telco-vision") {
-          router.push("/balance");
+          router.replace("/balance");
         } else if (data.provider === "tottoli") {
-          router.push("/home");
+          router.replace("/home");
         }else {
           setRequestCodeModal(true);
         }

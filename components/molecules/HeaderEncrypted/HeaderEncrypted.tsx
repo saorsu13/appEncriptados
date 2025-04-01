@@ -69,7 +69,7 @@ const HeaderEncrypted = ({
               ...styles.iconButton,
               backgroundColor: colors.backgroundAlternate,
             }}
-            onPress={() => router.push(iconBack)}
+            onPress={() => router.back()}
           >
             <IconSvg height={20} width={20} color={colors.white} type="arrowback" />
           </TouchableOpacity>

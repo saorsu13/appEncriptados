@@ -28,7 +28,7 @@ const BalanceScreen = () => {
     const validProvider = providers?.find((p) => Array.isArray(p.plans) && p.plans.length > 0);
     return validProvider ? validProvider.plans : [];
   }, [providers]);
-  
+
   const currentSimId = sims.length > 0 ? sims[0].iccid : null;
 
   const handleDeleteSim = async (idSim) => {
@@ -40,7 +40,6 @@ const BalanceScreen = () => {
       console.error("Error al borrar la SIM:", error);
     }
   };
-  
 
   useEffect(() => {
     async function fetchSubscribers() {
@@ -51,18 +50,19 @@ const BalanceScreen = () => {
         console.error("Error listando las SIMs:", error);
       }
     }
-  
+
     fetchSubscribers();
+
+    // ✅ Este bloque previene navegación hacia atrás
     const handleBack = () => {
-      router.back();
-      return true;
+      return true; // 👈 Bloquea el botón de retroceso
     };
 
     if (Platform.OS === "android") {
       const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBack);
-      return () => backHandler.remove();
+      return () => backHandler.remove(); // Limpia el listener
     }
-  }, [router]);
+  }, []);
 
   const BackgroundWrapper = isDarkMode ? View : LinearGradient;
   const backgroundProps = isDarkMode
@@ -91,19 +91,18 @@ const BalanceScreen = () => {
         <HeaderEncrypted owner="encriptados" settingsLink="balance/settings" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
-        <SimCurrencySelector
-          sims={
-            sims
-            .filter((sim) => sim != null)
-            .map((sim) => ({
-              id: sim.iccid,
-              name: sim.provider === "telco-vision" ? "Sim TIM" : "Sim Tottoli",
-              logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
-              number: sim.iccid,
-            }))|| []
-          }
-        />
-
+          <SimCurrencySelector
+            sims={
+              sims
+                .filter((sim) => sim != null)
+                .map((sim) => ({
+                  id: sim.iccid,
+                  name: sim.provider === "telco-vision" ? "Sim TIM" : "Sim Tottoli",
+                  logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
+                  number: sim.iccid,
+                })) || []
+            }
+          />
 
           <View style={balanceStyles.separator} />
 
@@ -115,7 +114,6 @@ const BalanceScreen = () => {
               region={plan.name}
             />
           ))}
-
 
           <TopUpCard />
 

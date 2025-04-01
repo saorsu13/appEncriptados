@@ -155,6 +155,7 @@ export default function RootLayout() {
                                         gestureEnabled: true,
                                         headerTransparent: true,
                                         headerTitle: '',
+                                        headerLeft: () => null,
                                         headerBackTitleVisible: false,
                                         headerTintColor: 'transparent',
                                       }}
@@ -165,6 +166,7 @@ export default function RootLayout() {
                                         gestureEnabled: true,
                                         headerTransparent: true,
                                         headerTitle: '',
+                                        headerLeft: () => null,
                                         headerBackTitleVisible: false,
                                         headerTintColor: 'transparent',
                                       }}
