@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import {
   View,
@@ -29,11 +29,24 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
   const styles = getStyles(isDarkMode);
   const router = useRouter();
 
+  // Inicialmente seleccionamos el primer SIM (si existe)
   const [selectedSim, setSelectedSim] = useState<SimData | null>(
     sims.length > 0 ? sims[0] : null
   );
-
   const [simModalVisible, setSimModalVisible] = useState(false);
+
+  // Actualiza el SIM seleccionado cuando la lista de SIMs cambia.
+  // Esto fuerza el re-render en Android si se actualizó la lista.
+  useEffect(() => {
+    if (sims.length > 0) {
+      // Si el SIM actualmente seleccionado ya no existe en la nueva lista, actualiza al primero.
+      if (!selectedSim || !sims.some(sim => sim.id === selectedSim.id)) {
+        setSelectedSim(sims[0]);
+      }
+    } else {
+      setSelectedSim(null);
+    }
+  }, [sims]);
 
   return (
     <View style={styles.container}>
@@ -50,10 +63,13 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
               </Text>
             </View> 
             <Image
-              source={selectedSim ? selectedSim.logo : require("@/assets/images/tim_icon_app_600px_negativo 1.png")}
+              source={
+                selectedSim
+                  ? selectedSim.logo
+                  : require("@/assets/images/tim_icon_app_600px_negativo 1.png")
+              }
               style={styles.icon}
             />
-
           </View>
           <Ionicons
             name="chevron-down"
@@ -99,7 +115,6 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
                     >
                       {item.number}
                     </Text>
-
                   </View>
                   <TouchableOpacity
                     onPress={() => {
@@ -113,7 +128,6 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
                       color={isDarkMode ? "black" : "#1E1E1E"}
                     />
                   </TouchableOpacity>
-
                 </TouchableOpacity>
               )}
             />
@@ -126,7 +140,6 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
             >
               <Text style={styles.addSimText}>+ Añadir nueva SIM</Text>
             </TouchableOpacity>
-
           </View>
         </TouchableOpacity>
       </Modal>

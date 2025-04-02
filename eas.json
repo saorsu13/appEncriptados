@@ -34,10 +34,11 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "env": {
+      "EAS_NO_PREBUILD": "1",
+      "EAS_SKIP_AUTO_FINGERPRINT": "1"
     }
-  },
-  "submit": {
-    "production": {}
   }
+}
 }
