@@ -182,7 +182,8 @@
           "placeholder": "SIM ID",
           "electronicSim": "E-SIM DETECTED",
           "physicalSim": "PHYSICAL SIM DETECTED",
-          "invalidSim": "Incorrect 6-digit SIM ID"
+          "invalidSim": "Incorrect 6-digit SIM ID",
+          "sim-timSim": "SIM TIM Detected"
         }
       },
       "helpMessages": {

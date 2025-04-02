@@ -124,9 +124,10 @@ const NetworkProfile = () => {
         break;
 
       case SIM_TYPES.PHYSICAL:
-        return buttonGroupDataPsysical; // Asegúrate de que el nombre sea correcto
+        return buttonGroupDataPsysical; 
       default:
         return [];
+              
     }
   }
 

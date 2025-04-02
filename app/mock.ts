@@ -1,6 +1,7 @@
 export const SIM_TYPES = {
   PHYSICAL: "physical",
   ELECTRONIC: "electronic",
+  SIM_TIM: "sim-tim",
   SG: "sg",
 };
 

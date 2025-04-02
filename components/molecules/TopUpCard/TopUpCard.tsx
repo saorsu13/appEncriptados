@@ -1,9 +1,13 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity, Linking } from "react-native";
 import { LinearGradient } from "expo-linear-gradient"; // Usa expo-linear-gradient
 import { topUpCardStyles } from "./topUpCardStyles";
 
 const TopUpCard = () => {
+  const handlePress = () => {
+    Linking.openURL("https://encriptados.io/pages-sim-encriptada-sim-tim/");
+  };
+
   return (
     <LinearGradient
       colors={["#6ADDFF", "#A8EBFF"]}
@@ -20,8 +24,8 @@ const TopUpCard = () => {
         </Text>
 
         {/* Botón */}
-        <TouchableOpacity style={topUpCardStyles.button}>
-          <Text style={topUpCardStyles.buttonText}>Recargar ahora</Text>
+        <TouchableOpacity style={topUpCardStyles.button} onPress={handlePress}>
+            <Text style={topUpCardStyles.buttonText}>Recargar ahora</Text>
         </TouchableOpacity>
       </View>
       {/* Imagen */}

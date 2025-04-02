@@ -1,41 +1,56 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, ScrollView, BackHandler, Platform } from "react-native";
 import { useRouter, Stack, useFocusEffect } from "expo-router";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 import { balanceStyles } from "./balanceStyles";
-import { useAuth } from "@/context/auth";
-import { LinearGradient } from "expo-linear-gradient";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
+import {
+  listSubscriber,
+  deleteSubscriber,
+  getSubscriberData,
+} from "@/api/subscriberApi";
 
-import { listSubscriber, deleteSubscriber } from "@/api/subscriberApi";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
-import CurrentBalance from "@/components/molecules/CurrentBalance/CurrentBalance";
 import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
 import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimButton";
+import { LinearGradient } from "expo-linear-gradient";
 
 const BalanceScreen = () => {
   const router = useRouter();
   const { colors } = useTheme<ThemeCustom>();
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
-  const { providers } = useAuth();
-  const [sims, setSims] = React.useState([]);
-
-  const plans = useMemo(() => {
-    const validProvider = providers?.find((p) => Array.isArray(p.plans) && p.plans.length > 0);
-    return validProvider ? validProvider.plans : [];
-  }, [providers]);
-
+  const [sims, setSims] = useState([]);
+  const [selectedSimId, setSelectedSimId] = useState<string | null>(null);
+  const [simPlans, setSimPlans] = useState([]);
   const currentSimId = sims.length > 0 ? sims[0].iccid : null;
 
-  const handleDeleteSim = async (idSim) => {
+  const fetchSubscriberData = async (id: string) => {
+    try {
+      setSelectedSimId(id); // Fuerza actualización del estado
+      const { providers } = await getSubscriberData(id);
+      const firstProvider = providers?.[0];
+      setSimPlans(firstProvider?.plans || []);
+      console.log("✅ Plan actualizado para SIM:", id);
+    } catch (error) {
+      console.error("❌ Error al obtener los planes de la SIM:", error);
+      setSimPlans([]);
+    }
+  };
+
+  const handleDeleteSim = async (idSim: string) => {
     try {
       await deleteSubscriber(idSim);
       console.log("SIM borrada exitosamente");
       setSims((prevSims) => prevSims.filter((sim) => sim.iccid !== idSim));
+      // Opcional: si borras la seleccionada, limpiar también
+      if (idSim === selectedSimId) {
+        setSelectedSimId(null);
+        setSimPlans([]);
+      }
     } catch (error) {
       console.error("Error al borrar la SIM:", error);
     }
@@ -46,6 +61,10 @@ const BalanceScreen = () => {
       try {
         const data = await listSubscriber();
         setSims(data || []);
+        if (data && data.length > 0) {
+          const defaultId = data[0].iccid;
+          fetchSubscriberData(defaultId);
+        }
       } catch (error) {
         console.error("Error listando las SIMs:", error);
       }
@@ -53,12 +72,13 @@ const BalanceScreen = () => {
 
     fetchSubscribers();
   }, []);
+
   useFocusEffect(
     useCallback(() => {
       if (Platform.OS === "android") {
         const backHandler = BackHandler.addEventListener(
           "hardwareBackPress",
-          () => true // ← Esto sí lo bloquea
+          () => true
         );
         return () => backHandler.remove();
       }
@@ -93,28 +113,34 @@ const BalanceScreen = () => {
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
           <SimCurrencySelector
-            sims={
-              sims
-                .filter((sim) => sim != null)
-                .map((sim) => ({
-                  id: sim.iccid,
-                  name: sim.name,
-                  logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
-                  number: sim.iccid,
-                })) || []
-            }
+            sims={sims
+              .filter((sim) => sim != null)
+              .map((sim) => ({
+                id: sim.iccid,
+                name: sim.name,
+                logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
+                number: sim.iccid,
+              }))}
+            onSelectSim={(id) => fetchSubscriberData(id)}
           />
 
           <View style={balanceStyles.separator} />
 
-          {plans.map((plan, index) => (
-            <DataBalanceCard
-              key={index}
-              totalData={plan.pckdatabyte}
-              format="GB"
-              region={plan.name}
-            />
-          ))}
+          {simPlans.map((plan, index) => {
+            const totalMB = Number(plan.pckdatabyte) || 0;
+            const usedMB = Number(plan.useddatabyte) || 0;
+            const remainingMB = Math.max(totalMB - usedMB, 0);
+            const remainingGB = (remainingMB / 1024).toFixed(2);
+
+            return (
+              <DataBalanceCard
+                key={index}
+                totalData={remainingGB}
+                format="GB"
+                region={plan.name || "Sin región"}
+              />
+            );
+          })}
 
           <TopUpCard />
 

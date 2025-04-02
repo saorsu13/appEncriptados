@@ -182,7 +182,8 @@
           "placeholder": "ID SIM",
           "electronicSim": "E-SIM DETECTADO",
           "physicalSim": "SIM FISICO DETECTADO",
-          "invalidSim": "ID SIM de 6 digitos o 19 digitos incorrecto"
+          "invalidSim": "ID SIM de 6 digitos o 19 digitos incorrecto",
+          "sim-timSim": "SIM TIM Detectada"
         }
       },
       "helpMessages": {

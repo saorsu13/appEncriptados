@@ -37,7 +37,6 @@
     "babel-plugin-inline-import": "^3.0.0",
     "expo": "~52.0.42",
     "expo-application": "~6.0.2",
-    "expo-cli": "^6.3.12",
     "expo-custom-switch": "^1.0.2",
     "expo-dev-client": "~5.0.16",
     "expo-font": "~13.0.4",

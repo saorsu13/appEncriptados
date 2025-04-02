@@ -21,9 +21,11 @@ type SimData = {
 
 type Props = {
   sims: SimData[];
+  onSelectSim?: (id: string) => void;
 };
 
-const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
+
+const SimCurrencySelector: React.FC<Props> = ({ sims, onSelectSim }) => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const styles = getStyles(isDarkMode);
@@ -101,6 +103,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims }) => {
                   onPress={() => {
                     setSelectedSim(item);
                     setSimModalVisible(false);
+                    onSelectSim?.(item.id);
                   }}
                 >
                   <View style={styles.simInfo}>
