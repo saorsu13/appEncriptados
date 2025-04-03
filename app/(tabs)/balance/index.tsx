@@ -30,7 +30,7 @@ const BalanceScreen = () => {
 
   const fetchSubscriberData = async (id: string) => {
     try {
-      setSelectedSimId(id); // Fuerza actualización del estado
+      setSelectedSimId(id);
       const { providers } = await getSubscriberData(id);
       const firstProvider = providers?.[0];
       setSimPlans(firstProvider?.plans || []);
@@ -41,40 +41,27 @@ const BalanceScreen = () => {
     }
   };
 
-  const handleDeleteSim = async (idSim: string) => {
+  const fetchSubscribers = async () => {
     try {
-      await deleteSubscriber(idSim);
-      console.log("SIM borrada exitosamente");
-      setSims((prevSims) => prevSims.filter((sim) => sim.iccid !== idSim));
-      // Opcional: si borras la seleccionada, limpiar también
-      if (idSim === selectedSimId) {
-        setSelectedSimId(null);
-        setSimPlans([]);
+      const data = await listSubscriber();
+      setSims(data || []);
+      if (data && data.length > 0) {
+        const defaultId = data[0].iccid;
+        fetchSubscriberData(defaultId);
       }
     } catch (error) {
-      console.error("Error al borrar la SIM:", error);
+      console.error("Error listando las SIMs:", error);
     }
   };
 
   useEffect(() => {
-    async function fetchSubscribers() {
-      try {
-        const data = await listSubscriber();
-        setSims(data || []);
-        if (data && data.length > 0) {
-          const defaultId = data[0].iccid;
-          fetchSubscriberData(defaultId);
-        }
-      } catch (error) {
-        console.error("Error listando las SIMs:", error);
-      }
-    }
-
     fetchSubscribers();
   }, []);
 
   useFocusEffect(
     useCallback(() => {
+      fetchSubscribers(); // Refresca al volver a la pantalla
+
       if (Platform.OS === "android") {
         const backHandler = BackHandler.addEventListener(
           "hardwareBackPress",

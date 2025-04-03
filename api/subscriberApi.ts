@@ -7,6 +7,8 @@ export const getSubscriberData = async (idSim: string) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
         body: JSON.stringify({
           id: idSim,
@@ -121,6 +123,8 @@ export const listSubscriber = async () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
       }
     );
