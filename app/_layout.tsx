@@ -49,9 +49,10 @@ export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [showRequestPasswordComponent, setShowRequestPasswordComponent] = useState(false);
 
+  // ✅ userPromise para cargar datos persistidos de sesión
   const userRef = useRef<Promise<{ user: User | null; balance: string | null }> | null>(null);
   if (userRef.current === null) {
-    userRef.current = loadUser();
+    userRef.current = loadUser(); // ✅ carga automática de sesión
   }
 
   useEffect(() => {
@@ -135,7 +136,7 @@ export default function RootLayout() {
                                       headerTitle: '',
                                       headerLeft: () => null,
                                       headerTintColor: 'transparent',
-                                      animation: 'none', // importante para evitar el stack animation back
+                                      animation: 'none',
                                     }}
                                   />
                                   <Stack.Screen
