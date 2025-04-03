@@ -51,6 +51,8 @@ export const createSubscriber = async (subscriberData) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
         body: JSON.stringify(subscriberData),
       }
@@ -76,6 +78,8 @@ export const updateSubscriber = async (id, updateData) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
         body: JSON.stringify(updateData),
       }
@@ -100,6 +104,8 @@ export const deleteSubscriber = async (id) => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
       }
     );
