@@ -21,7 +21,7 @@ import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
-
+import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 import { useModalPassword } from "@/context/modalpasswordprovider";
 import AlertButton from "@/components/molecules/AlertButton/AlertButton";
 import { router, useFocusEffect } from "expo-router";
@@ -33,6 +33,7 @@ const Login = () => {
   const { setTypeOfProcess, showModal, setCurrentIdSim, typeOfProcess } =
     useModalActivateSim();
   const { isModalVisible } = useModalPassword();
+  const deviceUUID = useDeviceUUID();
 
   useFocusEffect(
     useCallback(() => {
@@ -56,18 +57,32 @@ const Login = () => {
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
       .required(t("validators.required"))
-      .test("len", t("validators.invalidSim"), (val) => val.length === 19),
+      .matches(/^(\d{6}|\d{19})$/, t("validators.invalidSim"))
   });
+  
+  
 
   const handleSubmit = async (values) => {
     if (Object.keys(formik.errors).length > 0) return;
+    if (!deviceUUID) {
+      console.warn("UUID no disponible, espere a que se obtenga el UUID.");
+      return;
+    }
     try {
       setIsLoading(true);
-      const subscriberData = {
-        iccid: values.simNumber,
-        provider: "telco-vision",
-        name: "Sim Tim",
-      };
+      const subscriberData = values.simNumber.length === 6
+      ? {
+          iccid: values.simNumber,
+          provider: "tottoli",
+          name: "Sim Encr",
+          uuid: deviceUUID,
+        }
+      : {
+          iccid: values.simNumber,
+          provider: "telco-vision",
+          name: "Sim Tim",
+          uuid: deviceUUID,
+        };
       const result = await createSubscriber(subscriberData);
       console.log("SIM agregada con éxito:", result);
       setModalSuccessVisible(true);

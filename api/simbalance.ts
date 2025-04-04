@@ -46,17 +46,17 @@ export interface BalanceResponse {
 }
 
 export const getCurrentBalanceByCurrency = async (
-  idSim?: number | string,
+  id?: number | string,
   code?: string
 ): Promise<BalanceResponse | null> => {
-  if (!idSim || !code) {
+  if (!id || !code) {
     console.warn("getCurrentBalanceByCurrency: idSim o currency_code no válidos");
     return null;
   }
 
   try {
     const response = await api.get<BalanceResponse>(
-      `/changeBalanceForCurrencySelected?id=${idSim}&currency_code=${code}`
+      `/changeBalanceForCurrencySelected?id=${id}&currency_code=${code}`
     );
     return response.data;
   } catch (error) {

@@ -10,13 +10,13 @@ import {
   deleteSubscriber,
   getSubscriberData,
 } from "@/api/subscriberApi";
-
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
 import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
 import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimButton";
 import { LinearGradient } from "expo-linear-gradient";
+import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 
 const BalanceScreen = () => {
   const router = useRouter();
@@ -27,12 +27,23 @@ const BalanceScreen = () => {
   const [selectedSimId, setSelectedSimId] = useState<string | null>(null);
   const [simPlans, setSimPlans] = useState([]);
   const currentSimId = sims.length > 0 ? sims[0].iccid : null;
+  const deviceUUID = useDeviceUUID();
 
+  // Solo se ejecuta cuando deviceUUID esté disponible
   const fetchSubscriberData = async (id: string) => {
+    if (!deviceUUID) {
+      console.warn("UUID no disponible, se cancela la petición.");
+      return;
+    }
     try {
       setSelectedSimId(id);
-      const { providers } = await getSubscriberData(id);
-      const firstProvider = providers?.[0];
+      const response = await getSubscriberData(id, deviceUUID);
+      if (!response || !response.providers || response.providers.length === 0) {
+        console.warn("Respuesta vacía, la SIM puede no estar procesada aún.");
+        setSimPlans([]);
+        return;
+      }
+      const firstProvider = response.providers[0];
       setSimPlans(firstProvider?.plans || []);
       console.log("✅ Plan actualizado para SIM:", id);
     } catch (error) {
@@ -41,9 +52,15 @@ const BalanceScreen = () => {
     }
   };
 
+  // La función se dispara cuando deviceUUID tiene valor
   const fetchSubscribers = async () => {
+    if (!deviceUUID) {
+      console.warn("UUID no disponible, no se puede listar las SIMs.");
+      return;
+    }
     try {
-      const data = await listSubscriber();
+      const data = await listSubscriber(deviceUUID);
+      console.log("Este es el deviceUUID", deviceUUID);
       setSims(data || []);
       if (data && data.length > 0) {
         const defaultId = data[0].iccid;
@@ -54,22 +71,23 @@ const BalanceScreen = () => {
     }
   };
 
+  // Se ejecuta apenas deviceUUID esté definido
   useEffect(() => {
-    fetchSubscribers();
-  }, []);
+    if (deviceUUID) {
+      fetchSubscribers();
+    }
+  }, [deviceUUID]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchSubscribers(); // Refresca al volver a la pantalla
-
+      if (deviceUUID) {
+        fetchSubscribers();
+      }
       if (Platform.OS === "android") {
-        const backHandler = BackHandler.addEventListener(
-          "hardwareBackPress",
-          () => true
-        );
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", () => true);
         return () => backHandler.remove();
       }
-    }, [])
+    }, [deviceUUID])
   );
 
   const BackgroundWrapper = isDarkMode ? View : LinearGradient;

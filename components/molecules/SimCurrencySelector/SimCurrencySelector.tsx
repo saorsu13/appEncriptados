@@ -97,42 +97,65 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, onSelectSim }) => {
             <FlatList
               data={sims}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.simItem}
-                  onPress={() => {
-                    setSelectedSim(item);
-                    setSimModalVisible(false);
-                    onSelectSim?.(item.id);
-                  }}
-                >
-                  <View style={styles.simInfo}>
-                    <View style={styles.simNameContainer}>
-                      <Text style={styles.simName}>{item.name}</Text>
-                    </View>
-                    <Image source={item.logo} style={styles.icon} />
-                    <Text
-                      style={styles.simNumber}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {item.number}
-                    </Text>
-                  </View>
+              renderItem={({ item }) => {
+                const isSixDigitSim = item.id.length === 6;
+                const simImage = isSixDigitSim
+                  ? require("@/assets/images/adaptive-icon.png")
+                  : item.logo;
+              
+                return (
                   <TouchableOpacity
+                    style={styles.simItem}
                     onPress={() => {
                       setSimModalVisible(false);
-                      router.push(`/balance/new-sim-encrypted/edit-sim-encrypted/${item.id}`);
+                      if (isSixDigitSim) {
+                        router.push(`/home?simId=${item.id}`);
+                      } else {
+                        setSelectedSim(item);
+                        onSelectSim?.(item.id);
+                      }
                     }}
                   >
-                    <Ionicons
-                      name="create-outline"
-                      size={20}
-                      color={isDarkMode ? "black" : "#1E1E1E"}
-                    />
+                    <View style={styles.simInfo}>
+                      <View style={styles.simNameContainer}>
+                        <Text style={styles.simName}>{item.name}</Text>
+                      </View>
+                      <Image
+                        source={simImage}
+                        style={
+                          isSixDigitSim
+                            ? { width: 30, height: 30, borderRadius: 10, resizeMode: 'cover' }
+                            : { width: 25, height: 25, resizeMode: 'contain' }
+                        }
+                      />
+                      <Text
+                        style={styles.simNumber}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.number}
+                      </Text>
+                    </View>
+              
+                    {!isSixDigitSim && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSimModalVisible(false);
+                          router.push(
+                            `/balance/new-sim-encrypted/edit-sim-encrypted/${item.id}`
+                          );
+                        }}
+                      >
+                        <Ionicons
+                          name="create-outline"
+                          size={20}
+                          color={isDarkMode ? "black" : "#1E1E1E"}
+                        />
+                      </TouchableOpacity>
+                    )}
                   </TouchableOpacity>
-                </TouchableOpacity>
-              )}
+                );
+              }}              
             />
             <TouchableOpacity
               style={styles.addSimButton}

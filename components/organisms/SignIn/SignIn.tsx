@@ -29,6 +29,7 @@ import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncryp
 import { useModalActivateSim } from "@/context/modalactivatesim";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { resetModalUpdate } from "@/features/settings/settingsSlice";
+import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 
 const LoginHeaderImage = require("@/assets/images/login-header.png");
 const LoginHeaderImageLight = require("@/assets/images/login-header-light.png");
@@ -37,6 +38,7 @@ const SignIn = () => {
   const { setCurrentIdSim, showModal, setTypeOfProcess } = useModalActivateSim();
   const { setProviders, isLoggedIn } = useAuth();
   const [provider, setProvider] = useState(null);
+  const deviceUUID = useDeviceUUID();
 
   
   useFocusEffect(
@@ -72,21 +74,26 @@ const SignIn = () => {
       setCurrentIdSim(values.simNumber);
       try {
         setIsLoading(true);
-        const data = await getSubscriberData(values.simNumber);
+        if (!deviceUUID) {
+          console.warn("UUID no disponible, espere a que se obtenga el UUID.");
+          return;
+        }
+        // Se envía el uuid obtenido desde el hook
+        const data = await getSubscriberData(values.simNumber, deviceUUID);
         auth.signIn(
-      {
-        simName: values.simNumber,
-        idSim: parseInt(values.simNumber),
-        code: 0, 
-      },
-      data.providers,
-      data.balance
-    );
+          {
+            simName: values.simNumber,
+            idSim: parseInt(values.simNumber),
+            code: 0, 
+          },
+          data.providers,
+          data.balance
+        );
         if (data.provider === "telco-vision") {
           router.replace("/balance");
         } else if (data.provider === "tottoli") {
           router.replace("/home");
-        }else {
+        } else {
           setRequestCodeModal(true);
         }
       } catch (error) {
@@ -96,17 +103,25 @@ const SignIn = () => {
       }
     },
   });
+  
 
   useEffect(() => {
     const sim = formik.values.simNumber;
     setCurrentIdSim(sim);
     setSimType(determineType(sim));
+  
+    if (!deviceUUID) {
+      console.warn("UUID no disponible para obtener el provider");
+      setProvider(null);
+      return;
+    }
+  
     if (sim.length === 19) {
       setProvider("telco-vision");
       (async () => {
         try {
-          const data = await getSubscriberData(sim);
-          setProvider(data.provider); 
+          const data = await getSubscriberData(sim, deviceUUID);
+          setProvider(data.provider);
         } catch (error) {
           console.error("Error al obtener el provider:", error);
           setProvider(null);
@@ -116,7 +131,7 @@ const SignIn = () => {
       setProvider("tottoli");
       (async () => {
         try {
-          const data = await getSubscriberData(sim);
+          const data = await getSubscriberData(sim, deviceUUID);
           setProvider(data.provider);
         } catch (error) {
           console.error("Error al obtener el provider:", error);
@@ -126,7 +141,8 @@ const SignIn = () => {
     } else {
       setProvider(null);
     }
-  }, [formik.values.simNumber]);
+  }, [formik.values.simNumber, deviceUUID]);
+  
   
   
 
