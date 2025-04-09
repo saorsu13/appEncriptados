@@ -17,6 +17,8 @@ import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimButton";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
+import { useDispatch } from "react-redux";
+import { resetSimState } from "@/features/sims/simSlice";
 
 const BalanceScreen = () => {
   const router = useRouter();
@@ -28,6 +30,7 @@ const BalanceScreen = () => {
   const [simPlans, setSimPlans] = useState([]);
   const currentSimId = sims.length > 0 ? sims[0].iccid : null;
   const deviceUUID = useDeviceUUID();
+  const dispatch = useDispatch();
 
   // Solo se ejecuta cuando deviceUUID esté disponible
   const fetchSubscriberData = async (id: string) => {
@@ -52,7 +55,6 @@ const BalanceScreen = () => {
     }
   };
 
-  // La función se dispara cuando deviceUUID tiene valor
   const fetchSubscribers = async () => {
     if (!deviceUUID) {
       console.warn("UUID no disponible, no se puede listar las SIMs.");
@@ -61,7 +63,7 @@ const BalanceScreen = () => {
     try {
       const data = await listSubscriber(deviceUUID);
       console.log("Este es el deviceUUID", deviceUUID);
-      setSims(data || []);
+      setSims(Array.isArray(data) ? data : []);
       if (data && data.length > 0) {
         const defaultId = data[0].iccid;
         fetchSubscriberData(defaultId);
@@ -90,6 +92,37 @@ const BalanceScreen = () => {
     }, [deviceUUID])
   );
 
+  const handleDeleteSim = async (iccid: string) => {
+    if (!deviceUUID) {
+      console.warn("❌ UUID no disponible, no se puede eliminar la SIM.");
+      return;
+    }
+  
+    try {
+      console.log("🗑️ Eliminando SIM con ICCID:", iccid, "y UUID:", deviceUUID);
+      const response = await deleteSubscriber(iccid, deviceUUID);
+      console.log("✅ SIM eliminada correctamente:", response);
+  
+      const updatedSims = await listSubscriber(deviceUUID);
+      const newSims = Array.isArray(updatedSims) ? updatedSims : [];
+  
+      setSims(newSims);
+  
+      if (newSims.length === 0) {
+        console.log("📭 No hay más SIMs, reseteando estado y redirigiendo...");
+        dispatch(resetSimState());
+        router.replace("/home");
+        return;
+      }
+  
+      fetchSubscriberData(newSims[0].iccid);
+    } catch (error) {
+      console.error("🚨 Error eliminando la SIM:", error);
+    }
+  };
+  
+  
+  
   const BackgroundWrapper = isDarkMode ? View : LinearGradient;
   const backgroundProps = isDarkMode
     ? { style: [balanceStyles.container, { backgroundColor: colors.background }] }

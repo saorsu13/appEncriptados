@@ -54,12 +54,13 @@ export const getSubscriberData = async (id: string, uuid: string) => {
   }
 };
 
-
-
 /**
  * Crea un nuevo subscriber en el backend.
  */
 export const createSubscriber = async (subscriberData) => {
+  console.log("🛫 createSubscriber → Iniciando llamada con payload:");
+  console.log(JSON.stringify(subscriberData, null, 2));
+
   try {
     const response = await fetch(`${API_BASE_URL}/sims/create`, {
       method: "POST",
@@ -71,33 +72,50 @@ export const createSubscriber = async (subscriberData) => {
       body: JSON.stringify(subscriberData),
     });
 
+    console.log("📨 createSubscriber → Status HTTP:", response.status);
+
     const contentType = response.headers.get("content-type");
+    console.log("📄 createSubscriber → Content-Type:", contentType);
 
     if (!response.ok) {
       if (contentType?.includes("application/json")) {
         const errorBody = await response.json();
-        return errorBody; // ejemplo: { code: "duplicate_iccid" }
+        console.warn("⚠️ createSubscriber → Error JSON:", errorBody);
+        return errorBody;
       }
+
+      console.error(`❌ createSubscriber → Error sin JSON. Código: ${response.status}`);
       throw new Error(`❌ Error sin JSON: ${response.status}`);
     }
 
     if (contentType?.includes("application/json")) {
-      return await response.json();
+      const data = await response.json();
+      console.log("✅ createSubscriber → Respuesta JSON OK:", data);
+      return data;
     }
 
     throw new Error("❌ Respuesta sin JSON válida");
   } catch (error) {
-    console.error("🚨 Error al crear el subscriber:", error);
+    console.error("🚨 createSubscriber → Error inesperado:", error);
     throw error;
   }
 };
 
+
 /**
  * Actualiza un subscriber existente.
  */
-export const updateSubscriber = async (id: string | number, updateData) => {
+export const updateSubscriber = async (
+  iccid: string,
+  uuid: string,
+  updateData: { provider: string; name: string }
+) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/sims/update/${id}`, {
+    const url = `https://encriptados.es/wp-json/encriptados/v1/sims/update/${iccid}/${uuid}`;
+    console.log("🛠️ Actualizando subscriber en:", url);
+    console.log("📦 Payload:", updateData);
+
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -108,10 +126,13 @@ export const updateSubscriber = async (id: string | number, updateData) => {
     });
 
     if (!response.ok) {
-      throw new Error(`❌ Error en el request: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`❌ Error en el request: ${response.status} - ${errorText}`);
     }
 
-    return await response.json();
+    const json = await response.json();
+    console.log("✅ Respuesta del update:", json);
+    return json;
   } catch (error) {
     console.error("🚨 Error al actualizar el subscriber:", error);
     throw error;
@@ -119,11 +140,11 @@ export const updateSubscriber = async (id: string | number, updateData) => {
 };
 
 /**
- * Elimina un subscriber por ID.
+ * Elimina un subscriber por ICCID y UUID.
  */
-export const deleteSubscriber = async (id: string | number) => {
+export const deleteSubscriber = async (iccid: string, uuid: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/sims/delete/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/sims/delete/${iccid}/${uuid}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -142,6 +163,7 @@ export const deleteSubscriber = async (id: string | number) => {
     throw error;
   }
 };
+
 
 /**
  * Lista todos los subscribers.

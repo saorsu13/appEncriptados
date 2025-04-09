@@ -25,6 +25,7 @@ import { RouteProp, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { updateSimName } from "@/features/sims/simSlice";
 import { updateSubscriber } from "@/api/subscriberApi"; 
+import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
@@ -40,6 +41,8 @@ const Login = () => {
   const { params } = useRoute<MyRouteProp>();
   const { showModal } = useModalAll();
   const dispatch = useDispatch();
+  const deviceUUID = useDeviceUUID();
+
 
   const validationSchema = Yup.object().shape({
     simName: Yup.string()
@@ -49,10 +52,17 @@ const Login = () => {
 
   const handleSubmit = async (values) => {
     try {
-      await updateSubscriber(params.id, {
-        provider: "telco-vision", 
+      if (!deviceUUID) {
+        console.warn("❌ UUID no disponible para actualizar SIM");
+        return;
+      }
+      
+      await updateSubscriber(params.id, deviceUUID, {
+        provider: "telco-vision",
         name: values.simName,
       });
+      
+      
 
     showModal({
       type: "confirm",

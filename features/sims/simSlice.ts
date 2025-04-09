@@ -46,6 +46,10 @@ export const simSlice = createSlice({
         sim.simName = newName;
       }
     },
+    resetSimState: (state) => {
+      state.sims = [];
+      state.currentSim = null;
+    },    
   },
 });
 
@@ -55,6 +59,7 @@ export const {
   deleteSim,
   deleteAllSims,
   updateSimName,
+  resetSimState,
 } = simSlice.actions;
 
 export const simReducer = simSlice.reducer;

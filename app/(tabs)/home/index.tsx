@@ -194,7 +194,7 @@ const Home = () => {
   );
 
   // -------- Render principal -------- //
-
+  
   if (!isLoggedIn || !currentSim) {
     return (
       <ScrollView style={{ backgroundColor: colors.background }}>

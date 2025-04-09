@@ -74,37 +74,54 @@ const SignIn = () => {
       setCurrentIdSim(values.simNumber);
       try {
         setIsLoading(true);
+    
         if (!deviceUUID) {
-          console.warn("UUID no disponible, espere a que se obtenga el UUID.");
+          console.warn("⛔ UUID aún no disponible.");
           return;
         }
-        // Se envía el uuid obtenido desde el hook
-        const data = await getSubscriberData(values.simNumber, deviceUUID);
-        auth.signIn(
-          {
-            simName: values.simNumber,
-            idSim: parseInt(values.simNumber),
-            code: 0, 
-          },
-          data.providers,
-          data.balance
+    
+        const response = await loginQuery.loginRequest(
+          values.simNumber,
+          0,
+          values.simNumber
         );
-        if (data.provider === "telco-vision") {
+    
+        if (response?.error) {
+          console.warn("⚠️ Error durante loginRequest:", response.error);
+          setRequestCodeModal(true);
+          return;
+        }
+    
+        const provider = response?.data?.provider;
+    
+        console.log("✅ Provider recibido desde loginRequest:", provider);
+    
+        if (!provider) {
+          console.warn("⚠️ Provider no reconocido o ausente:", provider);
+          setRequestCodeModal(true);
+          return;
+        }
+    
+        // Redirección segura según el provider
+        if (provider === "telco-vision") {
           router.replace("/balance");
-        } else if (data.provider === "tottoli") {
+        } else if (provider === "tottoli") {
           router.replace("/home");
         } else {
+          console.warn("⚠️ Provider no reconocido:", provider);
           setRequestCodeModal(true);
         }
       } catch (error) {
-        console.log("Error validando SIM:", error);
+        console.error("🔥 Error general en onSubmit:", error);
       } finally {
         setIsLoading(false);
       }
-    },
+    }
+    
   });
   
-
+  
+  
   useEffect(() => {
     const sim = formik.values.simNumber;
     setCurrentIdSim(sim);
@@ -116,35 +133,30 @@ const SignIn = () => {
       return;
     }
   
-    if (sim.length === 19) {
-      setProvider("telco-vision");
-      (async () => {
-        try {
+    const fetchProvider = async () => {
+      try {
+        if (sim.length === 6 || sim.length === 19) {
+          console.log("📡 Consultando provider desde backend...");
           const data = await getSubscriberData(sim, deviceUUID);
-          setProvider(data.provider);
-        } catch (error) {
-          console.error("Error al obtener el provider:", error);
+          console.log("📬 Respuesta completa:", JSON.stringify(data, null, 2));
+  
+          if (data && typeof data === "object" && data.provider) {
+            setProvider(data.provider);
+          } else {
+            console.warn("⚠️ El backend no devolvió un provider válido.");
+            setProvider(null);
+          }
+        } else {
           setProvider(null);
         }
-      })();
-    } else if (sim.length === 6) {
-      setProvider("tottoli");
-      (async () => {
-        try {
-          const data = await getSubscriberData(sim, deviceUUID);
-          setProvider(data.provider);
-        } catch (error) {
-          console.error("Error al obtener el provider:", error);
-          setProvider(null);
-        }
-      })();
-    } else {
-      setProvider(null);
-    }
+      } catch (error) {
+        console.error("❌ Error al obtener el provider:", error);
+        setProvider(null);
+      }
+    };
+  
+    fetchProvider();
   }, [formik.values.simNumber, deviceUUID]);
-  
-  
-  
 
   const handleInfoModal = () => {
     setModalVisible(!modalVisible);
@@ -153,12 +165,7 @@ const SignIn = () => {
   const handleInfoHowToWorkModal = () => {
     setModalHowToWorkVisible(!modalHowToWorkVisible);
   };
-
-  useEffect(() => {
-    if (auth.isLoggedIn) {
-      router.push("/home/");
-    }
-  }, [auth]);
+ 
 
   const stateModal = useAppSelector((state) => state.modalReset.modalReset);
 
@@ -255,8 +262,9 @@ const SignIn = () => {
               disabled={!formik.isValid || !formik.values.simNumber}
             >
               <Text allowFontScaling={false} style={styles.loadingButton}>
-                {provider === "telco-vision" ? "Activar SIM" : "Solicitar código"}
+                {formik.values.simNumber.length === 19 ? "Activar SIM" : "Solicitar código"}
               </Text>
+
             </Button>
             <StepList
               title={t(`${baseMsg}.form.stepsList.title`)}
@@ -268,7 +276,7 @@ const SignIn = () => {
             />
           </View>
         </View>
-        {requestCodeModal && (
+        {/* {requestCodeModal && (
           <VerificationSim
             showModal={requestCodeModal}
             resetModal={() => setRequestCodeModal(false)}
@@ -277,7 +285,7 @@ const SignIn = () => {
               router.push("/home/");
             }}
         />
-        )}
+        )} */}
 
         <ModalInfo
           visible={modalHowToWorkVisible}

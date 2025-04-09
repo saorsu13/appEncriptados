@@ -7,9 +7,12 @@ import {
 // Servicios y hooks
 import api from "@/config/api";
 import { useAuth } from "@/context/auth";
-import { getSubscriberData } from "@/api/subscriberApi";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
-import { createSubscriber } from "@/api/subscriberApi";
+import {
+  createSubscriber,
+  getSubscriberData,
+  listSubscriber,
+} from "@/api/subscriberApi";
 
 /**
  * Realiza la petición al backend para iniciar sesión.
@@ -24,76 +27,107 @@ export async function login(body: LoginParams): Promise<LoginResponse> {
  */
 export function useLogin() {
   const auth = useAuth();
-  const uuid = useDeviceUUID(); 
+  const uuid = useDeviceUUID();
   const uuidRef = useRef(uuid);
 
   useEffect(() => {
     uuidRef.current = uuid;
   }, [uuid]);
 
-  const loginRequest = useCallback(async (id, code, name) => {
-    if (!uuidRef.current) {
-      console.warn("⛔ UUID aún no disponible.");
-      return { error: "UUID aún no está listo. Intenta de nuevo." };
-    }
-
-    try {
-      console.log("🔐 LoginRequest → SIM:", id);
-      console.log("📱 LoginRequest → UUID:", uuidRef.current);
-
-      const loginRes = await login({ id, code });
-      console.log("🔑 LoginResponse:", loginRes);
-
-      if (loginRes.status === "fail") {
-        return { error: "Login fallido o sin datos válidos" };
+  const loginRequest = useCallback(
+    async (id, code, nameFromInput) => {
+      if (!uuidRef.current) {
+        console.warn("⛔ UUID aún no disponible.");
+        return { error: "UUID aún no está listo. Intenta de nuevo." };
       }
-
-      let subscriberRes;
-
+  
       try {
-        subscriberRes = await getSubscriberData(id.toString(), uuidRef.current);
-      } catch (err) {
-        console.warn("🆕 SIM no registrada, creando...");
-
-        const result = await createSubscriber({
-          iccid: id.toString(),
-          provider: "telco-vision",
-          name,
-          uuid: uuidRef.current,
-        });
-
-        if (result?.code === "duplicate_iccid" || result?.status === "success") {
-          subscriberRes = await getSubscriberData(id.toString(), uuidRef.current);
-        } else {
-          throw new Error("❌ No se pudo registrar la SIM.");
+        const loginRes = await login({ id, code });
+  
+        if (loginRes.status === "fail") {
+          return { error: "Login fallido o sin datos válidos" };
         }
+  
+        let subscriberRes;
+        try {
+          subscriberRes = await getSubscriberData(id.toString(), uuidRef.current);
+        } catch (err) {
+          return { error: "Error al obtener datos de la SIM" };
+        }
+  
+        const providerData = subscriberRes?.providers?.[0]?.provider;
+        const iccid = subscriberRes?.providers?.[0]?.iccid;
+        const balance = subscriberRes?.providers?.[0]?.balance;
+        const validProviders = subscriberRes?.providers?.filter(Boolean) || [];
+  
+        if (!providerData || !iccid) {
+          return { error: "SIM inválida o sin información suficiente." };
+        }
+  
+        // Nombre por defecto según longitud
+        const defaultName =
+          id.toString().length === 19
+            ? "Sim Tim"
+            : id.toString().length === 6
+            ? "Sim Encr"
+            : nameFromInput;
+  
+        let sims = [];
+        try {
+          const simListRes = await listSubscriber(uuidRef.current);
+          if (Array.isArray(simListRes)) sims = simListRes;
+        } catch (err) {
+          console.warn("ℹ️ No se pudo listar las SIMs asociadas.");
+        }
+  
+        const simExists = sims.some((sim) => sim.iccid === iccid);
+        const simLimitReached = sims.length >= 5;
+  
+        if (!simExists && !simLimitReached) {
+          try {
+            const createRes = await createSubscriber({
+              iccid,
+              provider: providerData,
+              name: defaultName,
+              uuid: uuidRef.current,
+            });
+  
+            console.log("📝 Respuesta de creación:", createRes);
+          } catch (err) {
+            console.error("❌ Error al crear la SIM desde el frontend:", err);
+            return { error: "No se pudo crear la SIM desde el frontend." };
+          }
+        } else if (simExists) {
+          console.log("✅ SIM ya está registrada con este UUID.");
+        } else {
+          console.warn("🚫 Ya se alcanzó el límite de 5 SIMs por UUID.");
+        }
+  
+        auth?.signIn(
+          {
+            simName: nameFromInput,
+            idSim: id,
+            code,
+          },
+          validProviders,
+          balance
+        );
+  
+        // Devolver el provider explícitamente para manejar la redirección en la vista
+        return {
+          data: {
+            provider: providerData,
+          },
+          error: null,
+        };
+      } catch (err) {
+        console.error("🔥 Error general en loginRequest:", err);
+        return { error: "Ocurrió un error inesperado en el login." };
       }
-
-      const validProviders = subscriberRes?.providers?.filter(Boolean) || [];
-      const firstProvider = validProviders?.[0];
-
-      auth?.signIn(
-        {
-          simName: name,
-          idSim: id,
-          code,
-        },
-        validProviders,
-        firstProvider?.balance
-      );
-
-      return {
-        data: loginRes,
-        error: null,
-      };
-    } catch (err) {
-      console.error("🔥 Error general en loginRequest:", err);
-      return { error: err };
-    }
-  },
-  [uuid, auth]); 
+    },
+    [uuid, auth]
+  );
+  
 
   return { loginRequest };
 }
-
-
