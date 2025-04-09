@@ -218,7 +218,7 @@ const Home = () => {
         />
       }
     >
-      <HeaderEncrypted owner="app-fantasma" settingsLink="home/settings/sim" />
+      <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim" />
 
       <View style={styles.container}>
         <SimCountry

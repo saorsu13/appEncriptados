@@ -17,6 +17,7 @@ export default function Index() {
 
   useEffect(() => {
     if (shouldRedirect) {
+      console.log("Redirigiendo a /home");
       router.replace("/(tabs)/home");
     }
   }, [shouldRedirect]);
