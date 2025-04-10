@@ -41,6 +41,7 @@ import { MenuProvider } from "@/context/menuprovider";
 import RequestPasswordComponent from "@/context/requestpasswordprovider";
 import { ModalPasswordProvider } from "@/context/modalpasswordprovider";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useRestoreSession } from "@/hooks/useRestoreSession";
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
@@ -54,6 +55,8 @@ export default function RootLayout() {
   if (userRef.current === null) {
     userRef.current = loadUser(); // ✅ carga automática de sesión
   }
+  const restoring = useRestoreSession();
+
 
   useEffect(() => {
     const prepare = async () => {
@@ -111,15 +114,13 @@ export default function RootLayout() {
                 <Provider store={store}>
                   <MenuProvider>
                     <ModalPasswordProvider>
-                      <AuthProvider
-                        userPromise={userRef.current}
-                        onLoaded={() => setAppIsReady(true)}
-                      >
+                      <AuthProvider userPromise={userRef.current} onLoaded={() => setAppIsReady(true)}>
                         <QueryClientProvider client={queryClient}>
                           <SafeAreaView style={styles.container}>
                             {showRequestPasswordComponent && <RequestPasswordComponent />}
                             <CountdownProvider>
-                              {appIsReady ? (
+                              {/* ⛔ NO mostrar rutas hasta que termine la restauración */}
+                              {appIsReady && !restoring ? (
                                 <Stack
                                   screenOptions={{
                                     headerShown: false,
@@ -127,30 +128,8 @@ export default function RootLayout() {
                                     presentation: "transparentModal",
                                   }}
                                 >
-                                  <Stack.Screen
-                                    name="(tabs)"
-                                    options={{
-                                      headerShown: false,
-                                      gestureEnabled: true,
-                                      headerTransparent: true,
-                                      headerTitle: '',
-                                      headerLeft: () => null,
-                                      headerTintColor: 'transparent',
-                                      animation: 'none',
-                                    }}
-                                  />
-                                  <Stack.Screen
-                                    name="index"
-                                    options={{
-                                      headerShown: false,
-                                      gestureEnabled: true,
-                                      headerTransparent: true,
-                                      headerTitle: '',
-                                      headerLeft: () => null,
-                                      headerTintColor: 'transparent',
-                                      animation: 'none',
-                                    }}
-                                  />
+                                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                                  <Stack.Screen name="index" options={{ headerShown: false }} />
                                 </Stack>
                               ) : null}
                             </CountdownProvider>

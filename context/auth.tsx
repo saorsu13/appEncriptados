@@ -11,6 +11,9 @@ import { UserInfo } from "@/features/sign-in/types";
 import { useDispatch } from "react-redux";
 import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
+import { listSubscriber } from "@/api/subscriberApi";
+import { useDeviceUUID } from "@/hooks/useDeviceUUID";
+
 
 export const MIN_PASSWORD_LENGTH = 10;
 const ALWAYS_REQUIRE_LOGIN = false;
@@ -79,15 +82,45 @@ export const loadUser = async (): Promise<{ user: User | null; balance: string |
   try {
     const storedUser = await AsyncStorage.getItem("@user");
     const storedBalance = await AsyncStorage.getItem("@balance");
-    return {
-      user: storedUser ? JSON.parse(storedUser) : null,
-      balance: storedBalance ?? null,
-    };
+
+    if (storedUser) {
+      return {
+        user: JSON.parse(storedUser),
+        balance: storedBalance ?? null,
+      };
+    }
+
+    // 👇 Si no hay usuario en AsyncStorage, intentamos reconstruirlo desde el backend
+    const uuid = await useDeviceUUID(); // usa tu hook `useDeviceUUID` o sácale el valor directamente
+    const sims = await listSubscriber(uuid);
+
+    if (uuid) {
+      const sims = await listSubscriber(uuid);
+      if (Array.isArray(sims) && sims.length > 0) {
+        const restoredUser: User = {
+          simName: sims[0].name,
+          idSim: Number(sims[0].iccid),
+          code: 0,
+        };
+
+        // Guarda para futuras sesiones
+        await AsyncStorage.setItem("@user", JSON.stringify(restoredUser));
+        await AsyncStorage.setItem("@balance", "");
+
+        return {
+          user: restoredUser,
+          balance: "",
+        };
+      }
+    }
+
+    return { user: null, balance: null };
   } catch (e) {
-    console.error("Failed to load the data from storage", e);
+    console.error("Failed to load or restore user session", e);
     return { user: null, balance: null };
   }
 };
+
 
 export function AuthProvider({
   children,

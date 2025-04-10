@@ -5,6 +5,7 @@ import {
 } from "@/components/molecules/InsertSimCardModal/InsertSimCardModal";
 
 // Servicios y hooks
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from "@/config/api";
 import { useAuth } from "@/context/auth";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
@@ -114,6 +115,8 @@ export function useLogin() {
         );
   
         // Devolver el provider explícitamente para manejar la redirección en la vista
+        await AsyncStorage.setItem("currentICCID", iccid);
+        
         return {
           data: {
             provider: providerData,
