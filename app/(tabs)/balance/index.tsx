@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, ScrollView, BackHandler, Platform } from "react-native";
+import {
+  View,
+  ScrollView,
+  BackHandler,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
 import { useRouter, Stack, useFocusEffect } from "expo-router";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
@@ -25,21 +31,23 @@ const BalanceScreen = () => {
   const { colors } = useTheme<ThemeCustom>();
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
+
   const [sims, setSims] = useState([]);
   const [selectedSimId, setSelectedSimId] = useState<string | null>(null);
   const [simPlans, setSimPlans] = useState([]);
-  const currentSimId = sims.length > 0 ? sims[0].iccid : null;
+  const [loading, setLoading] = useState(false);
+
   const deviceUUID = useDeviceUUID();
   const dispatch = useDispatch();
 
-  // Solo se ejecuta cuando deviceUUID esté disponible
   const fetchSubscriberData = async (id: string) => {
     if (!deviceUUID) {
       console.warn("UUID no disponible, se cancela la petición.");
       return;
     }
     try {
-      setSelectedSimId(id);
+      setLoading(true);
+      setSelectedSimId(id); // Actualizamos la SIM seleccionada
       const response = await getSubscriberData(id, deviceUUID);
       if (!response || !response.providers || response.providers.length === 0) {
         console.warn("Respuesta vacía, la SIM puede no estar procesada aún.");
@@ -52,6 +60,8 @@ const BalanceScreen = () => {
     } catch (error) {
       console.error("❌ Error al obtener los planes de la SIM:", error);
       setSimPlans([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,6 +71,7 @@ const BalanceScreen = () => {
       return;
     }
     try {
+      setLoading(true);
       const data = await listSubscriber(deviceUUID);
       console.log("Este es el deviceUUID", deviceUUID);
       setSims(Array.isArray(data) ? data : []);
@@ -70,10 +81,11 @@ const BalanceScreen = () => {
       }
     } catch (error) {
       console.error("Error listando las SIMs:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Se ejecuta apenas deviceUUID esté definido
   useEffect(() => {
     if (deviceUUID) {
       fetchSubscribers();
@@ -86,7 +98,10 @@ const BalanceScreen = () => {
         fetchSubscribers();
       }
       if (Platform.OS === "android") {
-        const backHandler = BackHandler.addEventListener("hardwareBackPress", () => true);
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          () => true
+        );
         return () => backHandler.remove();
       }
     }, [deviceUUID])
@@ -115,17 +130,18 @@ const BalanceScreen = () => {
         return;
       }
   
-      fetchSubscriberData(newSims[0].iccid);
+      // Si se borra la SIM seleccionada, podemos actualizar la selección a la primera de la lista
+      const newSelectedId = newSims[0].iccid;
+      setSelectedSimId(newSelectedId);
+      fetchSubscriberData(newSelectedId);
     } catch (error) {
       console.error("🚨 Error eliminando la SIM:", error);
     }
   };
   
-  
-  
   const BackgroundWrapper = isDarkMode ? View : LinearGradient;
   const backgroundProps = isDarkMode
-    ? { style: [balanceStyles.container, { backgroundColor: colors.background }] }
+    ? { style: [{ ...balanceStyles.container }, { backgroundColor: colors.background }] }
     : {
         colors: ["#E6F9FF", "#FFFFFF"],
         start: { x: 0, y: 0 },
@@ -147,7 +163,7 @@ const BalanceScreen = () => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-        <HeaderEncrypted owner="encriptados" settingsLink="balance/settings" />
+        <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
           <SimCurrencySelector
@@ -164,26 +180,34 @@ const BalanceScreen = () => {
 
           <View style={balanceStyles.separator} />
 
-          {simPlans.map((plan, index) => {
-            const totalMB = Number(plan.pckdatabyte) || 0;
-            const usedMB = Number(plan.useddatabyte) || 0;
-            const remainingMB = Math.max(totalMB - usedMB, 0);
-            const remainingGB = (remainingMB / 1024).toFixed(2);
+          {/* Mostrar ActivityIndicator mientras carga */}
+          {loading ? (
+            <View style={balanceStyles.loadingContainer}>
+              <ActivityIndicator size="small" color="#00AEEF" />
+            </View>
+          ) : (
+            simPlans.map((plan, index) => {
+              const totalMB = Number(plan.pckdatabyte) || 0;
+              const usedMB = Number(plan.useddatabyte) || 0;
+              const remainingMB = Math.max(totalMB - usedMB, 0);
+              const remainingGB = (remainingMB / 1024).toFixed(2);
 
-            return (
-              <DataBalanceCard
-                key={index}
-                totalData={remainingGB}
-                format="GB"
-                region={plan.name || "Sin región"}
-              />
-            );
-          })}
+              return (
+                <DataBalanceCard
+                  key={index}
+                  totalData={remainingGB}
+                  format="GB"
+                  region={plan.name || "Sin región"}
+                />
+              );
+            })
+          )}
 
           <TopUpCard />
 
-          {currentSimId && (
-            <DeleteSimButton onPress={() => handleDeleteSim(currentSimId)} />
+          {/* Ahora se elimina la SIM seleccionada, en lugar de la primera */}
+          {selectedSimId && (
+            <DeleteSimButton onPress={() => handleDeleteSim(selectedSimId)} />
           )}
         </ScrollView>
       </BackgroundWrapper>

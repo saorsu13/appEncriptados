@@ -4,13 +4,13 @@ export const topUpCardStyles = StyleSheet.create({
   container: {
     flexDirection: "row",
     borderRadius: 15,
-    padding: Platform.OS === "ios" ? 20 : 15, // 🔥 Aumentamos padding solo en iOS
+    padding: Platform.OS === "ios" ? 20 : 15,
     alignItems: "center",
     justifyContent: "space-between",
-    marginVertical: 15,
+    marginVertical: 5,
     width: "100%",
-    height: Platform.OS === "ios" ? 150 : 130, // 🔥 Hacemos más alto solo en iOS
-    overflow: "hidden", // ✅ Evita que la imagen se salga en iOS y mantiene borderRadius
+    height: Platform.OS === "ios" ? 150 : 130,
+    overflow: "hidden",
   },
   textContainer: {
     flex: 1,
@@ -22,7 +22,7 @@ export const topUpCardStyles = StyleSheet.create({
     flexShrink: 1,
   },
   title: {
-    fontSize: Platform.OS === "ios" ? 15 : 16, // 🔥 Aumentamos el tamaño de fuente en iOS
+    fontSize: Platform.OS === "ios" ? 15 : 16,
     fontWeight: "800",
     color: "#000",
     flexWrap: "wrap",
@@ -47,7 +47,7 @@ export const topUpCardStyles = StyleSheet.create({
     resizeMode: "contain",
     position: "absolute",
     bottom: -5,
-    right: Platform.OS === "ios" ? 5 : 10, // 🔥 Ajuste fino en iOS
+    right: Platform.OS === "ios" ? 5 : 10,
     top: "auto",
   },
 });

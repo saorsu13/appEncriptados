@@ -15,5 +15,11 @@ export const balanceStyles = StyleSheet.create({
     backgroundColor: "#3A3A3A",
     marginVertical: 10,
     marginTop: 25,
+    marginBottom: 25,
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 50,
   },
 });

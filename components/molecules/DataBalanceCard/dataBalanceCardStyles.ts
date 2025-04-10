@@ -9,7 +9,7 @@ export const getStyles = (isDarkMode: boolean) =>
       borderRadius: 15,
       borderColor: "#00AEEF",
       borderWidth: 1,
-      marginBottom: 20,
+      marginBottom: 15,
       width: "100%",
     },
     title: {
