@@ -207,9 +207,9 @@ const Home = () => {
 
   // ─── Render ─────────────────────────────────────────────────
   if (!isLoggedIn || !currentSim) {
-    router.replace("/home"); // o donde tengas tu ruta de login
-    return null;
+    return <SignIn />;
   }
+  
 
   const simType = determineType(currentSim.id);
   const data = mutation.data;
