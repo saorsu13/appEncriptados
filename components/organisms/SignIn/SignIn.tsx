@@ -83,6 +83,7 @@ const SignIn = () => {
         }
 
         InteractionManager.runAfterInteractions(() => {
+          console.log("🔁 Redireccionando a /balance desde SignIn");
           if (provider === "telco-vision") router.replace("/balance");
           else if (provider === "tottoli") router.replace("/home");
         });
@@ -130,9 +131,6 @@ const SignIn = () => {
 
   const shouldRedirect = isLoggedIn && user?.idSim && user?.provider ? user.provider : null;
   const stateModal = useAppSelector((state) => state.modalReset.modalReset);
-
-  if (authLoading || localLoading) return null;
-  if (shouldRedirect) return <Redirect href={shouldRedirect === "telco-vision" ? "/balance" : "/home"} />;
 
   return (
     <ScrollView>

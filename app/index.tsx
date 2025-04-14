@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 import { useAuth } from "@/context/auth";
@@ -7,14 +7,16 @@ import { InteractionManager } from "react-native";
 export default function Index() {
   const router = useRouter();
   const { isLoading, isLoggedIn, user } = useAuth();
+  const hasRedirectedRef = useRef(false); // 🔒
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || hasRedirectedRef.current) return;
 
     InteractionManager.runAfterInteractions(() => {
       if (!isLoggedIn || !user?.idSim) {
         console.log("🔁 No hay sesión o SIM activa, redirigiendo a /home (login)");
         router.replace("/(tabs)/home");
+        hasRedirectedRef.current = true;
         return;
       }
 
@@ -30,6 +32,8 @@ export default function Index() {
         console.warn("❓ Provider desconocido → redirigiendo a /home");
         router.replace("/(tabs)/home");
       }
+
+      hasRedirectedRef.current = true;
     });
   }, [isLoading, isLoggedIn, user]);
 

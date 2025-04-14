@@ -207,11 +207,8 @@ const Home = () => {
 
   // ─── Render ─────────────────────────────────────────────────
   if (!isLoggedIn || !currentSim) {
-    return (
-      <ScrollView style={{ backgroundColor: colors.background }}>
-        <SignIn />
-      </ScrollView>
-    );
+    router.replace("/home"); // o donde tengas tu ruta de login
+    return null;
   }
 
   const simType = determineType(currentSim.id);
