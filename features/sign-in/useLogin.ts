@@ -109,6 +109,7 @@ export function useLogin() {
             simName: nameFromInput,
             idSim: id,
             code,
+            provider: providerData,
           },
           validProviders,
           balance

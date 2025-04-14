@@ -13,6 +13,7 @@ import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { listSubscriber } from "@/api/subscriberApi";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
+import { getDeviceUUID } from "../utils/getUUID";
 
 
 export const MIN_PASSWORD_LENGTH = 10;
@@ -22,6 +23,7 @@ export type User = {
   simName: string;
   idSim: number;
   code: number;
+  provider?: string;
 } & Partial<UserInfo>;
 
 export type ProviderPlan = {
@@ -80,46 +82,33 @@ const deleteUser = async () => {
 
 export const loadUser = async (): Promise<{ user: User | null; balance: string | null }> => {
   try {
-    const storedUser = await AsyncStorage.getItem("@user");
-    const storedBalance = await AsyncStorage.getItem("@balance");
-
-    if (storedUser) {
-      return {
-        user: JSON.parse(storedUser),
-        balance: storedBalance ?? null,
-      };
-    }
-
-    // 👇 Si no hay usuario en AsyncStorage, intentamos reconstruirlo desde el backend
-    const uuid = await useDeviceUUID(); // usa tu hook `useDeviceUUID` o sácale el valor directamente
+    const uuid = await getDeviceUUID();
     const sims = await listSubscriber(uuid);
 
-    if (uuid) {
-      const sims = await listSubscriber(uuid);
-      if (Array.isArray(sims) && sims.length > 0) {
-        const restoredUser: User = {
-          simName: sims[0].name,
-          idSim: Number(sims[0].iccid),
-          code: 0,
-        };
-
-        // Guarda para futuras sesiones
-        await AsyncStorage.setItem("@user", JSON.stringify(restoredUser));
-        await AsyncStorage.setItem("@balance", "");
-
-        return {
-          user: restoredUser,
-          balance: "",
-        };
-      }
+    if (!Array.isArray(sims) || sims.length === 0 || sims?.code === "not_found") {
+      console.warn("📭 No hay SIMs asociadas al UUID. Borrando sesión.");
+      await AsyncStorage.removeItem("@user");
+      await AsyncStorage.removeItem("@balance");
+      return { user: null, balance: null };
     }
 
-    return { user: null, balance: null };
+    const restoredUser: User = {
+      simName: sims[0].name,
+      idSim: Number(sims[0].iccid),
+      code: 0,
+      provider: sims[0].provider,
+    };
+
+    await AsyncStorage.setItem("@user", JSON.stringify(restoredUser));
+    await AsyncStorage.setItem("@balance", "");
+
+    return { user: restoredUser, balance: "" };
   } catch (e) {
-    console.error("Failed to load or restore user session", e);
+    console.error("❌ Error al restaurar sesión:", e);
     return { user: null, balance: null };
   }
 };
+
 
 
 export function AuthProvider({
@@ -146,7 +135,7 @@ export function AuthProvider({
 
   useEffect(() => {
     userPromise.then(({ user, balance }) => {
-      if (user && user.idSim && user.code) {
+      if (user && user.idSim) {
         setUser(user);
         setBalance(balance);
         dispatch(addSim(user));
@@ -154,11 +143,14 @@ export function AuthProvider({
         if (!modalRequiredPassword) {
           setIsLoggedIn(true);
         }
+      } else {
+        setIsLoggedIn(false);
       }
       setIsLoading(false);
       onLoaded();
     });
   }, []);
+  
 
   return (
     <AuthContext.Provider

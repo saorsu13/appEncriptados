@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import * as Yup from "yup";
+import { Redirect, router, useFocusEffect } from "expo-router";
 import {
   View,
   StyleSheet,
@@ -8,142 +7,107 @@ import {
   Text,
   ImageBackground,
   Pressable,
+  InteractionManager,
 } from "react-native";
 import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useTranslation } from "react-i18next";
+
 import InputField from "@/components/molecules/InputField/InputFIeld";
 import Button from "@/components/atoms/Button/Button";
-import theme from "@/config/theme";
 import StepList from "@/components/molecules/StepList/StepList";
-import VerificationSim from "@/components/organisms/VerificationSim/VerificationSim";
+import ModalInfo from "@/components/molecules/ModalInfo";
+import IconSvg from "@/components/molecules/IconSvg/IconSvg";
+import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
+
 import { useAuth } from "@/context/auth";
 import { useLogin } from "@/features/sign-in/useLogin";
 import { determineType } from "@/utils/utils";
-import { router, useFocusEffect } from "expo-router";
-import { useDispatch } from "react-redux";
 import { getSubscriberData } from "@/api/subscriberApi";
-import ModalInfo from "@/components/molecules/ModalInfo";
-import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeMode } from "@/context/theme";
-import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import { useModalActivateSim } from "@/context/modalactivatesim";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
-import { resetModalUpdate } from "@/features/settings/settingsSlice";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
+import { useDispatch } from "react-redux";
+import { resetModalUpdate } from "@/features/settings/settingsSlice";
+import theme from "@/config/theme";
 
 const LoginHeaderImage = require("@/assets/images/login-header.png");
 const LoginHeaderImageLight = require("@/assets/images/login-header-light.png");
 
 const SignIn = () => {
-  const { setCurrentIdSim, showModal, setTypeOfProcess } = useModalActivateSim();
-  const { setProviders, isLoggedIn } = useAuth();
+  const { setCurrentIdSim, setTypeOfProcess } = useModalActivateSim();
+  const { isLoggedIn, isLoading: authLoading, user } = useAuth();
+  const [localLoading, setLocalLoading] = useState(false);
   const [provider, setProvider] = useState(null);
-  const deviceUUID = useDeviceUUID();
-
-  
-  useFocusEffect(
-    useCallback(() => {
-      setTypeOfProcess("signin");
-    }, [])
-  );
-  const { themeMode } = useDarkModeTheme();
   const [requestCodeModal, setRequestCodeModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [simType, setSimType] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
+
+  const dispatch = useDispatch();
+  const { themeMode } = useDarkModeTheme();
   const { t } = useTranslation();
   const baseMsg = "pages.login";
   const loginQuery = useLogin();
-  const auth = useAuth();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
-  const dispatch = useDispatch();
+  const deviceUUID = useDeviceUUID();
 
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
       .required(t("validators.required"))
       .test("len", t("validators.invalidSim"), (val) => val.length === 6 || val.length === 19),
   });
-  
 
   const formik = useFormik({
-    initialValues: {
-      simNumber: "",
-    },
+    initialValues: { simNumber: "" },
     validationSchema,
     onSubmit: async (values) => {
       setCurrentIdSim(values.simNumber);
       try {
-        setIsLoading(true);
-    
-        if (!deviceUUID) {
-          console.warn("⛔ UUID aún no disponible.");
-          return;
-        }
-    
-        const response = await loginQuery.loginRequest(
-          values.simNumber,
-          0,
-          values.simNumber
-        );
-    
+        setLocalLoading(true);
+        if (!deviceUUID) return console.warn("⛔ UUID aún no disponible.");
+
+        const response = await loginQuery.loginRequest(values.simNumber, 0, values.simNumber);
         if (response?.error) {
           console.warn("⚠️ Error durante loginRequest:", response.error);
           setRequestCodeModal(true);
           return;
         }
-    
+
         const provider = response?.data?.provider;
-    
-        console.log("✅ Provider recibido desde loginRequest:", provider);
-    
         if (!provider) {
           console.warn("⚠️ Provider no reconocido o ausente:", provider);
           setRequestCodeModal(true);
           return;
         }
-    
-        // Redirección segura según el provider
-        if (provider === "telco-vision") {
-          router.replace("/balance");
-        } else if (provider === "tottoli") {
-          router.replace("/home");
-        } else {
-          console.warn("⚠️ Provider no reconocido:", provider);
-          setRequestCodeModal(true);
-        }
+
+        InteractionManager.runAfterInteractions(() => {
+          if (provider === "telco-vision") router.replace("/balance");
+          else if (provider === "tottoli") router.replace("/home");
+        });
       } catch (error) {
         console.error("🔥 Error general en onSubmit:", error);
       } finally {
-        setIsLoading(false);
+        setLocalLoading(false);
       }
-    }
-    
+    },
   });
-  
-  
-  
+
   useEffect(() => {
     const sim = formik.values.simNumber;
     setCurrentIdSim(sim);
     setSimType(determineType(sim));
-  
-    if (!deviceUUID) {
-      console.warn("UUID no disponible para obtener el provider");
-      setProvider(null);
-      return;
-    }
-  
+
+    if (!deviceUUID) return setProvider(null);
+
     const fetchProvider = async () => {
       try {
         if (sim.length === 6 || sim.length === 19) {
-          console.log("📡 Consultando provider desde backend...");
           const data = await getSubscriberData(sim, deviceUUID);
-          console.log("📬 Respuesta completa:", JSON.stringify(data, null, 2));
-  
           if (data && typeof data === "object" && data.provider) {
             setProvider(data.provider);
           } else {
-            console.warn("⚠️ El backend no devolvió un provider válido.");
             setProvider(null);
           }
         } else {
@@ -154,74 +118,46 @@ const SignIn = () => {
         setProvider(null);
       }
     };
-  
+
     fetchProvider();
   }, [formik.values.simNumber, deviceUUID]);
 
-  const handleInfoModal = () => {
-    setModalVisible(!modalVisible);
-  };
+  useFocusEffect(
+    useCallback(() => {
+      setTypeOfProcess("signin");
+    }, [])
+  );
 
-  const handleInfoHowToWorkModal = () => {
-    setModalHowToWorkVisible(!modalHowToWorkVisible);
-  };
- 
-
+  const shouldRedirect = isLoggedIn && user?.idSim && user?.provider ? user.provider : null;
   const stateModal = useAppSelector((state) => state.modalReset.modalReset);
+
+  if (authLoading || localLoading) return null;
+  if (shouldRedirect) return <Redirect href={shouldRedirect === "telco-vision" ? "/balance" : "/home"} />;
 
   return (
     <ScrollView>
       <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
-      <View
-        style={[
-          themeMode === ThemeMode.Dark
-            ? styles.container
-            : { ...styles.container, backgroundColor: theme.lightMode.colors.cyanSuperLight },
-        ]}
-      >
+      <View style={[themeMode === ThemeMode.Dark ? styles.container : { ...styles.container, backgroundColor: theme.lightMode.colors.cyanSuperLight }]}>
         <View style={{ gap: 50 }}>
           <View style={styles.containerHeader}>
-            <ImageBackground
-              source={themeMode === ThemeMode.Dark ? LoginHeaderImage : LoginHeaderImageLight}
-              resizeMode="cover"
-              imageStyle={styles.background}
-            >
+            <ImageBackground source={themeMode === ThemeMode.Dark ? LoginHeaderImage : LoginHeaderImageLight} resizeMode="cover" imageStyle={styles.background}>
               <View style={styles.containerHeaderImage}>
-                <Text allowFontScaling={false} style={styles.containerHeaderTitle}>
-                  {t(`${baseMsg}.header.title`)}
-                </Text>
-                <Text allowFontScaling={false} style={styles.containerHeaderMessage}>
-                  {t(`${baseMsg}.header.message`)}
-                </Text>
+                <Text allowFontScaling={false} style={styles.containerHeaderTitle}>{t(`${baseMsg}.header.title`)}</Text>
+                <Text allowFontScaling={false} style={styles.containerHeaderMessage}>{t(`${baseMsg}.header.message`)}</Text>
               </View>
             </ImageBackground>
           </View>
 
           <View style={styles.containerForm}>
             <View style={styles.containerTitleForm}>
-              <Text
-                allowFontScaling={false}
-                style={[
-                  themeMode === ThemeMode.Dark
-                    ? styles.titleForm
-                    : { ...styles.titleForm, color: theme.colors.darkBlack },
-                ]}
-              >
-                {t(`${baseMsg}.form.title`)}
-              </Text>
-              <Pressable onPress={handleInfoHowToWorkModal}>
-                <Text
-                  allowFontScaling={false}
-                  style={[
-                    themeMode === ThemeMode.Dark
-                      ? styles.titleLink
-                      : { ...styles.titleLink, color: theme.colors.darkBlack },
-                  ]}
-                >
-                  {t(`${baseMsg}.form.link`)}
-                </Text>
+              <Text allowFontScaling={false} style={[themeMode === ThemeMode.Dark ? styles.titleForm : { ...styles.titleForm, color: theme.colors.darkBlack }]}>
+                {t(`${baseMsg}.form.title`)}</Text>
+              <Pressable onPress={() => setModalHowToWorkVisible(true)}>
+                <Text allowFontScaling={false} style={[themeMode === ThemeMode.Dark ? styles.titleLink : { ...styles.titleLink, color: theme.colors.darkBlack }]}>
+                  {t(`${baseMsg}.form.link`)}</Text>
               </Pressable>
             </View>
+
             <View style={styles.containerFormFields}>
               <InputField
                 label={t(`${baseMsg}.fields.sim.label`)}
@@ -229,86 +165,27 @@ const SignIn = () => {
                 handleBlur={formik.handleBlur("simNumber")}
                 value={formik.values.simNumber}
                 error={formik.touched.simNumber ? formik.errors.simNumber : null}
-                required={true}
+                required
                 placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
-                suffixIcon={
-                  <IconSvg
-                    color={themeMode === ThemeMode.Dark ? theme.colors.iconDefault : "#A1A1A1"}
-                    height={25}
-                    width={25}
-                    type="info"
-                  />
-                }
+                suffixIcon={<IconSvg color={themeMode === ThemeMode.Dark ? theme.colors.iconDefault : "#A1A1A1"} height={25} width={25} type="info" />}
                 inputMode="numeric"
-                maxLength={undefined}
-                status={
-                  simType
-                    ? "success"
-                    : formik.values.simNumber.length > 0
-                    ? "info"
-                    : null
-                }                
-                statusMessage={
-                  !simType
-                    ? t(`${baseMsg}.fields.sim.invalidSim`)
-                    : t(`${baseMsg}.fields.sim.${simType}Sim`)
-                }
-                onPressIcon={handleInfoModal}
+                status={simType ? "success" : formik.values.simNumber.length > 0 ? "info" : null}
+                statusMessage={!simType ? t(`${baseMsg}.fields.sim.invalidSim`) : t(`${baseMsg}.fields.sim.${simType}Sim`)}
+                onPressIcon={() => setModalVisible(true)}
               />
             </View>
-            <Button
-              onClick={formik.handleSubmit}
-              variant="primaryPress"
-              disabled={!formik.isValid || !formik.values.simNumber}
-            >
-              <Text allowFontScaling={false} style={styles.loadingButton}>
-                {formik.values.simNumber.length === 19 ? "Activar SIM" : "Solicitar código"}
-              </Text>
 
+            <Button onClick={formik.handleSubmit} variant="primaryPress" disabled={!formik.isValid || !formik.values.simNumber}>
+              <Text allowFontScaling={false} style={styles.loadingButton}>{formik.values.simNumber.length === 19 ? "Activar SIM" : "Solicitar código"}</Text>
             </Button>
-            <StepList
-              title={t(`${baseMsg}.form.stepsList.title`)}
-              items={[
-                t(`${baseMsg}.form.stepsList.step1`),
-                t(`${baseMsg}.form.stepsList.step2`),
-                t(`${baseMsg}.form.stepsList.step3`),
-              ]}
-            />
+
+            <StepList title={t(`${baseMsg}.form.stepsList.title`)} items={[t(`${baseMsg}.form.stepsList.step1`), t(`${baseMsg}.form.stepsList.step2`), t(`${baseMsg}.form.stepsList.step3`)]} />
           </View>
         </View>
-        {/* {requestCodeModal && (
-          <VerificationSim
-            showModal={requestCodeModal}
-            resetModal={() => setRequestCodeModal(false)}
-            isLoading={isLoading}
-            onVerified={() => {
-              router.push("/home/");
-            }}
-        />
-        )} */}
 
-        <ModalInfo
-          visible={modalHowToWorkVisible}
-          onClose={handleInfoHowToWorkModal}
-          title={t(`${baseMsg}.helpMessages.howToWorkHelpTittle`)}
-          description={t(`${baseMsg}.helpMessages.howToWorkHelpMessage`)}
-          buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)}
-        />
-        <ModalInfo
-          visible={modalVisible}
-          onClose={handleInfoModal}
-          title={t(`${baseMsg}.helpMessages.SimHelpTittle`)}
-          description={t(`${baseMsg}.helpMessages.SimHelpMessage`)}
-          buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)}
-        />
-
-        <ModalInfo
-          visible={stateModal}
-          onClose={() => dispatch(resetModalUpdate(false))}
-          title={t("pages.home.titleResetDevice")}
-          description={t("pages.home.descriptionResetDevice")}
-          buttonText={t("actions.right")}
-        />
+        <ModalInfo visible={modalHowToWorkVisible} onClose={() => setModalHowToWorkVisible(false)} title={t(`${baseMsg}.helpMessages.howToWorkHelpTittle`)} description={t(`${baseMsg}.helpMessages.howToWorkHelpMessage`)} buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)} />
+        <ModalInfo visible={modalVisible} onClose={() => setModalVisible(false)} title={t(`${baseMsg}.helpMessages.SimHelpTittle`)} description={t(`${baseMsg}.helpMessages.SimHelpMessage`)} buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)} />
+        <ModalInfo visible={stateModal} onClose={() => dispatch(resetModalUpdate(false))} title={t("pages.home.titleResetDevice")} description={t("pages.home.descriptionResetDevice")} buttonText={t("actions.right")} />
       </View>
     </ScrollView>
   );

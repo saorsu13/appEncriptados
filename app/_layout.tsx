@@ -53,7 +53,7 @@ export default function RootLayout() {
   // ✅ userPromise para cargar datos persistidos de sesión
   const userRef = useRef<Promise<{ user: User | null; balance: string | null }> | null>(null);
   if (userRef.current === null) {
-    userRef.current = loadUser(); // ✅ carga automática de sesión
+    userRef.current = loadUser(); 
   }
   const restoring = useRestoreSession();
 
@@ -119,19 +119,16 @@ export default function RootLayout() {
                           <SafeAreaView style={styles.container}>
                             {showRequestPasswordComponent && <RequestPasswordComponent />}
                             <CountdownProvider>
-                              {/* ⛔ NO mostrar rutas hasta que termine la restauración */}
-                              {appIsReady && !restoring ? (
-                                <Stack
-                                  screenOptions={{
-                                    headerShown: false,
-                                    gestureEnabled: true,
-                                    presentation: "transparentModal",
-                                  }}
-                                >
-                                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                                  <Stack.Screen name="index" options={{ headerShown: false }} />
-                                </Stack>
-                              ) : null}
+                              <Stack
+                                screenOptions={{
+                                  headerShown: false,
+                                  gestureEnabled: true,
+                                  presentation: "transparentModal",
+                                }}
+                              >
+                                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                                <Stack.Screen name="index" options={{ headerShown: false }} />
+                              </Stack>
                             </CountdownProvider>
                           </SafeAreaView>
                         </QueryClientProvider>

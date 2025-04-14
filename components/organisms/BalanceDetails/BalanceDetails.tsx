@@ -5,74 +5,84 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View, StyleSheet, Text, TouchableOpacity, Button } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  updateRecommendedNetwork,
-  updateCurrentNetwork,
-} from "@/features/network-profile/networkProfileSlice";
+import { useQuery } from "@tanstack/react-query";
+import { useFocusEffect } from "expo-router";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useTheme } from "@shopify/restyle";
 
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
+import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
+
 import ModalInfo from "@/components/molecules/ModalInfo";
 import CardItem from "@/components/molecules/CardItem/CardItem";
 import Label from "@/components/atoms/Label/Label";
 import SkeletonContent from "@/components/molecules/SkeletonContent";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
+
+
+import { determineType, formatNumber } from "@/utils/utils";
+import { setBalance } from "@/features/balance/balanceSlice";
 import { setInsufficientFunds } from "@/features/balance/insufficientFundsSlice";
-import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
-import { ThemeMode } from "@/context/theme";
+import { updateRecommendedNetwork, updateCurrentNetwork } from "@/features/network-profile/networkProfileSlice";
 import { updateCallback } from "@/features/callback/callbackSlice";
 import { updateVoice } from "@/features/voice/voiceSlice";
 import { updateSubstitute } from "@/features/substitute/substituteSlice";
-import { determineType, formatNumber } from "@/utils/utils";
-import theme from "@/config/theme";
-import { BalanceRequest } from "@/features/balance/types";
-import { BalanceResponse } from "@/api/simbalance";
-import { useFocusEffect } from "expo-router";
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
-import { useTheme } from "@shopify/restyle";
-import { ThemeCustom } from "@/config/theme2";
-import { getCurrency, getCurrentBalanceByCurrency } from "@/api/simbalance";
 
-import { WebView } from "react-native-webview";
-import { setBalance } from "@/features/balance/balanceSlice";
+import { getCurrency, getCurrentBalanceByCurrency, BalanceResponse } from "@/api/simbalance";
+import { BalanceRequest } from "@/features/balance/types";
+
+import theme from "@/config/theme";
+import { ThemeMode } from "@/context/theme";
+import { ThemeCustom } from "@/config/theme2";
+
 //ESTE ANY DEBE ELIMINARSE LUEGO, ESTO ES POR EL MAL CODIGO QUE DEJARON =(
 
 const BalanceDetails = ({ data }: any) => {
+  // ============ HOOKS ============
   const [prevBalance, setPrevBalance] = useState(0);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loadingWebView, setLoadingWebView] = useState(true);
 
-  const { themeMode } = useDarkModeTheme();
-  const balance = useAppSelector((state) => state.insufficientFunds);
-
+  const dispatch = useDispatch();
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ["95%", "95%"], []);
+  const { colors } = useTheme<ThemeCustom>();
   const { t } = useTranslation();
+  const { themeMode } = useDarkModeTheme();
 
+  // ============ REDUX SELECTORS ============
   const globalCurrency = useAppSelector((state) => state.currency.currency);
   const sims = useAppSelector((state: any) => state.sims.sims);
+  const currentSim = useSelector((state: any) => state.sims.currentSim);
+  const loading = useAppSelector((state) => state.loading.isLoading);
+  const balance = useAppSelector((state) => state.insufficientFunds);
 
+  // ============ UTIL ============
+  const simType = determineType(currentSim?.idSim);
+
+  // ============ API QUERY ============
   const { data: getbalance, isFetching, refetch } = useQuery<BalanceResponse>({
     gcTime: 0,
     queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency],
     queryFn: async () => {
       if (!currentSim) return null;
-      console.log("🔎 Llamando getCurrentBalanceByCurrency con:", currentSim.idSim, globalCurrency);
       return await getCurrentBalanceByCurrency(currentSim, globalCurrency);
     },
     enabled: !!currentSim,
-  });
-  
+  }); 
 
-  const baseMsg = "pages.home";
-  const currentSim = useSelector((state: any) => state.sims.currentSim);
-  const dispatch = useDispatch();
-  const [modalVisible, setModalVisible] = useState(false);
-  const loading = useAppSelector((state) => state.loading.isLoading);
-  const simType = determineType(currentSim?.idSim);
-
-  const handleInfoModal = () => {
-    setModalVisible(!modalVisible);
-  };
+  // ============ EFFECTS ============
+  useEffect(() => {
+    dispatch(setBalance(formatNumber(getbalance?.balance?.toFixed(2))));
+  }, [getbalance]);
 
   useFocusEffect(
     useCallback(() => {
@@ -80,22 +90,12 @@ const BalanceDetails = ({ data }: any) => {
     }, [refetch])
   );
 
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-  const snapPoints = useMemo(() => ["95%", "95%"], []);
-
+  // ============ HANDLERS ============
+  const handleInfoModal = () => setModalVisible(!modalVisible);
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
   const handleSheetChanges = useCallback((index: number) => {}, []);
-
-  const { colors } = useTheme<ThemeCustom>();
-
-  const [loadingWebView, setLoadingWebView] = useState(true);
-
-  useEffect(() => {
-    dispatch(setBalance(formatNumber(getbalance?.balance?.toFixed(2))));
-  }, [getbalance]);
 
   return (
     <View style={styles.container}>
@@ -127,22 +127,22 @@ const BalanceDetails = ({ data }: any) => {
           >
             {isFetching ? (
               <SkeletonContent
-                containerStyle={{ flex: 1, width: 200, flexDirection: "row" }}
-                layout={[
-                  { key: "balance", width: 115, height: 28, borderRadius: 5 },
-                  {
-                    key: "currency",
-                    width: 160,
-                    height: 28,
-                    marginLeft: 10,
-                    borderRadius: 5,
-                  },
-                ]}
-                boneColor={"rgba(255,255,255,.25)"}
-              />
+              containerStyle={{ flex: 1, width: 200, flexDirection: "row" }}
+              layout={[
+                { key: "balance", width: 115, height: 28, borderRadius: 5 },
+                {
+                  key: "currency",
+                  width: 160,
+                  height: 28,
+                  marginLeft: 10,
+                  borderRadius: 5,
+                },
+              ]}
+              boneColor={"rgba(255,255,255,.25)"}
+            />
             ) : (
               <>
-                <Label label={t(`${baseMsg}.currentBalance`)} />
+                <Label label={t("pages.home.currentBalance")} />
                 <View style={styles.mainBalanceContainer}>
                   <IconSvg
                     color={
