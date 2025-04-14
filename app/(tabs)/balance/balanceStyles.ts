@@ -21,5 +21,6 @@ export const balanceStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minHeight: 50,
+    marginBottom: 15,
   },
 });
