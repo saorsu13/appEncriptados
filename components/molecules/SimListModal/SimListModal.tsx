@@ -8,7 +8,10 @@ import {
   Pressable,
   Text,
   Platform,
+  TouchableOpacity,
   TouchableWithoutFeedback,
+  FlatList,
+  Image,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import theme from "@/config/theme";
@@ -22,10 +25,12 @@ import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 import { useModalAdminSims } from "@/context/modaladminsims";
+import { Ionicons } from "@expo/vector-icons";
 
 const SimListModal = () => {
   const { closeModal, isModalOpen } = useModalAdminSims();
   const { themeMode } = useDarkModeTheme();
+  const isDarkMode = themeMode === ThemeMode.Dark;
   const { t } = useTranslation();
   const sims = useAppSelector((state: any) => state.sims.sims);
   const dispatch = useDispatch();
@@ -59,99 +64,74 @@ const SimListModal = () => {
   };
 
   const { colors } = useTheme<ThemeCustom>();
+  const styles = getStyles(isDarkMode);
 
   return (
     <Modal animationType="fade" transparent={true} visible={isModalOpen}>
       <TouchableWithoutFeedback onPress={handleClose}>
-        <View style={styles.centeredView}>
+        <View style={styles.modalBackground}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalView}>
-              <View style={styles.modalContainer}>
-                <View
-                  style={[
-                    themeMode === ThemeMode.Dark
-                      ? styles.modalContent
-                      : {
-                          ...styles.modalContent,
-                          backgroundColor: theme.lightMode.colors.blueDark,
-                        },
-                  ]}
-                >
-                  <Label
-                    label={t(`${baseMsg}.simList`)}
-                    customStyles={styles.textLabel}
-                  />
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>{t(`${baseMsg}.simList`)}</Text>
+              <FlatList
+                data={sims}
+                keyExtractor={(item) => item.idSim.toString()}
+                renderItem={({ item }) => {
+                  const isSixDigitSim = item.idSim.toString().length === 6;
+                  const simImage = isSixDigitSim
+                    ? require("@/assets/images/adaptive-icon.png")
+                    : item.logo || require("@/assets/images/tim_icon_app_600px_negativo 1.png");
 
-                  <View style={[styles.simList]}>
-                    {sims.map((sim) => (
-                      <Button
-                        key={sim.idSim}
-                        onClick={() => handleUpdateCurrentSim(sim.idSim)}
-                        variant={"light"}
-                        customStyles={styles.simButton}
-                      >
-                        <View
-                          style={[
-                            Platform.OS === "android"
-                              ? {
-                                  flexDirection: "row",
-                                  width: 300,
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                }
-                              : styles.simButtonContentWrapper,
-                          ]}
-                        >
-                          <View style={styles.iconWrapper}>
-                            <IconSvg height={20} width={20} type="sim2" />
-                            <Text
-                              allowFontScaling={false}
-                              style={theme.textVariants.button}
-                            >
-                              {sim.simName}
-                            </Text>
-                            <Text
-                              allowFontScaling={false}
-                              style={styles.simNumberText}
-                            >
-                              ({sim.idSim})
-                            </Text>
-                          </View>
-                          <Pressable
-                            onPress={() => {
-                              closeModal();
-                              router.push(`/new-sim/edit-sim/${sim.idSim}`);
-                            }}
-                            style={styles.iconPressable}
-                          >
-                            <IconSvg height={20} width={20} type="edit" />
-                          </Pressable>
-                        </View>
-                      </Button>
-                    ))}
-
-                    <Button
-                      onClick={addNewSim}
-                      customStyles={[styles.simButton, styles.simButtonPrimary]}
+                  return (
+                    <Pressable
+                      style={styles.simItem}
+                      onPress={() => handleUpdateCurrentSim(item.idSim)}
                     >
-                      <View style={styles.simButtonContentWrapper}>
-                        <View style={styles.iconWrapper}>
-                          <IconSvg type="add" height={15} width={15} />
-                          <Text
-                            allowFontScaling={false}
-                            style={[
-                              theme.textVariants.button,
-                              { color: theme.colors.contrast },
-                            ]}
-                          >
-                            {t(`${baseMsg}.newSim`)}
-                          </Text>
+                      <View style={styles.simInfo}>
+                        <View style={styles.simNameContainer}>
+                          <Text style={styles.simName}>{item.simName}</Text>
                         </View>
+                        <Image
+                          source={simImage}
+                          style={
+                            isSixDigitSim
+                              ? { width: 30, height: 30, borderRadius: 10, resizeMode: 'cover' }
+                              : { width: 25, height: 25, resizeMode: 'contain' }
+                          }
+                        />
+                        <Text
+                          style={styles.simNumber}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.idSim}
+                        </Text>
                       </View>
-                    </Button>
-                  </View>
-                </View>
-              </View>
+
+                      {!isSixDigitSim && (
+                        <TouchableWithoutFeedback
+                          onPress={() => {
+                            closeModal();
+                            router.push(`/new-sim/edit-sim/${item.idSim}`);
+                          }}
+                        >
+                          <Ionicons
+                            name="create-outline"
+                            size={20}
+                            color={themeMode === ThemeMode.Dark ? "black" : "#1E1E1E"}
+                          />
+                        </TouchableWithoutFeedback>
+                      )}
+                    </Pressable>
+                  );
+                }}
+              />
+              <TouchableOpacity
+                style={styles.addSimButton}
+                onPress={addNewSim}
+              >
+                <Text style={styles.addSimText}>+ Añadir nueva SIM</Text>
+              </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -162,95 +142,72 @@ const SimListModal = () => {
 
 export default SimListModal;
 
-const styles = StyleSheet.create({
-  centeredView: {
+const getStyles = (isDarkMode: boolean) => StyleSheet.create({
+  modalBackground: {
     flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.8)",
-    paddingHorizontal: 16,
-    paddingVertical: 40,
-  },
-  modalView: {
-    margin: 20,
-
-    borderRadius: 24,
-
-    alignItems: "center",
-    elevation: 0,
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    gap: 40,
   },
   modalContainer: {
-    display: "flex",
-    gap: 5,
-    width: "100%",
-  },
-  modalContent: {
-    backgroundColor: theme.colors.darkBlack01,
-    borderColor: theme.colors.darkBlack05,
-    borderRadius: 24,
-    borderWidth: 0.5,
-    display: "flex",
-    gap: 15,
-
+    width: "85%",
+    backgroundColor: isDarkMode ? "#121212" : "#E5F9FF",
+    borderRadius: 15,
     padding: 20,
   },
-  textLabel: {
-    color: theme.colors.contrast,
-    width: "100%",
+  modalTitle: {
+    color: isDarkMode ? "white" : "#1E1E1E",
+    fontSize: Platform.OS === "ios" ? 15 : 16,
+    fontWeight: "500",
+    marginBottom: 15,
   },
-  simButtonContentWrapper: {
+  simItem: {
     flexDirection: "row",
-    width: "100%",
     alignItems: "center",
+    backgroundColor: isDarkMode ? "#fff" : "#F7F7F7",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
     justifyContent: "space-between",
   },
-  simButton: {
-    alignItems: "center",
-    display: "flex",
+  simInfo: {
     flexDirection: "row",
-    justifyContent: "flex-start",
-    fontFamily: theme.textVariants.titleCard.fontFamily,
-    width: "100%",
-  },
-  simButtonPrimary: {
-    marginLeft: 10,
-    fontFamily: theme.textVariants.button.fontFamily,
-  },
-  simNumberText: {
-    marginLeft: 5,
-    fontFamily: theme.textVariants.textInfo.fontFamily,
-  },
-  editInputContainer: {
-    flexDirection: "row",
-    columnGap: 20,
     alignItems: "center",
-    width: "100%",
   },
-  textInput: {
-    borderWidth: 1,
-    borderColor: theme.colors.contrast,
-    borderRadius: 8,
+  simNameContainer: {
+    backgroundColor: isDarkMode ? "#363636" : "#C6EDFF",
+    borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    color: theme.colors.contrast,
-    width: "60%",
+    marginRight: 10,
   },
-  iconWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    columnGap: 10,
+  simName: {
+    color: isDarkMode ? "white" : "#1E1E1E",
+    fontSize: 12,
+    fontWeight: "bold",
   },
-  iconPressable: {
-    padding: 2, // Aumenta el área de toque
+  simNumber: {
+    color: "#1E1E1E",
+    fontSize: 14,
+    marginLeft: 10,
+    fontWeight: "bold",
+    maxWidth: 150,
+    flexShrink: 1,
   },
-  simList: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 5,
+  addSimButton: {
+    backgroundColor: "#00AEEF",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "flex-start",
+    paddingHorizontal: 15,
+    marginTop: 10,
+    width: "100%",
+  },
+  addSimText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "left",
+    width: "100%",
   },
 });

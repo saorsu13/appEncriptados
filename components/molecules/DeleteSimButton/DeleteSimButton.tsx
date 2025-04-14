@@ -7,7 +7,7 @@ const DeleteSimButton = ({ onPress }: { onPress: () => void }) => {
   return (
     <TouchableOpacity style={deleteSimButtonStyles.button} onPress={onPress}>
       <View style={deleteSimButtonStyles.content}>
-        <Icon name="trash" size={18} color="#E50707" />
+        <Icon name="trash" size={18} color="#D80E0E" />
         <Text style={deleteSimButtonStyles.text}>Borrar SIM</Text>
       </View>
     </TouchableOpacity>

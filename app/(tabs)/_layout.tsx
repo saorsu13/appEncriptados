@@ -21,14 +21,11 @@ import { ModalPaymentProvider } from "@/context/modalpayment";
 import { useMenu } from "@/context/menuprovider";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
-import { useModalPassword } from "@/context/modalpasswordprovider";
-import PinRequiredScreen from "@/components/molecules/PinInputScreen/PinRequiredScreen";
 import SimListModal from "@/components/molecules/SimListModal/SimListModal";
 import {
   ModalAdminSimsProvider,
   useModalAdminSims,
 } from "@/context/modaladminsims";
-import { useEffect } from "react";
 import { ModalActivateSimProvider } from "@/context/modalactivatesim";
 import InsertSimCardModal from "@/components/molecules/InsertSimCardModal/InsertSimCardModal";
 import { t } from "i18next";
