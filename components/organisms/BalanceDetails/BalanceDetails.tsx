@@ -61,6 +61,7 @@ const { data: getbalance } = useQuery<BalanceResponse>({
   },
   enabled: !!currentSimId,
 });
+
   const baseMsg = "pages.home";
   const currentSim = useSelector((state: any) => state.sims.currentSim);
   const dispatch = useDispatch();
