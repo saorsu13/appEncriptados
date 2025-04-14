@@ -7,10 +7,9 @@ export default function Index() {
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    // Esperamos un microdelay para asegurar que las rutas estén registradas
     const timeout = setTimeout(() => {
       setShouldRedirect(true);
-    }, 100); // puedes ajustar a 50 si quieres probar
+    }, 100); 
 
     return () => clearTimeout(timeout);
   }, []);

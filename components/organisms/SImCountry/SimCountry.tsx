@@ -1,141 +1,146 @@
-import Dropdown from "@/components/molecules/Dropdown/Dropdown";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import {
   TouchableHighlight,
   View,
   Text,
   StyleSheet,
-  Platform,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import CopyLabel from "@/components/molecules/CopyLabel/CopyLabel";
-import theme from "@/config/theme";
-
-import { useDispatch } from "react-redux";
-import { updateCurrentCountry } from "@/features/country/countrySlice";
-import IconSvg from "@/components/molecules/IconSvg/IconSvg";
-import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
-import { ThemeMode } from "@/context/theme";
-
-import { useQuery } from "@tanstack/react-query";
-import { getCurrency, getCurrentBalanceByCurrency } from "@/api/simbalance";
-import SkeletonContent from "@/components/molecules/SkeletonContent";
-import Button from "@/components/atoms/Button/Button";
-import { useModalAdminSims } from "@/context/modaladminsims";
-import { useAppSelector, useAppDispatch } from "@/hooks/hooksStoreRedux";
-import { setCurrency } from "@/features/currentCurrency/currencySlice";
-import { useFocusEffect } from "expo-router";
 import CountryFlag from "react-native-country-flag";
 
-const SimCountry = ({ sim = "", country, handleCountry }) => {
+// Hooks y contexto
+import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
+import { useModalAdminSims } from "@/context/modaladminsims";
+import { useAppSelector, useAppDispatch } from "@/hooks/hooksStoreRedux";
+
+// Redux actions
+import { updateCurrentCountry } from "@/features/country/countrySlice";
+import { setCurrency } from "@/features/currentCurrency/currencySlice";
+
+// React Query
+import { useQuery } from "@tanstack/react-query";
+import { useFocusEffect } from "expo-router";
+import { getCurrency } from "@/api/simbalance";
+
+// Componentes UI
+import Dropdown from "@/components/molecules/Dropdown/Dropdown";
+import CopyLabel from "@/components/molecules/CopyLabel/CopyLabel";
+import SkeletonContent from "@/components/molecules/SkeletonContent";
+import IconSvg from "@/components/molecules/IconSvg/IconSvg";
+
+// Tema
+import theme from "@/config/theme";
+import { ThemeMode } from "@/context/theme";
+
+// Tipos
+import type { Currency } from "@/api/simbalance";
+import type { BalanceResponse } from "@/api/simbalance";
+
+interface SimCountryProps {
+  sim: string;
+  country: string;
+  handleCountry: (value: string) => void;
+}
+
+const SimCountry: React.FC<SimCountryProps> = ({
+  sim,
+  country,
+  handleCountry,
+}) => {
+  // Tema y traducción
   const { themeMode } = useDarkModeTheme();
   const { t } = useTranslation();
+
+  // Redux
   const dispatch = useAppDispatch();
-  const globalCurrency = useAppSelector((state) => state.currency.currency);
+  const globalCurrency = useAppSelector((s) => s.currency.currency);
+  const currentSimId = useAppSelector((s) => s.sims.currentSim.idSim);
 
-  const { data, isFetching } = useQuery({
-    queryKey: ["getCurrency"],
-    gcTime: 0,
-    queryFn: () => getCurrency(),
-  });
-
-  const convertRatesToArray = (rates) => {
-    return rates?.map((rate, index) => {
-      return {
-        key: index,
-        value: rate?.value,
-        label: rate?.value,
-        icon: () => <CountryFlag isoCode={rate.isoCode} size={15} />,
-      };
-    });
-  };
-
-  const currentSim = useAppSelector((state) => {
-    return state.sims.currentSim.idSim;
-  });
-
-  const sims = useAppSelector((state: any) => state.sims.sims);
-
-  const state = useAppSelector((state) => {
-    return state.sims.currentSim.idSim;
-  });
-
-  const { data: balance, isFetching: fetchingbalance, refetch } = useQuery({
-    queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency], 
-    gcTime: 0,
-    enabled: !!currentSim,
-    queryFn: async () => {
-      if (!currentSim) return null;
-      return await getCurrentBalanceByCurrency(currentSim, globalCurrency);
-    },
-  });
-  
-
+  // Modal SIMs
   const { openModal } = useModalAdminSims();
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [state])
-  );
+  // Query de monedas
+  const {
+    data: currencies = [],
+    isFetching: fetchingCurrencies,
+  } = useQuery<Currency[]>({
+    queryKey: ["getCurrency"],
+    queryFn: getCurrency,
+    gcTime: 0,
+    onSuccess: (data) => console.log("✅ getCurrency success:", data),
+    onError: (err) => console.error("❌ getCurrency error:", err),
+  });
 
-  const handleCurrencyChange = (value) => {
+  // Refetch balance al volver a enfocar o cambiar SIM (si lo necesitas)
+  // const { refetch: refetchBalance } = useQuery<BalanceResponse | null>({ ... });
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     if (currentSimId) refetchBalance();
+  //   }, [currentSimId])
+  // );
+
+  // Helper: convierte el array de Currency en items para el Dropdown
+  const convertCurrenciesToItems = (list: Currency[]) =>
+    list.map((c, idx) => ({
+      key: idx,
+      value: c.value,
+      label: c.value,
+      icon: () => <CountryFlag isoCode={c.isoCode} size={15} />,
+    }));
+
+  // Handlers
+  const onCurrencyChange = (value: string) => {
     dispatch(setCurrency(value));
   };
 
-  const baseMsg = "pages.home";
-
-  const handleCountryValue = (value: string | number) => {
+  const onCountryChange = (value: string) => {
     handleCountry(value);
     dispatch(updateCurrentCountry(value));
   };
 
   return (
-    <>
-      <View style={styles.container}>
-        <View style={styles.containerCopy}>
-          <TouchableHighlight underlayColor={""} onPress={() => openModal()}>
-            <View style={styles.simButtonContent}>
-              <Text
-                allowFontScaling={false}
-                style={[
-                  themeMode === ThemeMode.Dark
-                    ? styles.textSim
-                    : { ...styles.textSim, color: theme.lightMode.colors.gray },
-                ]}
-              >
-                {t(`pages.home.currentSim`)}
-              </Text>
-              <IconSvg type="arrowupicon" height={25} width={25} />
-            </View>
-          </TouchableHighlight>
-          <CopyLabel textValue={sim} />
-        </View>
-
-        <View style={{ width: "50%" }}>
-          {data ? (
-            <Dropdown
-              label={t("pages.home.currency")}
-              items={convertRatesToArray(data)}
-              value={globalCurrency}
-              handleValue={handleCurrencyChange}
-            />
-          ) : (
-            <SkeletonContent
-              containerStyle={{
-                width: 200,
-                flexDirection: "row",
-                marginTop: 34,
-              }}
-              layout={[
-                { key: "balance", width: 115, height: 50, borderRadius: 5 },
+    <View style={styles.container}>
+      {/* SIM actual y botón para cambiar */}
+      <View style={styles.simContainer}>
+        <TouchableHighlight underlayColor="transparent" onPress={openModal}>
+          <View style={styles.simButtonContent}>
+            <Text
+              allowFontScaling={false}
+              style={[
+                styles.textSim,
+                themeMode === ThemeMode.Light && {
+                  color: theme.lightMode.colors.gray,
+                },
               ]}
-              boneColor={"rgba(255,255,255,.25)"}
-            />
-          )}
-        </View>
+            >
+              {t("pages.home.currentSim")}
+            </Text>
+            <IconSvg type="arrowupicon" height={25} width={25} />
+          </View>
+        </TouchableHighlight>
+        <CopyLabel textValue={sim} />
       </View>
-    </>
+
+      {/* Selector de moneda */}
+      <View style={styles.dropdownContainer}>
+        {fetchingCurrencies ? (
+          <SkeletonContent
+            containerStyle={styles.skeleton}
+            layout={[{ key: "currency", width: 115, height: 50, borderRadius: 5 }]}
+            boneColor="rgba(255,255,255,0.25)"
+          />
+        ) : currencies.length > 0 ? (
+          <Dropdown
+            label={t("pages.home.currency")}
+            items={convertCurrenciesToItems(currencies)}
+            value={globalCurrency}
+            handleValue={onCurrencyChange}
+          />
+        ) : (
+          <Text>{t("pages.home.currencyNoData")}</Text>
+        )}
+      </View>
+    </View>
   );
 };
 
@@ -143,25 +148,31 @@ export default SimCountry;
 
 const styles = StyleSheet.create({
   container: {
-    display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    columnGap: 5,
+    columnGap: 8,
     zIndex: 10,
   },
-  containerCopy: {
-    display: "flex",
-    gap: 10,
+  simContainer: {
     width: "44%",
+    flexDirection: "column",
+    rowGap: 10,
   },
   simButtonContent: {
-    alignItems: "center",
-    display: "flex",
     flexDirection: "row",
+    alignItems: "center",
   },
   textSim: {
     flex: 1,
     ...theme.textVariants.descriptionCard,
     color: theme.colors.selectLabel,
+  },
+  dropdownContainer: {
+    width: "50%",
+  },
+  skeleton: {
+    width: 200,
+    flexDirection: "row",
+    marginTop: 34,
   },
 });

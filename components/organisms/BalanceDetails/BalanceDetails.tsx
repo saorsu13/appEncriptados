@@ -51,17 +51,16 @@ const BalanceDetails = ({ data }: any) => {
   const globalCurrency = useAppSelector((state) => state.currency.currency);
   const sims = useAppSelector((state: any) => state.sims.sims);
 
-  const { data: getbalance, isFetching, refetch } = useQuery<BalanceResponse>({
-    gcTime: 0,
-    queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency],
-    queryFn: async () => {
-      if (!currentSim) return null;
-      return await getCurrentBalanceByCurrency(currentSim, globalCurrency);
-    },
-    enabled: !!currentSim,
-  });
-  
+  const currentSimId = currentSim?.idSim; // o .id si fuera un número
 
+const { data: getbalance } = useQuery<BalanceResponse>({
+  queryKey: ["getCurrentBalanceByCurrency", currentSimId, globalCurrency],
+  queryFn: async () => {
+    console.log("🔎 Llamando getCurrentBalanceByCurrency con:", currentSimId, globalCurrency);
+    return await getCurrentBalanceByCurrency(currentSimId, globalCurrency);
+  },
+  enabled: !!currentSimId,
+});
   const baseMsg = "pages.home";
   const currentSim = useSelector((state: any) => state.sims.currentSim);
   const dispatch = useDispatch();

@@ -4,7 +4,7 @@ interface ConversionRates {
   [key: string]: number;
 }
 
-interface ExchangeRatesResponse {
+export interface ExchangeRatesResponse {
   base_code: string;
   conversion_rates: ConversionRates;
   documentation: string;
@@ -15,24 +15,20 @@ interface ExchangeRatesResponse {
   time_next_update_unix: number;
   time_next_update_utc: string;
 }
-
-export const getCurrency = async (): Promise<ExchangeRatesResponse> => {
+export interface Currency {
+  isoCode: string;
+  label: string;
+  value: string;
+}
+export const getCurrency = async (): Promise<Currency[]> => {
   try {
-    const response = await api.get<ExchangeRatesResponse>("/getCurrencies");
+    console.log("🌐 getCurrency → llamando a /getCurrencies");
+    const response = await api.get<Currency[]>("/getCurrencies");
+    console.log("🌐 getCurrency → response.data:", response.data);
     return response.data;
   } catch (error) {
-    console.error(error);
-    return {
-      base_code: "",
-      conversion_rates: {},
-      documentation: "",
-      result: "error",
-      terms_of_use: "",
-      time_last_update_unix: 0,
-      time_last_update_utc: "",
-      time_next_update_unix: 0,
-      time_next_update_utc: "",
-    };
+    console.error("🌐 getCurrency → error:", error);
+    return [];
   }
 };
 
@@ -50,18 +46,29 @@ export const getCurrentBalanceByCurrency = async (
   code?: string
 ): Promise<BalanceResponse | null> => {
   if (!id || !code) {
-    console.warn("getCurrentBalanceByCurrency: idSim o currency_code no válidos");
+    console.warn(
+      "getCurrentBalanceByCurrency: idSim o currency_code no válidos",
+      { id, code }
+    );
     return null;
   }
 
+  const url = `/changeBalanceForCurrencySelected?id=${id}&currency_code=${code}`;
+  console.log("🌐 getCurrentBalanceByCurrency → Llamando a:", url);
+
   try {
-    const response = await api.get<BalanceResponse>(
-      `/changeBalanceForCurrencySelected?id=${id}&currency_code=${code}`
+    const response = await api.get<BalanceResponse>(url);
+    console.log(
+      "🌐 getCurrentBalanceByCurrency → Response status:",
+      response.status
+    );
+    console.log(
+      "🌐 getCurrentBalanceByCurrency → Response data:",
+      response.data
     );
     return response.data;
   } catch (error) {
-    console.error("Error en getCurrentBalanceByCurrency:", error);
+    console.error("🌐 Error en getCurrentBalanceByCurrency:", error);
     throw error;
   }
 };
-
