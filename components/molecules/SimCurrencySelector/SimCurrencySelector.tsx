@@ -21,11 +21,12 @@ type SimData = {
 
 type Props = {
   sims: SimData[];
+  selectedId?: string;
   onSelectSim?: (id: string) => void;
 };
 
 
-const SimCurrencySelector: React.FC<Props> = ({ sims, onSelectSim }) => {
+const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim }) => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const styles = getStyles(isDarkMode);
@@ -41,14 +42,14 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, onSelectSim }) => {
   // Esto fuerza el re-render en Android si se actualizó la lista.
   useEffect(() => {
     if (sims.length > 0) {
-      // Si el SIM actualmente seleccionado ya no existe en la nueva lista, actualiza al primero.
-      if (!selectedSim || !sims.some(sim => sim.id === selectedSim.id)) {
-        setSelectedSim(sims[0]);
-      }
+      const simToSelect =
+        sims.find(sim => sim.id === selectedId) || sims[0];
+      setSelectedSim(simToSelect);
     } else {
       setSelectedSim(null);
     }
-  }, [sims]);
+  }, [sims, selectedId]);
+  
 
   return (
     <View style={styles.container}>

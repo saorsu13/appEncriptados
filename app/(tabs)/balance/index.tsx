@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter, Stack, useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 import { balanceStyles } from "./balanceStyles";
@@ -25,6 +26,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 import { useDispatch } from "react-redux";
 import { resetSimState } from "@/features/sims/simSlice";
+
 
 const BalanceScreen = () => {
   const router = useRouter();
@@ -47,7 +49,7 @@ const BalanceScreen = () => {
     }
     try {
       setLoading(true);
-      setSelectedSimId(id); // Actualizamos la SIM seleccionada
+      setSelectedSimId(id);
       const response = await getSubscriberData(id, deviceUUID);
       if (!response || !response.providers || response.providers.length === 0) {
         console.warn("Respuesta vacía, la SIM puede no estar procesada aún.");
@@ -75,8 +77,16 @@ const BalanceScreen = () => {
       const data = await listSubscriber(deviceUUID);
       console.log("Este es el deviceUUID", deviceUUID);
       setSims(Array.isArray(data) ? data : []);
+
+      const storedICCID = await AsyncStorage.getItem("currentICCID");
+
       if (data && data.length > 0) {
-        const defaultId = data[0].iccid;
+        const defaultId =
+          storedICCID && data.find((sim) => sim.iccid === storedICCID)
+            ? storedICCID
+            : data[0].iccid;
+
+        setSelectedSimId(defaultId);
         fetchSubscriberData(defaultId);
       }
     } catch (error) {
@@ -175,6 +185,7 @@ const BalanceScreen = () => {
                 logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
                 number: sim.iccid,
               }))}
+            selectedId={selectedSimId}
             onSelectSim={(id) => fetchSubscriberData(id)}
           />
 
