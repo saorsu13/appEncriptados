@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import CountryFlag from "react-native-country-flag";
+import { router } from "expo-router"; // <-- Nuevo
 
 // Hooks y contexto
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
@@ -108,6 +109,17 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
   // Mostrar ICCID en lugar del nombre
   const selectedSim = sims.find((s) => s.id === currentSim?.idSim);
   const simText = selectedSim?.iccid || currentSim?.iccid || sim;
+
+  // 🔁 Nuevo: redirigir si el provider es telco-vision
+  useEffect(() => {
+    if (
+      selectedSim &&
+      typeof selectedSim.provider === "string" &&
+      selectedSim.provider.toLowerCase() === "telco-vision"
+    ) {
+      router.push("/(tabs)/balance");
+    }
+  }, [selectedSim]);
   
 
   return (
