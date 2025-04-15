@@ -25,12 +25,15 @@ import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { useAuth } from "@/context/auth";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
+import { deleteSubscriber } from "@/api/subscriberApi";
+import { useDeviceUUID } from "@/hooks/useDeviceUUID"; 
 
 const { width } = Dimensions.get("window");
 
 const SimOptions = () => {
   const { themeMode } = useDarkModeTheme();
 
+  const deviceUUID = useDeviceUUID();
   const { colors } = useTheme<ThemeCustom>();
   const options = [
     {
@@ -148,10 +151,39 @@ const SimOptions = () => {
     router.push(route);
   };
 
-  const handleDeleteSIm = () => {
-    if (simsLength > 1) dispatch(deleteSim(currentSim.idSim));
-    else auth.signOut();
-    setDeleteModalOpen(false);
+  const handleDeleteSIm = async () => {
+    try {
+      const iccid = currentSim?.idSim?.toString();
+      const uuid = deviceUUID;
+  
+      if (!iccid || !uuid) {
+        console.warn("❌ ICCID o UUID no disponible para eliminar subscriber");
+        return;
+      }
+  
+      console.log(`🧨 Eliminando SIM con ICCID: ${iccid} y UUID: ${uuid}`);
+  
+      const result = await deleteSubscriber(iccid, uuid);
+      console.log("✅ SIM eliminada correctamente:", result);
+  
+      if (simsLength > 1) {
+        dispatch(deleteSim(currentSim.idSim));
+      } else {
+        auth.signOut();
+      }
+  
+      setDeleteModalOpen(false);
+    } catch (error) {
+      console.error("❌ Error eliminando la SIM del backend:", error);
+      showModal({
+        type: "alert",
+        oneButton: true,
+        title: "Error",
+        description: "No se pudo eliminar la SIM en este momento.",
+        textConfirm: "OK",
+        buttonColorConfirm: "#FF0000",
+      });
+    }
   };
 
   return (
