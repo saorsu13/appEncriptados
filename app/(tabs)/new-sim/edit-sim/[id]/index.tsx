@@ -27,6 +27,9 @@ import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncryp
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 
+import { updateSubscriber } from "@/api/subscriberApi";
+import { getDeviceUUID } from "@/utils/getUUID";
+
 import { useModalPassword } from "@/context/modalpasswordprovider";
 import AlertButton from "@/components/molecules/AlertButton/AlertButton";
 import { router, useFocusEffect } from "expo-router";
@@ -34,7 +37,6 @@ import useModalAll from "@/hooks/useModalAll";
 import { useModalAdminSims } from "@/context/modaladminsims";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
-import { updateSimName } from "@/features/sims/simSlice";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
@@ -75,24 +77,40 @@ const Login = () => {
       .max(9, t("validators.invalidSim")),
   });
 
-  const handleSubmit = (values) => {
-    showModal({
-      type: "confirm",
-      buttonColorConfirm: colors.primaryColor,
-      oneButton: true,
-      buttonColorCancel: colors.danger,
-      textConfirm: t("modalSimActivate.goToPanel"),
-      title: t("modalSimActivate.changeNameSimTitle"),
-      onConfirm: () => {
-        openModal();
-        router.push("/home");
-        formik.resetForm();
-      },
-    });
-    dispatch(
-      updateSimName({ idSim: params.id, newName: formik.values.simName })
-    );
+  const handleSubmit = async (values) => {
+    try {
+      const uuid = await getDeviceUUID();
+      console.log("este es el params.id",params.id)
+      await updateSubscriber(params.id, uuid, {
+        provider: "tottoli",
+        name: values.simName,
+      });
+  
+  
+      showModal({
+        type: "confirm",
+        buttonColorConfirm: colors.primaryColor,
+        oneButton: true,
+        buttonColorCancel: colors.danger,
+        textConfirm: t("modalSimActivate.goToPanel"),
+        title: t("modalSimActivate.changeNameSimTitle"),
+        onConfirm: () => {
+          router.push("/home?refetchSims=true");
+          formik.resetForm();
+        },
+      });
+    } catch (err) {
+      console.error("🚨 Error al actualizar la SIM:", err);
+      showModal({
+        type: "alert",
+        title: "Error",
+        description: "No se pudo actualizar el nombre de la SIM.",
+        buttonColorConfirm: colors.danger,
+        textConfirm: "Aceptar",
+      });
+    }
   };
+  
 
   const formik = useFormik({
     initialValues: {

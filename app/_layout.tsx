@@ -42,6 +42,7 @@ import RequestPasswordComponent from "@/context/requestpasswordprovider";
 import { ModalPasswordProvider } from "@/context/modalpasswordprovider";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useRestoreSession } from "@/hooks/useRestoreSession";
+import RestoreSessionWrapper from "@/components/organisms/RestoreSession/RestoreSessionWrapper";
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
@@ -55,7 +56,6 @@ export default function RootLayout() {
   if (userRef.current === null) {
     userRef.current = loadUser(); 
   }
-  const restoring = useRestoreSession();
 
 
   useEffect(() => {
@@ -114,7 +114,8 @@ export default function RootLayout() {
                 <Provider store={store}>
                   <MenuProvider>
                     <ModalPasswordProvider>
-                      <AuthProvider userPromise={userRef.current} onLoaded={() => setAppIsReady(true)}>
+                    <AuthProvider userPromise={userRef.current} onLoaded={() => setAppIsReady(true)}>
+                      <RestoreSessionWrapper onFinish={() => setAppIsReady(true)} />
                         <QueryClientProvider client={queryClient}>
                           <SafeAreaView style={styles.container}>
                             {showRequestPasswordComponent && <RequestPasswordComponent />}
