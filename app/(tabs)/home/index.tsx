@@ -42,6 +42,7 @@ import { STORE_URLS } from "@/config/links/allLinks";
 import { getSimBalance } from "@/features/balance/useBalance";
 import { getCurrentBalanceByCurrency } from "@/api/simbalance";
 import { getVersion } from "@/api/version";
+import { listSubscriber } from "@/api/subscriberApi";
 
 // ─── Redux Slices ───────────────────────────────────────────────
 import { setHasShownModal } from "@/features/version/versionSlice";
@@ -54,6 +55,8 @@ import {
   updateRecommendedNetwork,
 } from "@/features/network-profile/networkProfileSlice";
 
+import { updateSimName } from "@/features/sims/simSlice";
+
 // ─── Tipos ──────────────────────────────────────────────────────
 import { BalanceRequest } from "@/features/balance/types";
 import { BalanceResponse } from "@/api/simbalance";
@@ -61,7 +64,6 @@ import { BalanceResponse } from "@/api/simbalance";
 const baseMsg = "pages.home";
 
 const Home = () => {
-  // ─── Contexto global / Hooks ────────────────────────────────
   const { isLoggedIn } = useAuth();
   const { simId } = useLocalSearchParams();
   const dispatch = useDispatch();
@@ -71,25 +73,21 @@ const Home = () => {
   const { showModal } = useModalAll();
   const [deviceUUID, setDeviceUUID] = useState<string | null>(null);
 
-  // ─── Selectores Redux ────────────────────────────────────────
   const currentSim = useAppSelector((s) => s.sims.currentSim);
   const countryCode = useAppSelector((s) => s.country.countryCode);
   const globalCurrency = useAppSelector((s) => s.currency.currency);
   const hasShownModal = useAppSelector((s) => s.version.hasShownModal);
 
-  // ─── Estado local ────────────────────────────────────────────
   const [countryValue, setCountryValue] = useState(countryCode || "ca-CAD");
   const [refreshing, setRefreshing] = useState(false);
   const [versionFetched, setVersionFetched] = useState("");
 
-  // ─── Cuerpo de la petición balance ───────────────────────────
   const body: BalanceRequest = {
     id: currentSim?.idSim as unknown as number,
     currencyCode: countryValue.split("-")[1],
     country: countryValue.split("-")[0].toUpperCase(),
   };
 
-  // ─── Handlers / Funciones ────────────────────────────────────
   const handleCountry = (value: string) => {
     setCountryValue(value);
   };
@@ -102,7 +100,6 @@ const Home = () => {
     }
   };
 
-  // ─── Mutaciones y Queries ────────────────────────────────────
   const mutation = useMutation({
     mutationFn: getSimBalance,
     onSuccess: (res) => {
@@ -121,12 +118,10 @@ const Home = () => {
     queryFn: () => {
       return getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
     },
-    
     enabled: !!currentSim,
     onSuccess: (data) => console.log("💱 Balance moneda:", data),
     onError: (err) => console.error("💱 Error moneda:", err),
   });
-  
 
   const { data: version, isFetching } = useQuery({
     queryKey: ["getVersion"],
@@ -138,17 +133,24 @@ const Home = () => {
     [versionFetched]
   );
 
-  // ─── Efectos ────────────────────────────────────────────────
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUpdatedSimList = async () => {
+        if (!deviceUUID) return;
+        try {
+          const data = await listSubscriber(deviceUUID);
+          console.log("📥 SIMs actualizadas desde API:", data);
+          // Aquí podrías usar dispatch(updateSimList(data)) si lo deseas
+        } catch (error) {
+          console.error("❌ Error al obtener SIMs actualizadas:", error);
+        }
+      };
+      fetchUpdatedSimList();
+    }, [deviceUUID])
+  );
 
-  // Logs de login y sim
   useEffect(() => {
-    console.log("🏷️ isLoggedIn:", isLoggedIn);
-    console.log("🏷️ currentSim:", currentSim);
-  }, [isLoggedIn, currentSim]);
-
-  // Modal de versión
-  useEffect(() => {
-    if (versionFetched && !hasShownModal && !areVersionsEqual) {
+    if (version && !hasShownModal && !areVersionsEqual) {
       showModal({
         type: "confirm",
         title: t("pages.home-tab.versiontitle"),
@@ -190,7 +192,6 @@ const Home = () => {
     }, [isFetching, version])
   );
 
-  // Evitar back en Android
   useFocusEffect(
     useCallback(() => {
       if (Platform.OS === "android") {
@@ -203,7 +204,6 @@ const Home = () => {
     }, [])
   );
 
-  // ─── Pull to Refresh ─────────────────────────────────────────
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     dispatch(updateCurrentCountry(countryCode));
@@ -212,15 +212,13 @@ const Home = () => {
     );
   }, [countryCode, mutation, refetchCurrency]);
 
-  // ─── Render ─────────────────────────────────────────────────
   if (!isLoggedIn || !currentSim) {
     return <SignIn />;
   }
-  
 
   const simType = determineType(currentSim.id);
   const data = mutation.data;
-  
+
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
@@ -237,7 +235,6 @@ const Home = () => {
 
       <View style={styles.container}>
         <SimCountry
-        
           sim={currentSim.idSim}
           country={countryValue}
           handleCountry={handleCountry}
