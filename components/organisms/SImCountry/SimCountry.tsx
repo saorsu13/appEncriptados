@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import CountryFlag from "react-native-country-flag";
-import { router } from "expo-router"; // <-- Nuevo
+import { router } from "expo-router";
 
 // Hooks y contexto
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
@@ -22,7 +22,6 @@ import { setSimList } from "@/features/sims/simSlice";
 // React Query
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCurrency } from "@/api/simbalance";
-import { listSubscriber } from "@/api/subscriberApi";
 import { getDeviceUUID } from "../../../utils/getUUID";
 
 // Componentes UI
@@ -49,12 +48,14 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const globalCurrency = useAppSelector((s) => s.currency.currency);
+  const currentSim = useAppSelector((state) => state.sims.currentSim);
 
-  // Modal SIMs
   const { openModal } = useModalAdminSims();
   const queryClient = useQueryClient();
-
   const [uuid, setUUID] = useState<string | null>(null);
+
+  const sims = useAppSelector((state) => state.sims.sims);
+
   useEffect(() => {
     getDeviceUUID().then((resolvedUUID) => {
       console.log("📱 UUID obtenido:", resolvedUUID);
@@ -62,13 +63,31 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
     });
   }, []);
 
-  const sims = useAppSelector((state) => state.sims.sims);
   useEffect(() => {
     console.log("🧠 SIMs del Redux:", sims);
   }, [sims]);
+
+  useEffect(() => {
+    console.log("🧠 currentSim en SimCountry:", currentSim);
+  }, [currentSim]);
+
+  const selectedSim = sims.find((s) => s.idSim === currentSim?.idSim);
+  const simText = selectedSim?.iccid || currentSim?.iccid || sim;
+
+  // ✅ Redirección si el provider es telco-vision
+  useEffect(() => {
+    console.log("🔍 selectedSim:", selectedSim);
   
+    const provider = selectedSim?.provider?.toLowerCase?.() || "";
+    console.log("🧾 provider normalizado:", provider);
   
-  // Query de monedas
+    if (provider === "telco-vision") {
+      console.log("➡️ Redirigiendo a /balance");
+      router.push("/(tabs)/balance");
+    }
+  }, [selectedSim]);
+  
+
   const {
     data: currencies = [],
     isFetching: fetchingCurrencies,
@@ -80,7 +99,6 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
     onError: (err) => console.error("❌ getCurrency error:", err),
   });
 
-  // Helper: convierte el array de Currency en items para el Dropdown
   const convertCurrenciesToItems = (list: Currency[]) =>
     list.map((c, idx) => ({
       key: idx,
@@ -98,41 +116,19 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
     dispatch(updateCurrentCountry(value));
   };
 
-  // Mostrar ICCID en lugar del nombre
-  const selectedSim = sims.find((s) => s.id === currentSim?.idSim);
-  const simText = selectedSim?.iccid || currentSim?.iccid || sim;
-
-  // 🔁 Nuevo: redirigir si el provider es telco-vision
-  useEffect(() => {
-    if (
-      selectedSim &&
-      typeof selectedSim.provider === "string" &&
-      selectedSim.provider.toLowerCase() === "telco-vision"
-    ) {
-      router.push("/(tabs)/balance");
-    }
-  }, [selectedSim]);
-  
-  const currentSim = useAppSelector((state) => state.sims.currentSim);
-  
-  useEffect(() => {
-    console.log("🧠 currentSim en SimCountry:", currentSim);
-  }, [currentSim]);
-  
   return (
     <View style={styles.container}>
       <View style={styles.simContainer}>
-      <TouchableHighlight
-        underlayColor="transparent"
-        onPress={() => {
-          const safeSims = sims.filter(
-            (sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string"
-          );
-          console.log("📦 SIMs para el modal:", safeSims);
-          openModal(safeSims);
-        }}
-                
-      >
+        <TouchableHighlight
+          underlayColor="transparent"
+          onPress={() => {
+            const safeSims = sims.filter(
+              (sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string"
+            );
+            console.log("📦 SIMs para el modal:", safeSims);
+            openModal(safeSims);
+          }}
+        >
           <View style={styles.simButtonContent}>
             <Text
               allowFontScaling={false}
