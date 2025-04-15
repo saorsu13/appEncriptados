@@ -39,9 +39,18 @@ const SimListModal = () => {
   const [editingSimId, setEditingSimId] = useState<number | null>(null);
   const [newSimName, setNewSimName] = useState<string>("");
 
-  const handleUpdateCurrentSim = (id: number) => {
+  const handleUpdateCurrentSim = (idSim: string) => {
+    console.log("🔁 Cambiando SIM actual a:", idSim);
+    dispatch(updateCurrentSim(idSim));
     closeModal();
-    dispatch(updateCurrentSim(id));
+    console.log("🔁 Navegando a /home con simId:", idSim);
+    router.replace({
+      pathname: "/home",
+      params: {
+        refetchSims: "true",
+        simId: idSim,
+      },
+    });
   };
 
   const addNewSim = () => {
@@ -85,7 +94,11 @@ const SimListModal = () => {
                   return (
                     <Pressable
                       style={styles.simItem}
-                      onPress={() => handleUpdateCurrentSim(item.id)}
+                      onPress={() => {
+                        console.log("🖱 SIM seleccionada en modal:", item);
+                        handleUpdateCurrentSim(item.idSim);
+                      }}
+                      
                     >
                       <View style={styles.simInfo}>
                         <View style={styles.simNameContainer}>
@@ -110,6 +123,7 @@ const SimListModal = () => {
 
                       <TouchableOpacity
                         onPress={() => {
+                          console.log("✏️ Editar SIM:", item.idSim);
                           closeModal();
                           router.push(`/new-sim/edit-sim/${item.idSim}`);
                         }}

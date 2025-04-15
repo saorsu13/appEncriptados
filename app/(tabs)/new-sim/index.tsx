@@ -151,7 +151,7 @@ async function handleRequestCode() {
       showModal?.(); 
       setModalSuccessVisible(true); 
       dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
-      router.push({
+      router.replace({
         pathname: "/home",
         params: { refetchSims: "true" }
       });
@@ -200,6 +200,7 @@ async function validateCode(code) {
 // Helpers de UI
 const handleInfoModal = () => setModalVisible((v) => !v);
 const handleInfoHowToWorkModal = () => setModalHowToWorkVisible((v) => !v);
+
 
   return (
     <ScrollView>
@@ -296,7 +297,7 @@ const handleInfoHowToWorkModal = () => setModalHowToWorkVisible((v) => !v);
               onPress={() => {
                 if (alertType === "success") {
                   setAlertMessage("");
-                  router.push("/home");
+                  router.replace("/home");
                 }
               }}
             />
@@ -412,3 +413,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
 });
+
+export const unstable_settings = {
+  unmountOnBlur: true,
+};

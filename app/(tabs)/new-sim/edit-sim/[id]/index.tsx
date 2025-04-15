@@ -95,7 +95,7 @@ const Login = () => {
         textConfirm: t("modalSimActivate.goToPanel"),
         title: t("modalSimActivate.changeNameSimTitle"),
         onConfirm: () => {
-          router.push("/home?refetchSims=true");
+          router.replace("/home?refetchSims=true");
           formik.resetForm();
         },
       });
@@ -293,3 +293,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 });
+
+export const unstable_settings = {
+  unmountOnBlur: true,
+};

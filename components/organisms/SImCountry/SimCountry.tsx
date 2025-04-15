@@ -56,7 +56,6 @@ const SimCountry: React.FC<SimCountryProps> = ({
   // Redux
   const dispatch = useAppDispatch();
   const globalCurrency = useAppSelector((s) => s.currency.currency);
-  const currentSimId = useAppSelector((s) => s.sims.currentSim.idSim);
 
   // Modal SIMs
   const { openModal } = useModalAdminSims();
@@ -105,6 +104,12 @@ const SimCountry: React.FC<SimCountryProps> = ({
     dispatch(updateCurrentCountry(value));
   };
   
+  const currentSim = useAppSelector((state) => state.sims.currentSim);
+  
+  useEffect(() => {
+    console.log("🧠 currentSim en SimCountry:", currentSim);
+  }, [currentSim]);
+  
   return (
     <View style={styles.container}>
       {/* SIM actual y botón para cambiar */}
@@ -135,7 +140,7 @@ const SimCountry: React.FC<SimCountryProps> = ({
             <IconSvg type="arrowupicon" height={25} width={25} />
           </View>
         </TouchableHighlight>
-        <CopyLabel textValue={sim} />
+        <CopyLabel textValue={currentSim?.idSim || sim} />
       </View>
 
       {/* Selector de moneda */}

@@ -71,7 +71,7 @@ const BalanceDetails = ({ data }: any) => {
   // ============ API QUERY ============
   const { data: getbalance, isFetching, refetch } = useQuery<BalanceResponse>({
     gcTime: 0,
-    queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency],
+    queryKey: ["getCurrentBalanceByCurrency", currentSim?.idSim, globalCurrency],
     queryFn: async () => {
       if (!currentSim) return null;
       return await getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
@@ -81,14 +81,20 @@ const BalanceDetails = ({ data }: any) => {
 
   // ============ EFFECTS ============
   useEffect(() => {
-    dispatch(setBalance(formatNumber(getbalance?.balance?.toFixed(2))));
-  }, [getbalance]);
+    if (!isFetching && getbalance) {
+      dispatch(setBalance(formatNumber(getbalance.balance?.toFixed(2))));
+    }
+  }, [getbalance, isFetching]);
 
   useFocusEffect(
     useCallback(() => {
-      refetch();
-    }, [refetch])
+      if (currentSim) {
+        console.log("🔄 Refetching balance para SIM:", currentSim.idSim);
+        refetch();
+      }
+    }, [refetch, currentSim])
   );
+  
 
   // ============ HANDLERS ============
   const handleInfoModal = () => setModalVisible(!modalVisible);

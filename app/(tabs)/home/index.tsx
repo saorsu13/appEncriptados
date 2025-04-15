@@ -31,6 +31,7 @@ import SignIn from "@/components/organisms/SignIn/SignIn";
 import Alert from "@/components/molecules/Alert";
 import Label from "@/components/atoms/Label/Label";
 import Skeleton2x2 from "@/components/molecules/SkeletonContent/Skeleton2x2";
+import { updateCurrentSim } from "@/features/sims/simSlice";
 
 // ─── Utilidades y Temas ─────────────────────────────────────────
 import theme from "@/config/theme";
@@ -83,11 +84,11 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [versionFetched, setVersionFetched] = useState("");
 
-  const body: BalanceRequest = {
-    id: currentSim?.idSim as unknown as number,
-    currencyCode: countryValue.split("-")[1],
-    country: countryValue.split("-")[0].toUpperCase(),
-  };
+  // const body: BalanceRequest = {
+  //   id: currentSim?.idSim as unknown as number,
+  //   currencyCode: countryValue.split("-")[1],
+  //   country: countryValue.split("-")[0].toUpperCase(),
+  // };
 
   const handleCountry = (value: string) => {
     setCountryValue(value);
@@ -150,21 +151,20 @@ const Home = () => {
               iccid: String(sim.iccid),
             }))
         ));
-        
-          const selectedSim = simList.find((s) => s.idSim === simId);
-          
+          const selectedSim = sims.find((s) => String(s.iccid) === simId);
+          console.log("este es el selectedSim",selectedSim)
+
           if (selectedSim) {
-            dispatch({
-              type: "sims/updateCurrentSim",
-              payload: selectedSim.idSim,
-            });
-          } else if (simList.length) {
-            dispatch({
-              type: "sims/updateCurrentSim",
-              payload: simList[0].idSim,
-            });
+            console.log("✅ SIM seleccionada desde URL:", selectedSim);
+            dispatch(updateCurrentSim(String(selectedSim.iccid)));
+
+            
+          } else if (sims.length) {
+            console.log("⚠️ No se encontró simId en query, usando la primera SIM:", sims[0]);
+            dispatch(updateCurrentSim(String(sims[0].iccid)));
+
+            console.log("🎯 currentSim actualizado en Redux:", selectedSim);
           }
-          console.log("✅ SIM actual seleccionada:", selectedSim || simList[0]);
       };
       if (refetchSims === "true") {
         fetchUpdatedSimList();
@@ -173,7 +173,12 @@ const Home = () => {
   );
 
   useEffect(() => {
-    if (version && !hasShownModal && !areVersionsEqual) {
+    if (
+      version &&
+      !hasShownModal &&
+      !areVersionsEqual &&
+      refetchSims !== "true"
+    ) {
       showModal({
         type: "confirm",
         title: t("pages.home-tab.versiontitle"),
@@ -201,9 +206,18 @@ const Home = () => {
   // Mutación inicial al montar o cambiar SIM/país
   useEffect(() => {
     if (currentSim) {
+      console.log("🧲 Mutando balance para SIM:", currentSim);
+  
+      const body: BalanceRequest = {
+        id: currentSim?.idSim as unknown as number,
+        currencyCode: countryValue.split("-")[1],
+        country: countryValue.split("-")[0].toUpperCase(),
+      };
+  
       mutation.mutate(body);
     }
-  }, [currentSim?.id, countryCode]);
+  }, [currentSim?.idSim, countryCode]);
+  
 
   // Invalidate version y capturar fetched
   useFocusEffect(
@@ -237,7 +251,8 @@ const Home = () => {
     return <SignIn />;
   }
 
-  const simType = determineType(currentSim.id);
+  const simType = determineType(currentSim.idSim);
+
   const data = mutation.data;
 
   return (
