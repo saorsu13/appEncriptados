@@ -68,13 +68,11 @@ const SimCountry: React.FC<SimCountryProps> = ({
     });
   }, []);
 
-  const { data: sims = [] } = useQuery<any[]>({
-    queryKey: ["listSubscriber", uuid],
-    queryFn: () => listSubscriber(uuid!),
-    enabled: !!uuid,
-    onSuccess: (data) => console.log("✅ SIMs recibidas:", data),
-    onError: (err) => console.error("❌ Error al obtener SIMs:", err),
-  });
+  const sims = useAppSelector((state) => state.sims.sims);
+  useEffect(() => {
+    console.log("🧠 SIMs del Redux:", sims);
+  }, [sims]);
+  
   
   // Query de monedas
   const {
@@ -87,14 +85,6 @@ const SimCountry: React.FC<SimCountryProps> = ({
     onSuccess: (data) => console.log("✅ getCurrency success:", data),
     onError: (err) => console.error("❌ getCurrency error:", err),
   });
-
-  // Refetch balance al volver a enfocar o cambiar SIM (si lo necesitas)
-  // const { refetch: refetchBalance } = useQuery<BalanceResponse | null>({ ... });
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     if (currentSimId) refetchBalance();
-  //   }, [currentSimId])
-  // );
 
   // Helper: convierte el array de Currency en items para el Dropdown
   const convertCurrenciesToItems = (list: Currency[]) =>
@@ -122,9 +112,13 @@ const SimCountry: React.FC<SimCountryProps> = ({
       <TouchableHighlight
         underlayColor="transparent"
         onPress={() => {
-          const safeSims = (sims as any[])?.filter((sim) => sim && sim.id) || [];
+          const safeSims = sims.filter(
+            (sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string"
+          );
+          console.log("📦 SIMs para el modal:", safeSims);
           openModal(safeSims);
-        }}        
+        }}
+                
       >
           <View style={styles.simButtonContent}>
             <Text

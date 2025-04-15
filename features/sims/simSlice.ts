@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction  } from "@reduxjs/toolkit";
 import { Sim } from "./types";
 
 export interface SimState {
@@ -12,7 +12,7 @@ const initialState: SimState = {
 };
 
 export interface Sim {
-  idSim: string | number;
+  idSim: string ;
   simName: string;
   provider: string;
   iccid: string;
@@ -22,41 +22,35 @@ export const simSlice = createSlice({
   name: "sims",
   initialState,
   reducers: {
-    addSim: (state, action) => {
-      if (state.sims.find((item) => item.idSim === action.payload.idSim))
-        return;
-
-      state.sims = [...state.sims, action.payload];
-    },
-    updateCurrentSim: (state, action) => {
-      const sim = state.sims.find((item) => item.idSim === action.payload);
-      if (!sim) return;
-
-      state.currentSim = sim;
-    },
-    deleteSim: (state, action) => {
-      state.sims = state.sims.filter((item) => item.idSim !== action.payload);
-      if (!state.sims.length) {
-        state.currentSim = null;
-        return;
+    addSim: (state, action: PayloadAction<Sim>) => {
+      if (!state.sims.find((item) => item.idSim === action.payload.idSim)) {
+        state.sims.push(action.payload);
       }
-
-      state.currentSim = state.sims[0];
+    },
+    updateCurrentSim: (state, action: PayloadAction<string>) => {
+      const sim = state.sims.find((item) => item.idSim === action.payload);
+      if (sim) {
+        state.currentSim = sim;
+      }
+    },
+    deleteSim: (state, action: PayloadAction<string>) => {
+      state.sims = state.sims.filter((item) => item.idSim !== action.payload);
+      if (state.currentSim?.idSim === action.payload) {
+        state.currentSim = state.sims.length ? state.sims[0] : null;
+      }
     },
     deleteAllSims: (state) => {
       state.sims = [];
-    },
-    updateSimName: (state, action) => {
-      const { idSim, newName } = action.payload;
-      const sim = state.sims.find((item) => item.idSim === idSim);
-      if (sim) {
-        sim.simName = newName;
-      }
+      state.currentSim = null;
     },
     resetSimState: (state) => {
       state.sims = [];
       state.currentSim = null;
-    },    
+    },
+    setSims: (state, action: PayloadAction<Sim[]>) => {
+      state.sims = action.payload;
+      state.currentSim = action.payload.length ? action.payload[0] : null;
+    },
   },
 });
 
@@ -65,8 +59,8 @@ export const {
   updateCurrentSim,
   deleteSim,
   deleteAllSims,
-  updateSimName,
   resetSimState,
+  setSims,
 } = simSlice.actions;
 
 export const simReducer = simSlice.reducer;

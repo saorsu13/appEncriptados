@@ -63,7 +63,7 @@ const SimListModal = () => {
 
   const { colors } = useTheme<ThemeCustom>();
   const styles = getStyles(isDarkMode);
-  const validSims = sims.filter((sim) => sim && sim.id);
+  const validSims = sims.filter((sim) => sim && sim.idSim);
 
   return (
     <Modal animationType="fade" transparent={true} visible={isModalOpen}>
@@ -75,7 +75,7 @@ const SimListModal = () => {
 
               <FlatList
                 data={validSims}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => item.idSim.toString()}
                 renderItem={({ item }) => {
                   const isSixDigitSim = item.iccid.toString().length === 6;
                   const simImage = isSixDigitSim
@@ -111,7 +111,7 @@ const SimListModal = () => {
                       <TouchableOpacity
                         onPress={() => {
                           closeModal();
-                          router.push(`/new-sim/edit-sim/${item.id}`);
+                          router.push(`/new-sim/edit-sim/${item.idSim}`);
                         }}
                       >
                         <Ionicons

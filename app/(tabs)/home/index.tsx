@@ -19,6 +19,7 @@ import { useAuth } from "@/context/auth";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import useModalAll from "@/hooks/useModalAll";
 import { getDeviceUUID } from "@/utils/getUUID";
+import { setSims } from "@/features/sims/simSlice";
 
 // ─── Componentes UI ──────────────────────────────────────────────
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -65,7 +66,7 @@ const baseMsg = "pages.home";
 
 const Home = () => {
   const { isLoggedIn } = useAuth();
-  const { simId } = useLocalSearchParams();
+  const { simId, refetchSims } = useLocalSearchParams();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { colors } = useTheme<ThemeCustom>();
@@ -137,14 +138,38 @@ const Home = () => {
     useCallback(() => {
       const fetchUpdatedSimList = async () => {
         if (!deviceUUID) return;
-        try {
-          const data = await listSubscriber(deviceUUID);
-        } catch (error) {
-          console.error("❌ Error al obtener SIMs actualizadas:", error);
-        }
+        const sims = await listSubscriber(deviceUUID);
+
+        dispatch(setSims(
+          sims
+            .filter((sim) => sim.iccid && sim.name && sim.provider)
+            .map((sim) => ({
+              idSim: String(sim.iccid),
+              simName: sim.name,
+              provider: sim.provider,
+              iccid: String(sim.iccid),
+            }))
+        ));
+        
+          const selectedSim = simList.find((s) => s.idSim === simId);
+          
+          if (selectedSim) {
+            dispatch({
+              type: "sims/updateCurrentSim",
+              payload: selectedSim.idSim,
+            });
+          } else if (simList.length) {
+            dispatch({
+              type: "sims/updateCurrentSim",
+              payload: simList[0].idSim,
+            });
+          }
+          console.log("✅ SIM actual seleccionada:", selectedSim || simList[0]);
       };
-      fetchUpdatedSimList();
-    }, [deviceUUID])
+      if (refetchSims === "true") {
+        fetchUpdatedSimList();
+      }
+    }, [deviceUUID, simId, refetchSims])
   );
 
   useEffect(() => {

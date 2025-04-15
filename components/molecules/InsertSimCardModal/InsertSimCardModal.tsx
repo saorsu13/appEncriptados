@@ -25,6 +25,9 @@ import { useDispatch } from "react-redux";
 import { addSim } from "@/features/sims/simSlice";
 import { useAuth } from "@/context/auth";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
+import { createSubscriber } from "@/api/subscriberApi";
+import { getDeviceUUID } from "../../../utils/getUUID";
+
 
 export interface LoginResponse {
   status: string;
@@ -58,7 +61,7 @@ const InsertSimCardModal: React.FC = () => {
 
   const mutation = useMutation<LoginResponse, Error, LoginParams>({
     mutationFn: login,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const handleError = () => {
         hideModal();
         showModal({
@@ -98,12 +101,43 @@ const InsertSimCardModal: React.FC = () => {
             });
           });
         } else if (typeOfProcess === "newsim") {
-          handleSuccess(() => {
-            openModal();
-            dispatch(addSim({ idSim: currentIdSim, simName: "SIM" }));
-
-            router.push("/home");
-          });
+          try {
+            const subscriberData = {
+              iccid: currentIdSim.toString(),
+              provider: "telco-vision", 
+              name: "Sim Tim",            
+              uuid: await getDeviceUUID(),  
+            };
+            const result = await createSubscriber(subscriberData);
+  
+            if (result.code === "duplicate_iccid" || result.id) {
+              handleSuccess(() => {
+                openModal();
+                dispatch(addSim({ idSim: currentIdSim, simName: "SIM" }));
+                router.push("/home");
+              });
+            } else {
+              // Falló creación
+              showModal({
+                type: "error",
+                oneButton: true,
+                title: t("type.error"),
+                description: t("modalSimActivate.errors.failedCreateSim"),
+                textConfirm: t("actions.right"),
+                buttonColorConfirm: colors.danger,
+              });
+            }
+          } catch (err) {
+            console.error("Error al crear subscriber:", err);
+            showModal({
+              type: "error",
+              oneButton: true,
+              title: t("type.error"),
+              description: t("modalSimActivate.errors.failedCreateSim"),
+              textConfirm: t("actions.right"),
+              buttonColorConfirm: colors.danger,
+            });
+          }
         }
       }
 
@@ -127,7 +161,7 @@ const InsertSimCardModal: React.FC = () => {
 
   return (
     <Modal
-      visible={isModalVisible}
+      visible={isModalVisible && typeOfProcess === "signin"}
       transparent={true}
       animationType="fade"
       onRequestClose={hideModal}
