@@ -119,12 +119,17 @@ const Home = () => {
   });
 
   const { refetch: refetchCurrency } = useQuery<BalanceResponse>({
-    queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency],
-    queryFn: () => getCurrentBalanceByCurrency(currentSim?.id, globalCurrency),
+    queryKey: ["getCurrentBalanceByCurrency", currentSim?.idSim?.toString(), globalCurrency],
+    queryFn: () => {
+      console.log("🔍 currentSim en queryFn:", currentSim);
+      return getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
+    },
+    
     enabled: !!currentSim,
     onSuccess: (data) => console.log("💱 Balance moneda:", data),
     onError: (err) => console.error("💱 Error moneda:", err),
   });
+  
 
   const { data: version, isFetching } = useQuery({
     queryKey: ["getVersion"],

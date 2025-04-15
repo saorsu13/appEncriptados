@@ -11,6 +11,13 @@ const initialState: SimState = {
   currentSim: null,
 };
 
+export interface Sim {
+  idSim: string | number;
+  simName: string;
+  provider: string;
+  iccid: string;
+}
+
 export const simSlice = createSlice({
   name: "sims",
   initialState,

@@ -74,7 +74,7 @@ const BalanceDetails = ({ data }: any) => {
     queryKey: ["getCurrentBalanceByCurrency", currentSim, globalCurrency],
     queryFn: async () => {
       if (!currentSim) return null;
-      return await getCurrentBalanceByCurrency(currentSim, globalCurrency);
+      return await getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
     },
     enabled: !!currentSim,
   }); 
