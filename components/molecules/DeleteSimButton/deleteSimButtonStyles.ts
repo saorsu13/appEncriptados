@@ -18,9 +18,9 @@ export const deleteSimButtonStyles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   text: {
-    color: "#E50707",
-    fontSize: 16,
-    fontWeight: "600",
+    color: "#ff3b30",
+    fontSize: 13,
+    fontWeight: "400",
     marginLeft: 8,
   },
 });
