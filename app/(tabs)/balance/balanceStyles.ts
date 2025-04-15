@@ -23,4 +23,36 @@ export const balanceStyles = StyleSheet.create({
     minHeight: 50,
     marginBottom: 15,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    width: "85%",
+    padding: 24,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 16,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    textAlign: "center",
+    marginVertical: 12,
+  },
+  modalButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  modalButtonText: {
+    fontWeight: "600",
+  },
 });

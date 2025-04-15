@@ -5,6 +5,9 @@ import {
   BackHandler,
   Platform,
   ActivityIndicator,
+  Text,
+  Modal,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter, Stack, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,6 +29,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 import { useDispatch } from "react-redux";
 import { resetSimState } from "@/features/sims/simSlice";
+import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 
 
 const BalanceScreen = () => {
@@ -38,6 +42,8 @@ const BalanceScreen = () => {
   const [selectedSimId, setSelectedSimId] = useState<string | null>(null);
   const [simPlans, setSimPlans] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showRedirectModal, setShowRedirectModal] = useState(false);
+  const [pendingRedirectSim, setPendingRedirectSim] = useState(null);
 
   const deviceUUID = useDeviceUUID();
   const dispatch = useDispatch();
@@ -59,6 +65,12 @@ const BalanceScreen = () => {
       const firstProvider = response.providers[0];
       setSimPlans(firstProvider?.plans || []);
       console.log("✅ Plan actualizado para SIM:", id);
+
+      // Mostrar modal si es Tottoli
+      if (firstProvider.provider === "tottoli") {
+        setPendingRedirectSim(firstProvider);
+        setShowRedirectModal(true);
+      }
     } catch (error) {
       console.error("❌ Error al obtener los planes de la SIM:", error);
       setSimPlans([]);
@@ -122,42 +134,45 @@ const BalanceScreen = () => {
       console.warn("❌ UUID no disponible, no se puede eliminar la SIM.");
       return;
     }
-  
+
     try {
       console.log("🗑️ Eliminando SIM con ICCID:", iccid, "y UUID:", deviceUUID);
       const response = await deleteSubscriber(iccid, deviceUUID);
       console.log("✅ SIM eliminada correctamente:", response);
-  
+
       const updatedSims = await listSubscriber(deviceUUID);
       const newSims = Array.isArray(updatedSims) ? updatedSims : [];
-  
-      setSims(newSims);
-  
-      if (newSims.length === 0) {
+
+      const uniqueSims = Array.from(
+        new Map(newSims.map((sim) => [sim.iccid, sim])).values()
+      );
+
+      setSims(uniqueSims);
+
+      if (uniqueSims.length === 0) {
         console.log("📭 No hay más SIMs, reseteando estado y redirigiendo...");
         dispatch(resetSimState());
-        router.replace("/home");
+        router.replace("/(tabs)/home");
         return;
       }
-  
-      // Si se borra la SIM seleccionada, podemos actualizar la selección a la primera de la lista
-      const newSelectedId = newSims[0].iccid;
+
+      const newSelectedId = uniqueSims[0].iccid;
       setSelectedSimId(newSelectedId);
       fetchSubscriberData(newSelectedId);
     } catch (error) {
       console.error("🚨 Error eliminando la SIM:", error);
     }
   };
-  
+
   const BackgroundWrapper = isDarkMode ? View : LinearGradient;
   const backgroundProps = isDarkMode
     ? { style: [{ ...balanceStyles.container }, { backgroundColor: colors.background }] }
     : {
-        colors: ["#E6F9FF", "#FFFFFF"],
-        start: { x: 0, y: 0 },
-        end: { x: 0, y: 1 },
-        style: balanceStyles.container,
-      };
+      colors: ["#E6F9FF", "#FFFFFF"],
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 1 },
+      style: balanceStyles.container,
+    };
 
   return (
     <>
@@ -191,7 +206,6 @@ const BalanceScreen = () => {
 
           <View style={balanceStyles.separator} />
 
-          {/* Mostrar ActivityIndicator mientras carga */}
           {loading ? (
             <View style={balanceStyles.loadingContainer}>
               <ActivityIndicator size="small" color="#00AEEF" />
@@ -216,12 +230,71 @@ const BalanceScreen = () => {
 
           <TopUpCard />
 
-          {/* Ahora se elimina la SIM seleccionada, en lugar de la primera */}
           {selectedSimId && (
             <DeleteSimButton onPress={() => handleDeleteSim(selectedSimId)} />
           )}
         </ScrollView>
       </BackgroundWrapper>
+
+      {showRedirectModal && (
+        <Modal animationType="fade" transparent visible={showRedirectModal}>
+          <View style={balanceStyles.modalOverlay}>
+            <View
+              style={[
+                balanceStyles.modalBox,
+                { backgroundColor: isDarkMode ? "#000" : "#fff" },
+              ]}
+            >
+              <IconSvg type="checkcircle" width={60} height={60} color="#00C566" />
+              <Text
+                style={[
+                  balanceStyles.modalTitle,
+                  { color: isDarkMode ? "#fff" : "#000" },
+                ]}
+              >
+                ¿Deseas ir a la vista de Tottoli?
+              </Text>
+              <Text
+                style={[
+                  balanceStyles.modalSubtitle,
+                  { color: isDarkMode ? "#ccc" : "#444" },
+                ]}
+              >
+                Esta SIM está asociada a Tottoli. Puedes ir al panel correspondiente.
+              </Text>
+              <TouchableOpacity
+                style={[balanceStyles.modalButton, { backgroundColor: "#D32F2F" }]}
+                onPress={() => {
+                  setShowRedirectModal(false);
+                  dispatch(resetSimState());
+                  router.replace("/(tabs)/home");
+                }}
+              >
+                <Text style={balanceStyles.modalButtonText}>Ir al panel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  balanceStyles.modalButton,
+                  {
+                    backgroundColor: isDarkMode ? "#444" : "#ccc",
+                    marginTop: 8,
+                  },
+                ]}
+                onPress={() => setShowRedirectModal(false)}
+              >
+                <Text
+                  style={[
+                    balanceStyles.modalButtonText,
+                    { color: isDarkMode ? "#fff" : "#000" },
+                  ]}
+                >
+                  Cancelar
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </>
   );
 };
