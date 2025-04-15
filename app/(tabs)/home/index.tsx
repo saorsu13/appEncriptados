@@ -17,8 +17,8 @@ import Constants from "expo-constants";
 // ─── Hooks y Contexto ─────────────────────────────────────────────
 import { useAuth } from "@/context/auth";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
-import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 import useModalAll from "@/hooks/useModalAll";
+import { getDeviceUUID } from "@/utils/getUUID";
 
 // ─── Componentes UI ──────────────────────────────────────────────
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -64,12 +64,12 @@ const Home = () => {
   // ─── Contexto global / Hooks ────────────────────────────────
   const { isLoggedIn } = useAuth();
   const { simId } = useLocalSearchParams();
-  const deviceUUID = useDeviceUUID();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { colors } = useTheme<ThemeCustom>();
   const queryClient = useQueryClient();
   const { showModal } = useModalAll();
+  const [deviceUUID, setDeviceUUID] = useState<string | null>(null);
 
   // ─── Selectores Redux ────────────────────────────────────────
   const currentSim = useAppSelector((s) => s.sims.currentSim);
@@ -91,7 +91,6 @@ const Home = () => {
 
   // ─── Handlers / Funciones ────────────────────────────────────
   const handleCountry = (value: string) => {
-    console.log("🌎 Nuevo countryValue:", value);
     setCountryValue(value);
   };
 
@@ -107,7 +106,6 @@ const Home = () => {
   const mutation = useMutation({
     mutationFn: getSimBalance,
     onSuccess: (res) => {
-      console.log("✅ Éxito balance:", res.data);
       dispatch(setLoading(false));
       res.data.voice && dispatch(updateVoice(res.data.voice));
       res.data.callback && dispatch(updateCallback(res.data.callback === "1"));
@@ -121,7 +119,6 @@ const Home = () => {
   const { refetch: refetchCurrency } = useQuery<BalanceResponse>({
     queryKey: ["getCurrentBalanceByCurrency", currentSim?.idSim?.toString(), globalCurrency],
     queryFn: () => {
-      console.log("🔍 currentSim en queryFn:", currentSim);
       return getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
     },
     
@@ -168,9 +165,14 @@ const Home = () => {
 
   // Logs de UUID y simId
   useEffect(() => {
-    console.log("📱 UUID dispositivo:", deviceUUID);
-    console.log("🔎 simId params:", simId);
-  }, [deviceUUID, simId]);
+  const fetchUUID = async () => {
+    const uuid = await getDeviceUUID();
+    setDeviceUUID(uuid);
+    console.log("📱 UUID obtenido:", uuid);
+  };
+
+  fetchUUID();
+}, []);
 
   // Mutación inicial al montar o cambiar SIM/país
   useEffect(() => {

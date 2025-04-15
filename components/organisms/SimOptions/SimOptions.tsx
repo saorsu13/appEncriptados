@@ -161,10 +161,8 @@ const SimOptions = () => {
         return;
       }
   
-      console.log(`🧨 Eliminando SIM con ICCID: ${iccid} y UUID: ${uuid}`);
   
       const result = await deleteSubscriber(iccid, uuid);
-      console.log("✅ SIM eliminada correctamente:", result);
   
       if (simsLength > 1) {
         dispatch(deleteSim(currentSim.idSim));

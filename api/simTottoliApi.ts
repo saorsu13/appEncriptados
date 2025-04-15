@@ -5,7 +5,6 @@ const API_BASE_URL = "https://encriptados.es/wp-json/encriptados/v1";
  */
 export const getExchangeRate = async () => {
   try {
-    console.log("💱 getExchangeRate → Solicitando tasa de cambio...");
     const response = await fetch(`${API_BASE_URL}/exchange-rate`, {
       method: "GET",
       headers: {
@@ -20,7 +19,6 @@ export const getExchangeRate = async () => {
     }
 
     const data = await response.json();
-    console.log("✅ getExchangeRate → Datos recibidos:", data);
     return data;
   } catch (error) {
     console.error("🚨 getExchangeRate → Error inesperado:", error);
@@ -33,7 +31,6 @@ export const getExchangeRate = async () => {
  */
 export const getSubstitutionNumber = async (id) => {
   try {
-    console.log(`🔢 getSubstitutionNumber → ID: ${id}`);
     const response = await fetch(`${API_BASE_URL}/tottoli/substitution-number/${id}`, {
       method: "GET",
       headers: {
@@ -46,7 +43,6 @@ export const getSubstitutionNumber = async (id) => {
     }
 
     const data = await response.json();
-    console.log("✅ getSubstitutionNumber → Número de sustitución:", data);
     return data;
   } catch (error) {
     console.error("🚨 getSubstitutionNumber → Error inesperado:", error);
@@ -59,7 +55,6 @@ export const getSubstitutionNumber = async (id) => {
  */
 export const changeCallback = async ({ id, callback }) => {
   try {
-    console.log(`📞 changeCallback → ID: ${id}, callback: ${callback}`);
     const response = await fetch(`${API_BASE_URL}/tottoli/change-callback`, {
       method: "POST",
       headers: {
@@ -74,7 +69,6 @@ export const changeCallback = async ({ id, callback }) => {
     }
 
     const data = await response.json();
-    console.log("✅ changeCallback → Respuesta:", data);
     return data;
   } catch (error) {
     console.error("🚨 changeCallback → Error inesperado:", error);
@@ -87,7 +81,6 @@ export const changeCallback = async ({ id, callback }) => {
  */
 export const changeImsi = async ({ id, switch: imsiSwitch }) => {
   try {
-    console.log(`🔄 changeImsi → ID: ${id}, switch: ${imsiSwitch}`);
     const response = await fetch(`${API_BASE_URL}/tottoli/change-imsi`, {
       method: "POST",
       headers: {
@@ -102,7 +95,6 @@ export const changeImsi = async ({ id, switch: imsiSwitch }) => {
     }
 
     const data = await response.json();
-    console.log("✅ changeImsi → Respuesta:", data);
     return data;
   } catch (error) {
     console.error("🚨 changeImsi → Error inesperado:", error);
@@ -115,7 +107,6 @@ export const changeImsi = async ({ id, switch: imsiSwitch }) => {
  */
 export const changeProfile = async ({ id, switch: profileSwitch }) => {
   try {
-    console.log(`🛠️ changeProfile → ID: ${id}, switch: ${profileSwitch}`);
     const response = await fetch(`${API_BASE_URL}/tottoli/change-profile`, {
       method: "POST",
       headers: {
@@ -130,7 +121,6 @@ export const changeProfile = async ({ id, switch: profileSwitch }) => {
     }
 
     const data = await response.json();
-    console.log("✅ changeProfile → Respuesta:", data);
     return data;
   } catch (error) {
     console.error("🚨 changeProfile → Error inesperado:", error);
@@ -143,7 +133,6 @@ export const changeProfile = async ({ id, switch: profileSwitch }) => {
  */
 export const changeNumberSubstitution = async ({ id, numberSubstitution }) => {
   try {
-    console.log(`🔢 changeNumberSubstitution → ID: ${id}, numberSubstitution: ${numberSubstitution}`);
     const response = await fetch(`${API_BASE_URL}/tottoli/change-number-substitution`, {
       method: "POST",
       headers: {
@@ -158,7 +147,6 @@ export const changeNumberSubstitution = async ({ id, numberSubstitution }) => {
     }
 
     const data = await response.json();
-    console.log("✅ changeNumberSubstitution → Respuesta:", data);
     return data;
   } catch (error) {
     console.error("🚨 changeNumberSubstitution → Error inesperado:", error);
@@ -171,7 +159,6 @@ export const changeNumberSubstitution = async ({ id, numberSubstitution }) => {
  */
 export const changeNumberDynamic = async (id) => {
   try {
-    console.log(`⚡ changeNumberDynamic → ID: ${id}`);
     const response = await fetch(`${API_BASE_URL}/tottoli/change-number-dinamyc`, {
       method: "POST",
       headers: {
@@ -186,7 +173,6 @@ export const changeNumberDynamic = async (id) => {
     }
 
     const data = await response.json();
-    console.log("✅ changeNumberDynamic → Respuesta:", data);
     return data;
   } catch (error) {
     console.error("🚨 changeNumberDynamic → Error inesperado:", error);
@@ -199,7 +185,6 @@ export const changeNumberDynamic = async (id) => {
  */
 export const changeVoice = async ({ id, voice }) => {
   try {
-    console.log(`🎤 changeVoice → ID: ${id}, voice: ${voice}`);
     const response = await fetch(`${API_BASE_URL}/tottoli/change-voice`, {
       method: "POST",
       headers: {
@@ -214,7 +199,6 @@ export const changeVoice = async ({ id, voice }) => {
     }
 
     const data = await response.json();
-    console.log("✅ changeVoice → Respuesta:", data);
     return data;
   } catch (error) {
     console.error("🚨 changeVoice → Error inesperado:", error);

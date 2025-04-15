@@ -84,7 +84,6 @@ const Login = () => {
           uuid: deviceUUID,
         };
       const result = await createSubscriber(subscriberData);
-      console.log("SIM agregada con éxito:", result);
       setModalSuccessVisible(true);
     } catch (error) {
       console.error("Error al crear la SIM:", error);

@@ -64,7 +64,6 @@ const BalanceScreen = () => {
       }
       const firstProvider = response.providers[0];
       setSimPlans(firstProvider?.plans || []);
-      console.log("✅ Plan actualizado para SIM:", id);
 
       // Mostrar modal si es Tottoli
       if (firstProvider.provider === "tottoli") {
@@ -87,7 +86,6 @@ const BalanceScreen = () => {
     try {
       setLoading(true);
       const data = await listSubscriber(deviceUUID);
-      console.log("Este es el deviceUUID", deviceUUID);
       setSims(Array.isArray(data) ? data : []);
 
       const storedICCID = await AsyncStorage.getItem("currentICCID");
@@ -136,9 +134,7 @@ const BalanceScreen = () => {
     }
 
     try {
-      console.log("🗑️ Eliminando SIM con ICCID:", iccid, "y UUID:", deviceUUID);
       const response = await deleteSubscriber(iccid, deviceUUID);
-      console.log("✅ SIM eliminada correctamente:", response);
 
       const updatedSims = await listSubscriber(deviceUUID);
       const newSims = Array.isArray(updatedSims) ? updatedSims : [];
@@ -150,7 +146,6 @@ const BalanceScreen = () => {
       setSims(uniqueSims);
 
       if (uniqueSims.length === 0) {
-        console.log("📭 No hay más SIMs, reseteando estado y redirigiendo...");
         dispatch(resetSimState());
         router.replace("/(tabs)/home");
         return;

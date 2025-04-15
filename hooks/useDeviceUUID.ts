@@ -15,7 +15,6 @@ export function useDeviceUUID() {
         const iosId = await Application.getIosIdForVendorAsync();
         uuid = iosId ?? "unknown-ios-id";
       }
-      console.log("📱 UUID obtenido desde hook:", uuid);
       setDeviceUUID(uuid);
     };
 

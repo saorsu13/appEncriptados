@@ -5,7 +5,6 @@ const API_BASE_URL = "https://encriptados.es/wp-json/encriptados/v1";
  */
 export const getSubscriberData = async (id: string, uuid: string) => {
   try {
-    console.log("📡 getSubscriberData → Enviando request con:", { id, uuid });
 
     const response = await fetch(`${API_BASE_URL}/subscriber`, {
       method: "POST",
@@ -23,20 +22,17 @@ export const getSubscriberData = async (id: string, uuid: string) => {
     });
 
     const text = await response.text();
-    console.log("📨 getSubscriberData → Response Text:", text);
 
     if (!response.ok) {
       throw new Error(`❌ Error en el request: ${response.status}`);
     }
 
-    // Si la respuesta está vacía, retornamos un objeto vacío
     if (!text.trim()) {
       console.warn("Respuesta vacía de getSubscriberData.");
       return {};
     }
 
     const data = JSON.parse(text);
-    console.log("✅ getSubscriberData → JSON Parseado:", data);
 
     const providers = data.providers || [];
     const firstProvider = providers[0];
@@ -58,9 +54,6 @@ export const getSubscriberData = async (id: string, uuid: string) => {
  * Crea un nuevo subscriber en el backend.
  */
 export const createSubscriber = async (subscriberData) => {
-  console.log("🛫 createSubscriber → Iniciando llamada con payload:");
-  console.log(JSON.stringify(subscriberData, null, 2));
-
   try {
     const response = await fetch(`${API_BASE_URL}/sims/create`, {
       method: "POST",
@@ -72,10 +65,7 @@ export const createSubscriber = async (subscriberData) => {
       body: JSON.stringify(subscriberData),
     });
 
-    console.log("📨 createSubscriber → Status HTTP:", response.status);
-
     const contentType = response.headers.get("content-type");
-    console.log("📄 createSubscriber → Content-Type:", contentType);
 
     if (!response.ok) {
       if (contentType?.includes("application/json")) {
@@ -90,7 +80,6 @@ export const createSubscriber = async (subscriberData) => {
 
     if (contentType?.includes("application/json")) {
       const data = await response.json();
-      console.log("✅ createSubscriber → Respuesta JSON OK:", data);
       return data;
     }
 
@@ -112,8 +101,6 @@ export const updateSubscriber = async (
 ) => {
   try {
     const url = `https://encriptados.es/wp-json/encriptados/v1/sims/update/${iccid}/${uuid}`;
-    console.log("🛠️ Actualizando subscriber en:", url);
-    console.log("📦 Payload:", updateData);
 
     const response = await fetch(url, {
       method: "POST",
@@ -131,7 +118,6 @@ export const updateSubscriber = async (
     }
 
     const json = await response.json();
-    console.log("✅ Respuesta del update:", json);
     return json;
   } catch (error) {
     console.error("🚨 Error al actualizar el subscriber:", error);

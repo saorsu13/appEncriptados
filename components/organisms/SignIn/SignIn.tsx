@@ -64,12 +64,20 @@ const SignIn = () => {
     initialValues: { simNumber: "" },
     validationSchema,
     onSubmit: async (values) => {
+      console.log("📥 SIM ingresada:", values.simNumber);
       setCurrentIdSim(values.simNumber);
       try {
         setLocalLoading(true);
-        if (!deviceUUID) return console.warn("⛔ UUID aún no disponible.");
 
+        if (!deviceUUID) {
+          console.warn("⛔ UUID aún no disponible. Intenta de nuevo.");
+          setTimeout(() => formik.handleSubmit(), 300);
+          return;
+        }
+        
         const response = await loginQuery.loginRequest(values.simNumber, 0, values.simNumber);
+        console.log("📤 Respuesta de loginRequest:", response);
+
         if (response?.error) {
           console.warn("⚠️ Error durante loginRequest:", response.error);
           setRequestCodeModal(true);
@@ -102,27 +110,29 @@ const SignIn = () => {
     setCurrentIdSim(sim);
     setSimType(determineType(sim));
 
-    if (!deviceUUID) return setProvider(null);
+    // if (!deviceUUID) return setProvider(null);
 
-    const fetchProvider = async () => {
-      try {
-        if (sim.length === 6 || sim.length === 19) {
-          const data = await getSubscriberData(sim, deviceUUID);
-          if (data && typeof data === "object" && data.provider) {
-            setProvider(data.provider);
-          } else {
-            setProvider(null);
-          }
-        } else {
-          setProvider(null);
-        }
-      } catch (error) {
-        console.error("❌ Error al obtener el provider:", error);
-        setProvider(null);
-      }
-    };
+    // const fetchProvider = async () => {
+    //   try {
+    //     if (sim.length === 6 || sim.length === 19) {
+    //       const data = await getSubscriberData(sim, deviceUUID);
+    //       console.log("📡 getSubscriberData desde useEffect:", data);
+          
+    //       if (data && typeof data === "object" && data.provider) {
+    //         setProvider(data.provider);
+    //       } else {
+    //         setProvider(null);
+    //       }
+    //     } else {
+    //       setProvider(null);
+    //     }
+    //   } catch (error) {
+    //     console.error("❌ Error al obtener el provider:", error);
+    //     setProvider(null);
+    //   }
+    // };
 
-    fetchProvider();
+    // fetchProvider();
   }, [formik.values.simNumber, deviceUUID]);
 
   useFocusEffect(

@@ -64,7 +64,6 @@ const SimCountry: React.FC<SimCountryProps> = ({
   const [uuid, setUUID] = useState<string | null>(null);
   useEffect(() => {
     getDeviceUUID().then((resolvedUUID) => {
-      console.log("📱 UUID obtenido:", resolvedUUID);
       setUUID(resolvedUUID);
     });
   }, []);

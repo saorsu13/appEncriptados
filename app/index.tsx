@@ -14,14 +14,12 @@ export default function Index() {
   
     InteractionManager.runAfterInteractions(() => {
       if (!isLoggedIn || !user?.idSim) {
-        console.log("🔁 No hay sesión o SIM activa, redirigiendo a /home (login)");
         router.replace("/(tabs)/home");
         hasRedirectedRef.current = true;
         return;
       }
   
       if (!user?.provider) {
-        console.log("⏳ Esperando provider...");
         return;
       }
   

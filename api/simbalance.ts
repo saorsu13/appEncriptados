@@ -22,7 +22,6 @@ export interface Currency {
 }
 export const getCurrency = async (): Promise<Currency[]> => {
   try {
-    console.log("🌐 getCurrency → llamando a /getCurrencies");
     const response = await api.get<Currency[]>("/getCurrencies");
     return response.data;
   } catch (error) {
@@ -44,10 +43,6 @@ export const getCurrentBalanceByCurrency = async (
   id?: number | string,
   code?: string
 ): Promise<BalanceResponse | null> => {
-  console.log("🧪 Entrando a getCurrentBalanceByCurrency");
-  console.log("📥 id recibido:", id, "| tipo:", typeof id);
-  console.log("📥 code recibido:", code, "| tipo:", typeof code);
-
   if (!id || !code) {
     console.warn(
       "⚠️ getCurrentBalanceByCurrency: idSim o currency_code no válidos",
@@ -57,13 +52,9 @@ export const getCurrentBalanceByCurrency = async (
   }
 
   const url = `/changeBalanceForCurrencySelected?id=${id}&currency_code=${code}`;
-  console.log("🌐 URL construida:", url);
 
   try {
     const response = await api.get<BalanceResponse>(url);
-    console.log("📤 Response status:", response.status);
-    console.log("📤 Response data:", response.data);
-    console.log("📤 Tipo de respuesta:", typeof response.data);
     return response.data;
   } catch (error: any) {
     console.error("❌ Error en getCurrentBalanceByCurrency:", error.message || error);
