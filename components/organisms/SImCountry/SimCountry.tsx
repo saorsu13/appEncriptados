@@ -49,7 +49,8 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const globalCurrency = useAppSelector((s) => s.currency.currency);
-  const currentSim = useAppSelector((s) => s.sims.currentSim);
+
+  // Modal SIMs
   const { openModal } = useModalAdminSims();
   const queryClient = useQueryClient();
 
@@ -61,23 +62,13 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
     });
   }, []);
 
+  const sims = useAppSelector((state) => state.sims.sims);
   useEffect(() => {
-    if (uuid) {
-      queryClient.invalidateQueries(["listSubscriber", uuid]);
-    }
-  }, [uuid]);
-
-  const { data: sims = [] } = useQuery<any[]>({
-    queryKey: ["listSubscriber", uuid],
-    queryFn: () => listSubscriber(uuid!),
-    enabled: !!uuid,
-    onSuccess: (data) => {
-      console.log("✅ SIMs recibidas:", data);
-      dispatch(setSimList(data));
-    },
-    onError: (err) => console.error("❌ Error al obtener SIMs:", err),
-  });
-
+    console.log("🧠 SIMs del Redux:", sims);
+  }, [sims]);
+  
+  
+  // Query de monedas
   const {
     data: currencies = [],
     isFetching: fetchingCurrencies,
@@ -89,6 +80,7 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
     onError: (err) => console.error("❌ getCurrency error:", err),
   });
 
+  // Helper: convierte el array de Currency en items para el Dropdown
   const convertCurrenciesToItems = (list: Currency[]) =>
     list.map((c, idx) => ({
       key: idx,
@@ -121,17 +113,26 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
     }
   }, [selectedSim]);
   
-
+  const currentSim = useAppSelector((state) => state.sims.currentSim);
+  
+  useEffect(() => {
+    console.log("🧠 currentSim en SimCountry:", currentSim);
+  }, [currentSim]);
+  
   return (
     <View style={styles.container}>
       <View style={styles.simContainer}>
-        <TouchableHighlight
-          underlayColor="transparent"
-          onPress={() => {
-            const safeSims = (sims as any[])?.filter((sim) => sim && sim.id) || [];
-            openModal(safeSims);
-          }}
-        >
+      <TouchableHighlight
+        underlayColor="transparent"
+        onPress={() => {
+          const safeSims = sims.filter(
+            (sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string"
+          );
+          console.log("📦 SIMs para el modal:", safeSims);
+          openModal(safeSims);
+        }}
+                
+      >
           <View style={styles.simButtonContent}>
             <Text
               allowFontScaling={false}
@@ -142,7 +143,7 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
             <IconSvg type="arrowupicon" height={25} width={25} />
           </View>
         </TouchableHighlight>
-        <CopyLabel textValue={simText} />
+        <CopyLabel textValue={currentSim?.idSim || sim} />
       </View>
 
       <View style={styles.dropdownContainer}>

@@ -39,10 +39,18 @@ const SimListModal = () => {
   const [editingSimId, setEditingSimId] = useState<number | null>(null);
   const [newSimName, setNewSimName] = useState<string>("");
 
-  const handleUpdateCurrentSim = (sim) => {
-    console.log("🟢 SIM seleccionada:", sim);
-    dispatch(updateCurrentSim(sim));
+  const handleUpdateCurrentSim = (idSim: string) => {
+    console.log("🔁 Cambiando SIM actual a:", idSim);
+    dispatch(updateCurrentSim(idSim));
     closeModal();
+    console.log("🔁 Navegando a /home con simId:", idSim);
+    router.replace({
+      pathname: "/home",
+      params: {
+        refetchSims: "true",
+        simId: idSim,
+      },
+    });
   };
   
 
@@ -65,7 +73,7 @@ const SimListModal = () => {
 
   const { colors } = useTheme<ThemeCustom>();
   const styles = getStyles(isDarkMode);
-  const validSims = sims.filter((sim) => sim && sim.id);
+  const validSims = sims.filter((sim) => sim && sim.idSim);
 
   return (
     <Modal animationType="fade" transparent={true} visible={isModalOpen}>
@@ -77,7 +85,7 @@ const SimListModal = () => {
 
               <FlatList
                 data={validSims}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => item.idSim.toString()}
                 renderItem={({ item }) => {
                   const isSixDigitSim = item.iccid.toString().length === 6;
                   const simImage = isSixDigitSim
@@ -88,10 +96,10 @@ const SimListModal = () => {
                     <Pressable
                       style={styles.simItem}
                       onPress={() => {
-                        console.log("🟢 SIM seleccionada:", item);
-                        closeModal();
-                        dispatch(updateCurrentSim(item));
+                        console.log("🖱 SIM seleccionada en modal:", item);
+                        handleUpdateCurrentSim(item.idSim);
                       }}
+                      
                     >
                       <View style={styles.simInfo}>
                         <View style={styles.simNameContainer}>
@@ -116,8 +124,9 @@ const SimListModal = () => {
 
                       <TouchableOpacity
                         onPress={() => {
+                          console.log("✏️ Editar SIM:", item.idSim);
                           closeModal();
-                          router.push(`/new-sim/edit-sim/${item.id}`);
+                          router.push(`/new-sim/edit-sim/${item.idSim}`);
                         }}
                       >
                         <Ionicons

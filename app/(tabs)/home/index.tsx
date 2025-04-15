@@ -19,6 +19,7 @@ import { useAuth } from "@/context/auth";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import useModalAll from "@/hooks/useModalAll";
 import { getDeviceUUID } from "@/utils/getUUID";
+import { setSims } from "@/features/sims/simSlice";
 
 // ─── Componentes UI ──────────────────────────────────────────────
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -30,6 +31,7 @@ import SignIn from "@/components/organisms/SignIn/SignIn";
 import Alert from "@/components/molecules/Alert";
 import Label from "@/components/atoms/Label/Label";
 import Skeleton2x2 from "@/components/molecules/SkeletonContent/Skeleton2x2";
+import { updateCurrentSim } from "@/features/sims/simSlice";
 
 // ─── Utilidades y Temas ─────────────────────────────────────────
 import theme from "@/config/theme";
@@ -65,7 +67,7 @@ const baseMsg = "pages.home";
 
 const Home = () => {
   const { isLoggedIn } = useAuth();
-  const { simId } = useLocalSearchParams();
+  const { simId, refetchSims } = useLocalSearchParams();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { colors } = useTheme<ThemeCustom>();
@@ -82,11 +84,11 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [versionFetched, setVersionFetched] = useState("");
 
-  const body: BalanceRequest = {
-    id: currentSim?.idSim as unknown as number,
-    currencyCode: countryValue.split("-")[1],
-    country: countryValue.split("-")[0].toUpperCase(),
-  };
+  // const body: BalanceRequest = {
+  //   id: currentSim?.idSim as unknown as number,
+  //   currencyCode: countryValue.split("-")[1],
+  //   country: countryValue.split("-")[0].toUpperCase(),
+  // };
 
   const handleCountry = (value: string) => {
     setCountryValue(value);
@@ -137,18 +139,46 @@ const Home = () => {
     useCallback(() => {
       const fetchUpdatedSimList = async () => {
         if (!deviceUUID) return;
-        try {
-          const data = await listSubscriber(deviceUUID);
-        } catch (error) {
-          console.error("❌ Error al obtener SIMs actualizadas:", error);
-        }
+        const sims = await listSubscriber(deviceUUID);
+
+        dispatch(setSims(
+          sims
+            .filter((sim) => sim.iccid && sim.name && sim.provider)
+            .map((sim) => ({
+              idSim: String(sim.iccid),
+              simName: sim.name,
+              provider: sim.provider,
+              iccid: String(sim.iccid),
+            }))
+        ));
+          const selectedSim = sims.find((s) => String(s.iccid) === simId);
+          console.log("este es el selectedSim",selectedSim)
+
+          if (selectedSim) {
+            console.log("✅ SIM seleccionada desde URL:", selectedSim);
+            dispatch(updateCurrentSim(String(selectedSim.iccid)));
+
+            
+          } else if (sims.length) {
+            console.log("⚠️ No se encontró simId en query, usando la primera SIM:", sims[0]);
+            dispatch(updateCurrentSim(String(sims[0].iccid)));
+
+            console.log("🎯 currentSim actualizado en Redux:", selectedSim);
+          }
       };
-      fetchUpdatedSimList();
-    }, [deviceUUID])
+      if (refetchSims === "true") {
+        fetchUpdatedSimList();
+      }
+    }, [deviceUUID, simId, refetchSims])
   );
 
   useEffect(() => {
-    if (version && !hasShownModal && !areVersionsEqual) {
+    if (
+      version &&
+      !hasShownModal &&
+      !areVersionsEqual &&
+      refetchSims !== "true"
+    ) {
       showModal({
         type: "confirm",
         title: t("pages.home-tab.versiontitle"),
@@ -176,9 +206,18 @@ const Home = () => {
   // Mutación inicial al montar o cambiar SIM/país
   useEffect(() => {
     if (currentSim) {
+      console.log("🧲 Mutando balance para SIM:", currentSim);
+  
+      const body: BalanceRequest = {
+        id: currentSim?.idSim as unknown as number,
+        currencyCode: countryValue.split("-")[1],
+        country: countryValue.split("-")[0].toUpperCase(),
+      };
+  
       mutation.mutate(body);
     }
-  }, [currentSim?.id, countryCode]);
+  }, [currentSim?.idSim, countryCode]);
+  
 
   // Invalidate version y capturar fetched
   useFocusEffect(
@@ -212,7 +251,8 @@ const Home = () => {
     return <SignIn />;
   }
 
-  const simType = determineType(currentSim.id);
+  const simType = determineType(currentSim.idSim);
+
   const data = mutation.data;
 
   return (

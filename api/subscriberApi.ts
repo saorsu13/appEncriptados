@@ -54,6 +54,7 @@ export const getSubscriberData = async (id: string, uuid: string) => {
  * Crea un nuevo subscriber en el backend.
  */
 export const createSubscriber = async (subscriberData) => {
+  console.log("se realiza la invocacion del endpoint")
   try {
     const response = await fetch(`${API_BASE_URL}/sims/create`, {
       method: "POST",
@@ -155,6 +156,8 @@ export const deleteSubscriber = async (iccid: string, uuid: string) => {
  * Lista todos los subscribers.
  */
 export const listSubscriber = async (uuid: string) => {
+  console.log("se realiza la invocacion del  List")
+
   try {
     const response = await fetch(`${API_BASE_URL}/sims/uuid`, {
       method: "POST",

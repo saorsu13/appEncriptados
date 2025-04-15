@@ -30,13 +30,14 @@ import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 import { useDispatch } from "react-redux";
 import { resetSimState } from "@/features/sims/simSlice";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
-
+import { useLocalSearchParams } from "expo-router";
 
 const BalanceScreen = () => {
   const router = useRouter();
   const { colors } = useTheme<ThemeCustom>();
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
+  const { simId } = useLocalSearchParams();
 
   const [sims, setSims] = useState([]);
   const [selectedSimId, setSelectedSimId] = useState<string | null>(null);
@@ -90,11 +91,13 @@ const BalanceScreen = () => {
 
       const storedICCID = await AsyncStorage.getItem("currentICCID");
 
-      if (data && data.length > 0) {
+     if (data && data.length > 0) {
         const defaultId =
-          storedICCID && data.find((sim) => sim.iccid === storedICCID)
-            ? storedICCID
-            : data[0].iccid;
+          simId && data.find((sim) => sim.iccid === simId)
+            ? simId
+            : storedICCID && data.find((sim) => sim.iccid === storedICCID)
+              ? storedICCID
+              : data[0].iccid;
 
         setSelectedSimId(defaultId);
         fetchSubscriberData(defaultId);
