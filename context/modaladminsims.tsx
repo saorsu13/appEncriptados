@@ -2,10 +2,11 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface ModalAdminSimsState {
   isModalOpen: boolean;
+  simsList: any[];
 }
 
 interface ModalAdminSimsContextType extends ModalAdminSimsState {
-  openModal: () => void;
+  openModal: (sims?: any[]) => void;
   closeModal: () => void;
 }
 
@@ -15,6 +16,7 @@ interface ModalAdminSimsProviderProps {
 
 const ModalAdminSimsContext = createContext<ModalAdminSimsContextType>({
   isModalOpen: false,
+  simsList: [],
   openModal: () => {},
   closeModal: () => {},
 });
@@ -23,8 +25,12 @@ export const ModalAdminSimsProvider = ({
   children,
 }: ModalAdminSimsProviderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [simsList, setSimsList] = useState<any[]>([]);
 
-  const openModal = () => {
+  const openModal = (sims?: any[]) => {
+    if (sims) {
+      setSimsList(sims);
+    }
     setIsModalOpen(true);
   };
 
@@ -36,6 +42,7 @@ export const ModalAdminSimsProvider = ({
     <ModalAdminSimsContext.Provider
       value={{
         isModalOpen,
+        simsList,
         openModal,
         closeModal,
       }}

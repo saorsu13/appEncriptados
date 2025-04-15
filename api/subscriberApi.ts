@@ -181,7 +181,6 @@ export const listSubscriber = async (uuid: string) => {
     });
 
     const text = await response.text();
-    console.log("📨 listSubscriber → Response Text:", text);
 
     if (!response.ok) {
       throw new Error(`❌ Error en el request: ${response.status}`);

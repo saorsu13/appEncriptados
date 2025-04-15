@@ -28,11 +28,14 @@ import { useModalAdminSims } from "@/context/modaladminsims";
 import { Ionicons } from "@expo/vector-icons";
 
 const SimListModal = () => {
-  const { closeModal, isModalOpen } = useModalAdminSims();
+  const { 
+    simsList: sims,  
+    closeModal, 
+    isModalOpen 
+  } = useModalAdminSims();
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === ThemeMode.Dark;
   const { t } = useTranslation();
-  const sims = useAppSelector((state: any) => state.sims.sims);
   const dispatch = useDispatch();
   const baseMsg = "pages.home";
 
@@ -41,9 +44,9 @@ const SimListModal = () => {
   const [editingSimId, setEditingSimId] = useState<number | null>(null);
   const [newSimName, setNewSimName] = useState<string>("");
 
-  const handleUpdateCurrentSim = (idSim: number) => {
+  const handleUpdateCurrentSim = (id: number) => {
     closeModal();
-    dispatch(updateCurrentSim(idSim));
+    dispatch(updateCurrentSim(id));
   };
 
   const addNewSim = () => {
@@ -65,6 +68,7 @@ const SimListModal = () => {
 
   const { colors } = useTheme<ThemeCustom>();
   const styles = getStyles(isDarkMode);
+  const validSims = sims.filter((sim) => sim && sim.id);
 
   return (
     <Modal animationType="fade" transparent={true} visible={isModalOpen}>
@@ -74,10 +78,10 @@ const SimListModal = () => {
             <View style={styles.modalContainer}>
               <Text style={styles.modalTitle}>{t(`${baseMsg}.simList`)}</Text>
               <FlatList
-                data={sims}
-                keyExtractor={(item) => item.idSim.toString()}
+                data={validSims}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => {
-                  const isSixDigitSim = item.idSim.toString().length === 6;
+                  const isSixDigitSim = item.iccid.toString().length === 6;
                   const simImage = isSixDigitSim
                     ? require("@/assets/images/adaptive-icon.png")
                     : item.logo || require("@/assets/images/tim_icon_app_600px_negativo 1.png");
@@ -85,7 +89,7 @@ const SimListModal = () => {
                   return (
                     <Pressable
                       style={styles.simItem}
-                      onPress={() => handleUpdateCurrentSim(item.idSim)}
+                      onPress={() => handleUpdateCurrentSim(item.id)}
                     >
                       <View style={styles.simInfo}>
                         <View style={styles.simNameContainer}>
@@ -104,7 +108,7 @@ const SimListModal = () => {
                           numberOfLines={1}
                           ellipsizeMode="tail"
                         >
-                          {item.idSim}
+                          {item.iccid}
                         </Text>
                       </View>
 

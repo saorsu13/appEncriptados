@@ -20,6 +20,7 @@ import ModalInfo from "@/components/molecules/ModalInfo";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 
+import { setHasAlreadyRedirected } from "@/utils/navigation";
 import { useAuth } from "@/context/auth";
 import { useLogin } from "@/features/sign-in/useLogin";
 import { determineType } from "@/utils/utils";
@@ -83,7 +84,8 @@ const SignIn = () => {
         }
 
         InteractionManager.runAfterInteractions(() => {
-          console.log("🔁 Redireccionando a /balance desde SignIn");
+          setHasAlreadyRedirected(true);
+          console.log("🔁 Redireccionando desde SignIn con provider:", provider);
           if (provider === "telco-vision") router.replace("/balance");
           else if (provider === "tottoli") router.replace("/home");
         });

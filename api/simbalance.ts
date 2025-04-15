@@ -22,9 +22,7 @@ export interface Currency {
 }
 export const getCurrency = async (): Promise<Currency[]> => {
   try {
-    console.log("🌐 getCurrency → llamando a /getCurrencies");
     const response = await api.get<Currency[]>("/getCurrencies");
-    console.log("🌐 getCurrency → response.data:", response.data);
     return response.data;
   } catch (error) {
     console.error("🌐 getCurrency → error:", error);

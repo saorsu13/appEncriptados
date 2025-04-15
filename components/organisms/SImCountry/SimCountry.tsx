@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TouchableHighlight,
   View,
@@ -21,6 +21,8 @@ import { setCurrency } from "@/features/currentCurrency/currencySlice";
 import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect } from "expo-router";
 import { getCurrency } from "@/api/simbalance";
+import { listSubscriber } from "@/api/subscriberApi";
+import { getDeviceUUID } from "../../../utils/getUUID";
 
 // Componentes UI
 import Dropdown from "@/components/molecules/Dropdown/Dropdown";
@@ -59,6 +61,22 @@ const SimCountry: React.FC<SimCountryProps> = ({
   // Modal SIMs
   const { openModal } = useModalAdminSims();
 
+  const [uuid, setUUID] = useState<string | null>(null);
+  useEffect(() => {
+    getDeviceUUID().then((resolvedUUID) => {
+      console.log("📱 UUID obtenido:", resolvedUUID);
+      setUUID(resolvedUUID);
+    });
+  }, []);
+
+  const { data: sims = [] } = useQuery<any[]>({
+    queryKey: ["listSubscriber", uuid],
+    queryFn: () => listSubscriber(uuid!),
+    enabled: !!uuid,
+    onSuccess: (data) => console.log("✅ SIMs recibidas:", data),
+    onError: (err) => console.error("❌ Error al obtener SIMs:", err),
+  });
+  
   // Query de monedas
   const {
     data: currencies = [],
@@ -97,12 +115,18 @@ const SimCountry: React.FC<SimCountryProps> = ({
     handleCountry(value);
     dispatch(updateCurrentCountry(value));
   };
-
+  
   return (
     <View style={styles.container}>
       {/* SIM actual y botón para cambiar */}
       <View style={styles.simContainer}>
-        <TouchableHighlight underlayColor="transparent" onPress={openModal}>
+      <TouchableHighlight
+        underlayColor="transparent"
+        onPress={() => {
+          const safeSims = (sims as any[])?.filter((sim) => sim && sim.id) || [];
+          openModal(safeSims);
+        }}        
+      >
           <View style={styles.simButtonContent}>
             <Text
               allowFontScaling={false}
