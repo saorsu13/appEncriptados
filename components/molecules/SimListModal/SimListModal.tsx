@@ -39,10 +39,12 @@ const SimListModal = () => {
   const [editingSimId, setEditingSimId] = useState<number | null>(null);
   const [newSimName, setNewSimName] = useState<string>("");
 
-  const handleUpdateCurrentSim = (id: number) => {
+  const handleUpdateCurrentSim = (sim) => {
+    console.log("🟢 SIM seleccionada:", sim);
+    dispatch(updateCurrentSim(sim));
     closeModal();
-    dispatch(updateCurrentSim(id));
   };
+  
 
   const addNewSim = () => {
     router.push("/new-sim/");
@@ -85,7 +87,11 @@ const SimListModal = () => {
                   return (
                     <Pressable
                       style={styles.simItem}
-                      onPress={() => handleUpdateCurrentSim(item.id)}
+                      onPress={() => {
+                        console.log("🟢 SIM seleccionada:", item);
+                        closeModal();
+                        dispatch(updateCurrentSim(item));
+                      }}
                     >
                       <View style={styles.simInfo}>
                         <View style={styles.simNameContainer}>

@@ -74,14 +74,14 @@ const Dropdown = ({
             ? styles.picker
             : {
                 ...styles.picker,
-                backgroundColor: theme.lightMode.colors.blueDark,
+                backgroundColor: theme.lightMode.colors.blueLight,
               },
         ]}
         textStyle={styles.pickerItem}
         labelStyle={
           themeMode === ThemeMode.Dark
             ? styles.pickerItem
-            : { ...styles.pickerItem, color: theme.lightMode.colors.white }
+            : { ...styles.pickerItem, color: theme.lightMode.colors.blueDark }
         }
         containerStyle={styles.pickerContainerItems}
         containerProps={{ style: styles.pickerContainerItems }}

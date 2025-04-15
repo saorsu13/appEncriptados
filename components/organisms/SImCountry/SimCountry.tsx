@@ -16,10 +16,10 @@ import { useAppSelector, useAppDispatch } from "@/hooks/hooksStoreRedux";
 // Redux actions
 import { updateCurrentCountry } from "@/features/country/countrySlice";
 import { setCurrency } from "@/features/currentCurrency/currencySlice";
+import { setSimList } from "@/features/sims/simSlice";
 
 // React Query
-import { useQuery } from "@tanstack/react-query";
-import { useFocusEffect } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCurrency } from "@/api/simbalance";
 import { listSubscriber } from "@/api/subscriberApi";
 import { getDeviceUUID } from "../../../utils/getUUID";
@@ -36,7 +36,6 @@ import { ThemeMode } from "@/context/theme";
 
 // Tipos
 import type { Currency } from "@/api/simbalance";
-import type { BalanceResponse } from "@/api/simbalance";
 
 interface SimCountryProps {
   sim: string;
@@ -44,39 +43,40 @@ interface SimCountryProps {
   handleCountry: (value: string) => void;
 }
 
-const SimCountry: React.FC<SimCountryProps> = ({
-  sim,
-  country,
-  handleCountry,
-}) => {
-  // Tema y traducción
+const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) => {
   const { themeMode } = useDarkModeTheme();
   const { t } = useTranslation();
-
-  // Redux
   const dispatch = useAppDispatch();
   const globalCurrency = useAppSelector((s) => s.currency.currency);
-  const currentSimId = useAppSelector((s) => s.sims.currentSim.idSim);
-
-  // Modal SIMs
+  const currentSim = useAppSelector((s) => s.sims.currentSim);
   const { openModal } = useModalAdminSims();
+  const queryClient = useQueryClient();
 
   const [uuid, setUUID] = useState<string | null>(null);
   useEffect(() => {
     getDeviceUUID().then((resolvedUUID) => {
+      console.log("📱 UUID obtenido:", resolvedUUID);
       setUUID(resolvedUUID);
     });
   }, []);
+
+  useEffect(() => {
+    if (uuid) {
+      queryClient.invalidateQueries(["listSubscriber", uuid]);
+    }
+  }, [uuid]);
 
   const { data: sims = [] } = useQuery<any[]>({
     queryKey: ["listSubscriber", uuid],
     queryFn: () => listSubscriber(uuid!),
     enabled: !!uuid,
-    onSuccess: (data) => console.log("✅ SIMs recibidas:", data),
+    onSuccess: (data) => {
+      console.log("✅ SIMs recibidas:", data);
+      dispatch(setSimList(data));
+    },
     onError: (err) => console.error("❌ Error al obtener SIMs:", err),
   });
-  
-  // Query de monedas
+
   const {
     data: currencies = [],
     isFetching: fetchingCurrencies,
@@ -88,15 +88,6 @@ const SimCountry: React.FC<SimCountryProps> = ({
     onError: (err) => console.error("❌ getCurrency error:", err),
   });
 
-  // Refetch balance al volver a enfocar o cambiar SIM (si lo necesitas)
-  // const { refetch: refetchBalance } = useQuery<BalanceResponse | null>({ ... });
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     if (currentSimId) refetchBalance();
-  //   }, [currentSimId])
-  // );
-
-  // Helper: convierte el array de Currency en items para el Dropdown
   const convertCurrenciesToItems = (list: Currency[]) =>
     list.map((c, idx) => ({
       key: idx,
@@ -105,7 +96,6 @@ const SimCountry: React.FC<SimCountryProps> = ({
       icon: () => <CountryFlag isoCode={c.isoCode} size={15} />,
     }));
 
-  // Handlers
   const onCurrencyChange = (value: string) => {
     dispatch(setCurrency(value));
   };
@@ -114,37 +104,35 @@ const SimCountry: React.FC<SimCountryProps> = ({
     handleCountry(value);
     dispatch(updateCurrentCountry(value));
   };
+
+  // Mostrar ICCID en lugar del nombre
+  const selectedSim = sims.find((s) => s.id === currentSim?.idSim);
+  const simText = selectedSim?.iccid || currentSim?.iccid || sim;
   
+
   return (
     <View style={styles.container}>
-      {/* SIM actual y botón para cambiar */}
       <View style={styles.simContainer}>
-      <TouchableHighlight
-        underlayColor="transparent"
-        onPress={() => {
-          const safeSims = (sims as any[])?.filter((sim) => sim && sim.id) || [];
-          openModal(safeSims);
-        }}        
-      >
+        <TouchableHighlight
+          underlayColor="transparent"
+          onPress={() => {
+            const safeSims = (sims as any[])?.filter((sim) => sim && sim.id) || [];
+            openModal(safeSims);
+          }}
+        >
           <View style={styles.simButtonContent}>
             <Text
               allowFontScaling={false}
-              style={[
-                styles.textSim,
-                themeMode === ThemeMode.Light && {
-                  color: theme.lightMode.colors.gray,
-                },
-              ]}
+              style={[styles.textSim, themeMode === ThemeMode.Light && { color: theme.lightMode.colors.gray }]}
             >
               {t("pages.home.currentSim")}
             </Text>
             <IconSvg type="arrowupicon" height={25} width={25} />
           </View>
         </TouchableHighlight>
-        <CopyLabel textValue={sim} />
+        <CopyLabel textValue={simText} />
       </View>
 
-      {/* Selector de moneda */}
       <View style={styles.dropdownContainer}>
         {fetchingCurrencies ? (
           <SkeletonContent

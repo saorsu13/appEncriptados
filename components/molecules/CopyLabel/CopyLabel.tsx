@@ -36,7 +36,7 @@ const CopyLabel = ({ textValue }) => {
           ? styles.container
           : {
               ...styles.container,
-              backgroundColor: theme.lightMode.colors.blueDark,
+              backgroundColor: theme.lightMode.colors.blueLight,
             },
       ]}
     >
@@ -45,7 +45,7 @@ const CopyLabel = ({ textValue }) => {
         style={
           themeMode === ThemeMode.Dark
             ? styles.text
-            : { ...styles.text, color: theme.lightMode.colors.white }
+            : { ...styles.text, color: theme.lightMode.colors.blueDark }
         }
       >
         {showPopUp ? t(`copied`) : textValue}
@@ -58,7 +58,7 @@ const CopyLabel = ({ textValue }) => {
           color={
             themeMode === ThemeMode.Dark
               ? theme.colors.copyIcon
-              : theme.lightMode.colors.white
+              : theme.lightMode.colors.gray10
           }
           height={15}
           width={25}

@@ -35,12 +35,14 @@ const SimOptions = () => {
 
   const deviceUUID = useDeviceUUID();
   const { colors } = useTheme<ThemeCustom>();
+  const iconColor = themeMode === ThemeMode.Dark ? colors.white : theme.lightMode.colors.blueDark;
+
   const options = [
     {
       label: "voiceChange",
       icon: (
         <IconSvg
-          color={colors.white}
+          color={iconColor}
           type="voicechange"
           height={35}
           width={35}
@@ -52,7 +54,7 @@ const SimOptions = () => {
       label: "settings",
       icon: (
         <IconSvg
-          color={colors.white}
+          color={iconColor}
           type="multiplesettings"
           height={35}
           width={35}
@@ -63,14 +65,14 @@ const SimOptions = () => {
     {
       label: "callback",
       icon: (
-        <IconSvg color={colors.white} type="callback" height={35} width={35} />
+        <IconSvg color={iconColor} type="callback" height={35} width={35} />
       ),
       route: "/callback",
     },
     {
       label: "imsi",
       icon: (
-        <IconSvg color={colors.white} type="change" height={35} width={35} />
+        <IconSvg color={iconColor} type="change" height={35} width={35} />
       ),
     },
   ];
@@ -196,7 +198,7 @@ const SimOptions = () => {
                   ? styles.itemOption
                   : {
                       ...styles.itemOption,
-                      backgroundColor: theme.lightMode.colors.blueDark,
+                      backgroundColor: theme.lightMode.colors.cyanSuperLight,
                     },
               ]}
               key={item.label}
@@ -210,6 +212,7 @@ const SimOptions = () => {
                   <Label
                     label={t(`${baseMsg}.${item.label}`)}
                     customStyles={{ textAlign: "center", width: "100%" }}
+
                   />
                 ) : (
                   <Label
@@ -217,7 +220,7 @@ const SimOptions = () => {
                     customStyles={{
                       textAlign: "center",
                       width: "100%",
-                      color: theme.lightMode.colors.white,
+                      color: theme.lightMode.colors.gray,
                     }}
                   />
                 )}

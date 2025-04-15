@@ -28,6 +28,10 @@ export const simSlice = createSlice({
 
       state.sims = [...state.sims, action.payload];
     },
+    setSimList: (state, action) => {
+      state.sims = action.payload;
+    },
+    
     updateCurrentSim: (state, action) => {
       const sim = state.sims.find((item) => item.idSim === action.payload);
       if (!sim) return;
@@ -67,6 +71,7 @@ export const {
   deleteAllSims,
   updateSimName,
   resetSimState,
+  setSimList,
 } = simSlice.actions;
 
 export const simReducer = simSlice.reducer;
