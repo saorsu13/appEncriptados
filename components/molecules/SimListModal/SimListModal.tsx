@@ -1,5 +1,3 @@
-import Button from "@/components/atoms/Button/Button";
-import Label from "@/components/atoms/Label/Label";
 import React, { useState } from "react";
 import {
   Modal,
@@ -18,20 +16,18 @@ import theme from "@/config/theme";
 import { useDispatch } from "react-redux";
 import { updateCurrentSim, updateSimName } from "@/features/sims/simSlice";
 import { router } from "expo-router";
-import IconSvg from "../IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeMode } from "@/context/theme";
-import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 import { useModalAdminSims } from "@/context/modaladminsims";
 import { Ionicons } from "@expo/vector-icons";
 
 const SimListModal = () => {
-  const { 
-    simsList: sims,  
-    closeModal, 
-    isModalOpen 
+  const {
+    simsList: sims,
+    closeModal,
+    isModalOpen
   } = useModalAdminSims();
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === ThemeMode.Dark;
@@ -39,7 +35,6 @@ const SimListModal = () => {
   const dispatch = useDispatch();
   const baseMsg = "pages.home";
 
-  const globalCurrency = useAppSelector((state) => state.currency.currency);
 
   const [editingSimId, setEditingSimId] = useState<number | null>(null);
   const [newSimName, setNewSimName] = useState<string>("");
@@ -60,7 +55,7 @@ const SimListModal = () => {
 
   const handleUpdateSimName = () => {
     if (editingSimId !== null) {
-      dispatch(updateSimName({ idSim: editingSimId, newName: newSimName }));
+      dispatch(updateSimName({ id: editingSimId, newName: newSimName }));
       setEditingSimId(null);
       setNewSimName("");
     }
@@ -77,6 +72,7 @@ const SimListModal = () => {
           <TouchableWithoutFeedback>
             <View style={styles.modalContainer}>
               <Text style={styles.modalTitle}>{t(`${baseMsg}.simList`)}</Text>
+
               <FlatList
                 data={validSims}
                 keyExtractor={(item) => item.id.toString()}
@@ -93,7 +89,7 @@ const SimListModal = () => {
                     >
                       <View style={styles.simInfo}>
                         <View style={styles.simNameContainer}>
-                          <Text style={styles.simName}>{item.simName}</Text>
+                          <Text style={styles.simName}>{item.simName || item.name}</Text>
                         </View>
                         <Image
                           source={simImage}
@@ -112,20 +108,18 @@ const SimListModal = () => {
                         </Text>
                       </View>
 
-                      {!isSixDigitSim && (
-                        <TouchableWithoutFeedback
-                          onPress={() => {
-                            closeModal();
-                            router.push(`/new-sim/edit-sim/${item.idSim}`);
-                          }}
-                        >
-                          <Ionicons
-                            name="create-outline"
-                            size={20}
-                            color={themeMode === ThemeMode.Dark ? "black" : "#1E1E1E"}
-                          />
-                        </TouchableWithoutFeedback>
-                      )}
+                      <TouchableOpacity
+                        onPress={() => {
+                          closeModal();
+                          router.push(`/new-sim/edit-sim/${item.id}`);
+                        }}
+                      >
+                        <Ionicons
+                          name="create-outline"
+                          size={20}
+                          color={themeMode === ThemeMode.Dark ? "black" : "#1E1E1E"}
+                        />
+                      </TouchableOpacity>
                     </Pressable>
                   );
                 }}
