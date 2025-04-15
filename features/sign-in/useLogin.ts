@@ -30,12 +30,6 @@ export async function login(body: LoginParams): Promise<LoginResponse> {
  */
 export function useLogin() {
   const auth = useAuth();
-  // const uuid = useDeviceUUID();
-  // const uuidRef = useRef(uuid);
-
-  // useEffect(() => {
-  //   uuidRef.current = uuid;
-  // }, [uuid]);
 
   const loginRequest = useCallback(
     async (id, code, nameFromInput) => {
@@ -80,13 +74,14 @@ export function useLogin() {
         const simExists = sims.some((sim) => sim.iccid === backendIccid);
         const simLimitReached = sims.length >= 5;
 
-        if (!simExists && !simLimitReached) {
+        if (!simExists && !simLimitReached) {         
           await createSubscriber({
-            iccid: backendIccid,
+            iccid: inputIsIccid ? backendIccid : backendImsi,
             provider: providerData,
             name: defaultName,
-            uuid: uuid,
+            uuid,
           });
+          
         }
 
         auth?.signIn(
@@ -99,12 +94,6 @@ export function useLogin() {
           subscriberRes.providers,
           balance
         );
-        console.log("✅ SIM guardada:", {
-          simName: nameFromInput,
-          idSim: nameFromInput.length === 6 ? backendImsi : backendIccid,
-          code,
-          provider: providerData,
-        });
         
         await AsyncStorage.setItem("currentICCID", inputIsIccid ? backendIccid : backendImsi);
         await AsyncStorage.setItem("@simType", inputIsIccid ? "iccid" : "imsi");

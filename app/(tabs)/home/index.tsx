@@ -139,8 +139,6 @@ const Home = () => {
         if (!deviceUUID) return;
         try {
           const data = await listSubscriber(deviceUUID);
-          console.log("📥 SIMs actualizadas desde API:", data);
-          // Aquí podrías usar dispatch(updateSimList(data)) si lo deseas
         } catch (error) {
           console.error("❌ Error al obtener SIMs actualizadas:", error);
         }
@@ -170,7 +168,6 @@ const Home = () => {
   const fetchUUID = async () => {
     const uuid = await getDeviceUUID();
     setDeviceUUID(uuid);
-    console.log("📱 UUID obtenido:", uuid);
   };
 
   fetchUUID();
@@ -179,7 +176,6 @@ const Home = () => {
   // Mutación inicial al montar o cambiar SIM/país
   useEffect(() => {
     if (currentSim) {
-      console.log("🆕 currentSim/countryCode cambió, mutating:", body);
       mutation.mutate(body);
     }
   }, [currentSim?.id, countryCode]);
