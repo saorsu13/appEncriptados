@@ -20,6 +20,7 @@ import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import useModalAll from "@/hooks/useModalAll";
 import { getDeviceUUID } from "@/utils/getUUID";
 import { setSims } from "@/features/sims/simSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Componentes UI ──────────────────────────────────────────────
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -138,37 +139,55 @@ const Home = () => {
     useCallback(() => {
       const fetchUpdatedSimList = async () => {
         if (!deviceUUID) return;
+  
         const sims = await listSubscriber(deviceUUID);
-
-        dispatch(setSims(
-          sims
-            .filter((sim) => sim.iccid && sim.name && sim.provider)
-            .map((sim) => ({
-              idSim: String(sim.iccid),
-              simName: sim.name,
-              provider: sim.provider,
-              iccid: String(sim.iccid),
-            }))
-        ));
-          const selectedSim = sims.find((s) => String(s.iccid) === simId);
-          console.log("este es el selectedSim",selectedSim)
-
-          if (selectedSim) {
-            console.log("✅ SIM seleccionada desde URL:", selectedSim);
-            dispatch(updateCurrentSim(String(selectedSim.iccid)));
-            
-          } else if (!currentSim && sims.length) {
-            console.log("⚠️ currentSim vacío. Usando primera SIM:", sims[0]);
-            dispatch(updateCurrentSim(String(sims[0].iccid)));
-          
-            console.log("🎯 currentSim actualizado en Redux:", selectedSim);
-          }
+        const parsedSims = sims.map((sim) => ({
+          idSim: String(sim.iccid),
+          simName: sim.name,
+          provider: sim.provider,
+          iccid: String(sim.iccid),
+        }));
+  
+        dispatch(setSims(parsedSims));
+  
+        const storedICCID = await AsyncStorage.getItem("currentICCID");
+  
+        let finalSimId = parsedSims[0]?.iccid; 
+  
+        if (simId) {
+          console.log("🔁 Sobrescribiendo simId desde URL:", simId);
+          finalSimId = simId.toString();
+          await AsyncStorage.setItem("currentICCID", finalSimId); 
+        } else if (storedICCID) {
+          finalSimId = storedICCID;
+        }
+  
+        console.log("✅ SIM final seleccionada:", finalSimId);
+  
+        const selectedSim = parsedSims.find((sim) => sim.iccid === finalSimId);
+  
+        if (selectedSim) {
+          console.log("🧩 [fetchUpdatedSimList] SIMs parseadas:", parsedSims);
+          console.log("📍 [fetchUpdatedSimList] simId de la URL:", simId);
+          console.log("💾 [fetchUpdatedSimList] simId en AsyncStorage:", storedICCID);
+          console.log("🎯 [fetchUpdatedSimList] finalSimId:", finalSimId);
+          console.log("✅ [fetchUpdatedSimList] selectedSim:", selectedSim);
+  
+          dispatch(updateCurrentSim(selectedSim));
+        } else {
+          console.warn("⚠️ SIM no encontrada en la lista. No se actualizó currentSim.");
+        }
       };
-      if (refetchSims === "true") {
-        fetchUpdatedSimList();
-      }
-    }, [deviceUUID, simId, refetchSims])
+  
+      fetchUpdatedSimList();
+    }, [deviceUUID, simId])
   );
+  
+  
+  useEffect(() => {
+    console.log("🆕 simId detectado por useLocalSearchParams:", simId);
+  }, [simId]);
+  
 
   useEffect(() => {
     if (
@@ -204,6 +223,9 @@ const Home = () => {
   // Mutación inicial al montar o cambiar SIM/país
   useEffect(() => {
     if (currentSim) {
+      console.log("🧠 [useEffect] currentSim.idSim en /home:", currentSim.idSim);
+      console.log("🧠 [useEffect] currentSim.iccid en /home:", currentSim.iccid);
+      console.log("🧠 [useEffect] currentSim.provider en /home:", currentSim.provider);
       console.log("🧲 Mutando balance para SIM:", currentSim);
   
       const body: BalanceRequest = {
@@ -211,7 +233,9 @@ const Home = () => {
         currencyCode: countryValue.split("-")[1],
         country: countryValue.split("-")[0].toUpperCase(),
       };
-  
+
+      console.log("📦 [useEffect] Payload de balance:", body);
+
       mutation.mutate(body);
     }
   }, [currentSim?.idSim, countryCode]);
