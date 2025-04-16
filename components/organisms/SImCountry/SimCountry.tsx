@@ -4,6 +4,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Image,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import CountryFlag from "react-native-country-flag";
@@ -36,6 +37,7 @@ import { ThemeMode } from "@/context/theme";
 
 // Tipos
 import type { Currency } from "@/api/simbalance";
+import CopySim from "@/components/molecules/CopyLabel/CopySim";
 
 interface SimCountryProps {
   sim: string;
@@ -78,14 +80,13 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
   useEffect(() => {
     const provider = selectedSim?.provider?.toLowerCase?.() || "";
     if (provider === "telco-vision" && pathname !== "/balance") {
-        router.replace({
-          pathname: "/balance",
-          params: { simId: selectedSim.idSim },
-        });
-      }
+      router.replace({
+        pathname: "/balance",
+        params: { simId: selectedSim.idSim },
+      });
+    }
   }, [selectedSim]);
-  
-  
+
   const {
     data: currencies = [],
     isFetching: fetchingCurrencies,
@@ -114,6 +115,15 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
     dispatch(updateCurrentCountry(value));
   };
 
+  const getSimIcon = (sim: any) => {
+    if (sim?.provider?.toLowerCase?.() === "tottoli") {
+      return require("@/assets/images/adaptive-icon.png");
+    } else if (sim?.provider?.toLowerCase?.() === "telco-vision") {
+      return require("@/assets/images/tim_icon_app_600px_negativo 1.png");
+    }
+    return null;
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.simContainer}>
@@ -137,7 +147,12 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
             <IconSvg type="arrowupicon" height={25} width={25} />
           </View>
         </TouchableHighlight>
-        <CopyLabel textValue={currentSim?.idSim || sim} />
+
+        <CopySim
+          simName={currentSim?.simName || sim}
+          simId={currentSim?.idSim || sim}
+          logo={getSimIcon(selectedSim)}
+        />
       </View>
 
       <View style={styles.dropdownContainer}>
