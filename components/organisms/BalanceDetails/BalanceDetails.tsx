@@ -335,7 +335,9 @@ const styles = StyleSheet.create({
   balanceContainer: {
     display: "flex",
     gap: 15,
-    width: "100%",
+    width: "95%",
+    marginRight: 15,
+    
   },
   balanceHeader: {
     display: "flex",
