@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getStyles } from "./simCurrencySelectorStyles";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type SimData = {
   id: string;
@@ -107,21 +108,17 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                 return (
                   <TouchableOpacity
                     style={styles.simItem}
-                    onPress={() => {
+                    onPress={async () => {
                       setSimModalVisible(false);
-                    
-                      if (isSixDigitSim) {
-                        router.push(`/home?simId=${item.id}`);
+                      setSelectedSim(item);
+                      onSelectSim?.(item.id);
+                      await AsyncStorage.setItem("currentICCID", item.id); 
+                      if (router.canGoBack()) {
+                        router.replace({ pathname: "/home", params: { simId: item.id } });
                       } else {
-                        setSelectedSim(item);
-                        onSelectSim?.(item.id);
-                    
-                        if (item?.provider?.toLowerCase?.() === "tottoli") {
-                          console.log("🚀 Redirigiendo a /home por SIM tipo tottoli");
-                          router.replace("/(tabs)/home");
-                        }
-                      }
-                    }}                    
+                        router.push({ pathname: "/home", params: { simId: item.id } });
+                      }                                           
+                    }}
                   >
                     <View style={styles.simInfo}>
                       <View style={styles.simNameContainer}>

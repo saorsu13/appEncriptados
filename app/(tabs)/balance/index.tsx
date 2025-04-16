@@ -31,6 +31,7 @@ import { useDispatch } from "react-redux";
 import { resetSimState } from "@/features/sims/simSlice";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useLocalSearchParams } from "expo-router";
+import { updateCurrentSim } from "@/features/sims/simSlice";
 
 const BalanceScreen = () => {
   const router = useRouter();
@@ -57,6 +58,9 @@ const BalanceScreen = () => {
     try {
       setLoading(true);
       setSelectedSimId(id);
+      dispatch(updateCurrentSim(id));
+      await AsyncStorage.setItem("currentICCID", id);
+
       const response = await getSubscriberData(id, deviceUUID);
       if (!response || !response.providers || response.providers.length === 0) {
         console.warn("Respuesta vacía, la SIM puede no estar procesada aún.");
@@ -150,7 +154,10 @@ const BalanceScreen = () => {
 
       if (uniqueSims.length === 0) {
         dispatch(resetSimState());
-        router.replace("/(tabs)/home");
+        router.replace({
+          pathname: "/(tabs)/home",
+          params: { simId: id },
+        });
         return;
       }
 
