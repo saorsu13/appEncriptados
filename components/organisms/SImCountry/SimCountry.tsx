@@ -76,14 +76,10 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
 
   // ✅ Redirección si el provider es telco-vision
   useEffect(() => {
-    console.log("🔍 selectedSim:", selectedSim);
-  
     const provider = selectedSim?.provider?.toLowerCase?.() || "";
-    console.log("🧾 provider normalizado:", provider);
-  
     if (provider === "telco-vision") {
       console.log("➡️ Redirigiendo a /balance");
-      router.push("/(tabs)/balance");
+      router.replace("/(tabs)/balance");
     }
   }, [selectedSim]);
   

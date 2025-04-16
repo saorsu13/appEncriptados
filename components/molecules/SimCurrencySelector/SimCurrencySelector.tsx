@@ -109,13 +109,19 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                     style={styles.simItem}
                     onPress={() => {
                       setSimModalVisible(false);
+                    
                       if (isSixDigitSim) {
                         router.push(`/home?simId=${item.id}`);
                       } else {
                         setSelectedSim(item);
                         onSelectSim?.(item.id);
+                    
+                        if (item?.provider?.toLowerCase?.() === "tottoli") {
+                          console.log("🚀 Redirigiendo a /home por SIM tipo tottoli");
+                          router.replace("/(tabs)/home");
+                        }
                       }
-                    }}
+                    }}                    
                   >
                     <View style={styles.simInfo}>
                       <View style={styles.simNameContainer}>
