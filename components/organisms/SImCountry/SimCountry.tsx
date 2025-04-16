@@ -83,7 +83,10 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
   
     if (provider === "telco-vision") {
       console.log("➡️ Redirigiendo a /balance");
-      router.push("/(tabs)/balance");
+      router.replace({
+        pathname:"/balance",
+        params: { simId: selectedSim.idSim }
+    });
     }
   }, [selectedSim]);
   
