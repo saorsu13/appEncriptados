@@ -84,7 +84,9 @@ const [type, setType] = useState<any>(false);
 const validationSchema = Yup.object().shape({
   simNumber: Yup.string()
     .required(t("validators.required"))
-    .test("len", t("validators.invalidSim"), (val) => val.length === 6),
+    .test("len", t("validators.invalidSim"), (val) => 
+      val.length === 6 || val.length === 19
+  ),
 });
 
 // Formik
@@ -139,12 +141,15 @@ function handleSubmit(values) {
 async function handleRequestCode() {
   if (!type) return;
   try {
+    const isSim19Digits = formik.values.simNumber.length === 19;
+
     const subscriberData = {
       iccid: formik.values.simNumber,
-      provider: "telco-vision",
-      name: formik.values.simNumber.length === 19 ? "Sim Tim" : "Sim Encr",
+      provider: isSim19Digits ? "telco-vision" : "tottoli",
+      name: isSim19Digits ? "Sim Tim" : "Sim Encr",
       uuid: await getDeviceUUID(),
     };
+
     const result = await createSubscriber(subscriberData);
 
     if (result.code === "duplicate_iccid" || result.id) {
@@ -269,7 +274,7 @@ const handleInfoHowToWorkModal = () => setModalHowToWorkVisible((v) => !v);
               error={formik.touched.simNumber ? formik.errors.simNumber : null}
               required
               inputMode="numeric"
-              maxLength={6}
+              maxLength={19}
               suffixIcon={
                 <IconSvg width={25} height={25} type="info" color={theme.colors.contrast} />
               }

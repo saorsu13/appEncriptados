@@ -57,7 +57,6 @@ import {
   updateRecommendedNetwork,
 } from "@/features/network-profile/networkProfileSlice";
 
-import { updateSimName } from "@/features/sims/simSlice";
 
 // ─── Tipos ──────────────────────────────────────────────────────
 import { BalanceRequest } from "@/features/balance/types";
@@ -157,12 +156,11 @@ const Home = () => {
           if (selectedSim) {
             console.log("✅ SIM seleccionada desde URL:", selectedSim);
             dispatch(updateCurrentSim(String(selectedSim.iccid)));
-
             
-          } else if (sims.length) {
-            console.log("⚠️ No se encontró simId en query, usando la primera SIM:", sims[0]);
+          } else if (!currentSim && sims.length) {
+            console.log("⚠️ currentSim vacío. Usando primera SIM:", sims[0]);
             dispatch(updateCurrentSim(String(sims[0].iccid)));
-
+          
             console.log("🎯 currentSim actualizado en Redux:", selectedSim);
           }
       };

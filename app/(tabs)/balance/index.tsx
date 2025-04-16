@@ -92,13 +92,13 @@ const BalanceScreen = () => {
       const storedICCID = await AsyncStorage.getItem("currentICCID");
 
      if (data && data.length > 0) {
-        const defaultId =
-          simId && data.find((sim) => sim.iccid === simId)
-            ? simId
-            : storedICCID && data.find((sim) => sim.iccid === storedICCID)
-              ? storedICCID
-              : data[0].iccid;
-
+        const defaultId = simId || storedICCID || data[0]?.iccid;
+        if (defaultId) {
+          setSelectedSimId(defaultId);
+          await AsyncStorage.setItem("currentICCID", defaultId); 
+          fetchSubscriberData(defaultId);
+        }
+        
         setSelectedSimId(defaultId);
         fetchSubscriberData(defaultId);
       }
