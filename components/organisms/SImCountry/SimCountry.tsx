@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import CountryFlag from "react-native-country-flag";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 
 // Hooks y contexto
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
@@ -73,20 +73,19 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
 
   const selectedSim = sims.find((s) => s.idSim === currentSim?.idSim);
   const simText = selectedSim?.iccid || currentSim?.iccid || sim;
+  const pathname = usePathname();
 
-  // ✅ Redirección si el provider es telco-vision
   useEffect(() => {
     const provider = selectedSim?.provider?.toLowerCase?.() || "";
-    if (provider === "telco-vision") {
-      console.log("➡️ Redirigiendo a /balance");
-      router.replace({
-        pathname:"/balance",
-        params: { simId: selectedSim.idSim }
-    });
-    }
+    if (provider === "telco-vision" && pathname !== "/balance") {
+        router.replace({
+          pathname: "/balance",
+          params: { simId: selectedSim.idSim },
+        });
+      }
   }, [selectedSim]);
   
-
+  
   const {
     data: currencies = [],
     isFetching: fetchingCurrencies,

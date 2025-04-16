@@ -84,12 +84,6 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [versionFetched, setVersionFetched] = useState("");
 
-  // const body: BalanceRequest = {
-  //   id: currentSim?.idSim as unknown as number,
-  //   currencyCode: countryValue.split("-")[1],
-  //   country: countryValue.split("-")[0].toUpperCase(),
-  // };
-
   const handleCountry = (value: string) => {
     setCountryValue(value);
   };
@@ -141,6 +135,8 @@ const Home = () => {
         if (!deviceUUID) return;
   
         const sims = await listSubscriber(deviceUUID);
+        console.log("📥 Respuesta del listSubscriber:", sims);
+  
         const parsedSims = sims.map((sim) => ({
           idSim: String(sim.iccid),
           simName: sim.name,
@@ -151,44 +147,55 @@ const Home = () => {
         dispatch(setSims(parsedSims));
   
         const storedICCID = await AsyncStorage.getItem("currentICCID");
+        let finalSimId = simId?.toString() || storedICCID || parsedSims[0]?.iccid;
   
-        let finalSimId = parsedSims[0]?.iccid; 
-  
-        if (simId) {
-          console.log("🔁 Sobrescribiendo simId desde URL:", simId);
-          finalSimId = simId.toString();
-          await AsyncStorage.setItem("currentICCID", finalSimId); 
-        } else if (storedICCID) {
-          finalSimId = storedICCID;
-        }
-  
-        console.log("✅ SIM final seleccionada:", finalSimId);
+        console.log("🔁 ICCID final:", finalSimId);
   
         const selectedSim = parsedSims.find((sim) => sim.iccid === finalSimId);
   
-        if (selectedSim) {
-          console.log("🧩 [fetchUpdatedSimList] SIMs parseadas:", parsedSims);
-          console.log("📍 [fetchUpdatedSimList] simId de la URL:", simId);
-          console.log("💾 [fetchUpdatedSimList] simId en AsyncStorage:", storedICCID);
-          console.log("🎯 [fetchUpdatedSimList] finalSimId:", finalSimId);
-          console.log("✅ [fetchUpdatedSimList] selectedSim:", selectedSim);
-  
+        if (
+          selectedSim &&
+          selectedSim.idSim !== currentSim?.idSim
+        ) {
+          console.log("✅ Actualizando SIM:", selectedSim);
+          await AsyncStorage.setItem("currentICCID", selectedSim.iccid);
           dispatch(updateCurrentSim(selectedSim));
-        } else {
-          console.warn("⚠️ SIM no encontrada en la lista. No se actualizó currentSim.");
+          
         }
       };
   
       fetchUpdatedSimList();
     }, [deviceUUID, simId])
   );
+  const sims = useAppSelector((state) => state.sims.sims);
+
+  useEffect(() => {
+    if (!simId) return;
   
+    const simIdStr = simId.toString();
+    const storedSim = sims.find((sim) => sim.idSim === simIdStr);
+  
+    if (storedSim && currentSim?.idSim !== simIdStr) {
+      console.log("🔁 Forzando selección de SIM desde simId param:", storedSim);
+      dispatch(updateCurrentSim(storedSim.idSim));
+      AsyncStorage.setItem("currentICCID", simIdStr);
+    }
+  }, [simId, sims, currentSim]);
   
   useEffect(() => {
-    console.log("🆕 simId detectado por useLocalSearchParams:", simId);
-  }, [simId]);
-  
+  if (!currentSim) return;
 
+  const body: BalanceRequest = {
+    id: Number(currentSim.idSim),
+    currencyCode: countryValue.split("-")[1],
+    country: countryValue.split("-")[0].toUpperCase(),
+  };
+
+  console.log("📦 Disparando balance desde useEffect:", body);
+  mutation.mutate(body);
+}, [currentSim, countryValue]);
+
+  
   useEffect(() => {
     if (
       version &&
@@ -210,7 +217,6 @@ const Home = () => {
     }
   }, [areVersionsEqual, versionFetched, hasShownModal]);
 
-  // Logs de UUID y simId
   useEffect(() => {
   const fetchUUID = async () => {
     const uuid = await getDeviceUUID();
@@ -219,29 +225,7 @@ const Home = () => {
 
   fetchUUID();
 }, []);
-
-  // Mutación inicial al montar o cambiar SIM/país
-  useEffect(() => {
-    if (currentSim) {
-      console.log("🧠 [useEffect] currentSim.idSim en /home:", currentSim.idSim);
-      console.log("🧠 [useEffect] currentSim.iccid en /home:", currentSim.iccid);
-      console.log("🧠 [useEffect] currentSim.provider en /home:", currentSim.provider);
-      console.log("🧲 Mutando balance para SIM:", currentSim);
   
-      const body: BalanceRequest = {
-        id: currentSim?.idSim as unknown as number,
-        currencyCode: countryValue.split("-")[1],
-        country: countryValue.split("-")[0].toUpperCase(),
-      };
-
-      console.log("📦 [useEffect] Payload de balance:", body);
-
-      mutation.mutate(body);
-    }
-  }, [currentSim?.idSim, countryCode]);
-  
-
-  // Invalidate version y capturar fetched
   useFocusEffect(
     useCallback(() => {
       queryClient.invalidateQueries({ queryKey: ["getVersion"] });

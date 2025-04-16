@@ -3,4 +3,5 @@ export interface Sim {
     idSim: string;
     code: number;
     iccid: string;
+    provider: string;
 }
