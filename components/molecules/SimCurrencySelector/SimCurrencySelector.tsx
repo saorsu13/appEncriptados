@@ -18,6 +18,7 @@ type SimData = {
   name: string;
   logo: any;
   number: string;
+  provider: string;
 };
 
 type Props = {
@@ -37,6 +38,11 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
 
   const selectedSim = sims.find((sim) => sim.id === selectedId) || null;
   console.log("🧠 currentSim en SimCurrencySelector:", selectedSim);
+  
+  useEffect(() => {
+    console.log("🧭 SIM seleccionada (selectedId):", selectedId);
+    console.log("🧭 SIMS disponibles:", sims.map((s) => s.id));
+  }, [selectedId, sims]);
   
   return (
     <View style={styles.container}>
@@ -102,7 +108,13 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                         onSelectSim?.(item.id);
                         await AsyncStorage.setItem("currentICCID", item.id);
                         console.log("🔁 Navegando a /home con simId:", item.id);
-                        router.replace({ pathname: "/home", params: { simId: item.id } });
+                        if (item.provider === "tottoli") {
+                          console.log("🚀 SIM con provider 'tottoli', navegando a /home");
+                          router.replace({ pathname: "/home", params: { simId: item.id } });
+                        } else {
+                          console.log("✅ SIM con provider diferente, no se redirige");
+                          onSelectSim?.(item.id);
+                        }                        
                       }
                     }}
                     

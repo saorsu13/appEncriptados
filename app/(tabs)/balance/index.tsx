@@ -120,10 +120,23 @@ const BalanceScreen = () => {
   };
 
   useEffect(() => {
-    if (deviceUUID) {
-      fetchSubscribers();
-    }
-  }, [deviceUUID]);
+    if (!deviceUUID) return;
+  
+    const fetch = async () => {
+      await fetchSubscribers();
+  
+      if (simId && simId !== selectedSimId) {
+        console.log("🌍 simId desde URL tiene prioridad:", simId);
+        setSelectedSimId(simId as string);
+        dispatch(updateCurrentSim(simId));
+        await AsyncStorage.setItem("currentICCID", simId);
+        fetchSubscriberData(simId as string);
+      }
+    };
+  
+    fetch();
+  }, [deviceUUID, simId]);
+  
 
   useFocusEffect(
     useCallback(() => {
@@ -211,6 +224,7 @@ const BalanceScreen = () => {
                 name: sim.name,
                 logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
                 number: sim.iccid,
+                provider: sim.provider,
               };
               console.log("📋 SIM mapeada para selector:", mapped);
               return mapped;
