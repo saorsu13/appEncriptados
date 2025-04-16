@@ -58,17 +58,14 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
 
   useEffect(() => {
     getDeviceUUID().then((resolvedUUID) => {
-      console.log("📱 UUID obtenido:", resolvedUUID);
       setUUID(resolvedUUID);
     });
   }, []);
 
   useEffect(() => {
-    console.log("🧠 SIMs del Redux:", sims);
   }, [sims]);
 
   useEffect(() => {
-    console.log("🧠 currentSim en SimCountry:", currentSim);
   }, [currentSim]);
 
   const selectedSim = sims.find((s) => s.idSim === currentSim?.idSim);
@@ -123,7 +120,6 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
             const safeSims = sims.filter(
               (sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string"
             );
-            console.log("📦 SIMs para el modal:", safeSims);
             openModal(safeSims);
           }}
         >

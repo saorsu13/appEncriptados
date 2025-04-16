@@ -33,25 +33,11 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
   const styles = getStyles(isDarkMode);
   const router = useRouter();
 
-  // Inicialmente seleccionamos el primer SIM (si existe)
-  const [selectedSim, setSelectedSim] = useState<SimData | null>(
-    sims.length > 0 ? sims[0] : null
-  );
   const [simModalVisible, setSimModalVisible] = useState(false);
 
-  // Actualiza el SIM seleccionado cuando la lista de SIMs cambia.
-  // Esto fuerza el re-render en Android si se actualizó la lista.
-  useEffect(() => {
-    if (sims.length > 0) {
-      const simToSelect =
-        sims.find(sim => sim.id === selectedId) || sims[0];
-      setSelectedSim(simToSelect);
-    } else {
-      setSelectedSim(null);
-    }
-  }, [sims, selectedId]);
+  const selectedSim = sims.find((sim) => sim.id === selectedId) || null;
+  console.log("🧠 currentSim en SimCurrencySelector:", selectedSim);
   
-
   return (
     <View style={styles.container}>
       <View style={styles.selectorContainer}>
@@ -109,16 +95,17 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                   <TouchableOpacity
                     style={styles.simItem}
                     onPress={async () => {
+                      console.log("🖱 SIM seleccionada en modal:", item);
                       setSimModalVisible(false);
-                      setSelectedSim(item);
-                      onSelectSim?.(item.id);
-                      await AsyncStorage.setItem("currentICCID", item.id); 
-                      if (router.canGoBack()) {
+                      if (item.id !== selectedId) {
+                        console.log("🔁 Cambiando SIM actual a:", item.id);
+                        onSelectSim?.(item.id);
+                        await AsyncStorage.setItem("currentICCID", item.id);
+                        console.log("🔁 Navegando a /home con simId:", item.id);
                         router.replace({ pathname: "/home", params: { simId: item.id } });
-                      } else {
-                        router.push({ pathname: "/home", params: { simId: item.id } });
-                      }                                           
+                      }
                     }}
+                    
                   >
                     <View style={styles.simInfo}>
                       <View style={styles.simNameContainer}>

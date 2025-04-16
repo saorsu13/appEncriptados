@@ -135,7 +135,6 @@ const Home = () => {
         if (!deviceUUID) return;
   
         const sims = await listSubscriber(deviceUUID);
-        console.log("📥 Respuesta del listSubscriber:", sims);
   
         const parsedSims = sims.map((sim) => ({
           idSim: String(sim.iccid),
@@ -149,7 +148,6 @@ const Home = () => {
         const storedICCID = await AsyncStorage.getItem("currentICCID");
         let finalSimId = simId?.toString() || storedICCID || parsedSims[0]?.iccid;
   
-        console.log("🔁 ICCID final:", finalSimId);
   
         const selectedSim = parsedSims.find((sim) => sim.iccid === finalSimId);
   
@@ -157,7 +155,6 @@ const Home = () => {
           selectedSim &&
           selectedSim.idSim !== currentSim?.idSim
         ) {
-          console.log("✅ Actualizando SIM:", selectedSim);
           await AsyncStorage.setItem("currentICCID", selectedSim.iccid);
           dispatch(updateCurrentSim(selectedSim));
           
@@ -176,7 +173,6 @@ const Home = () => {
     const storedSim = sims.find((sim) => sim.idSim === simIdStr);
   
     if (storedSim && currentSim?.idSim !== simIdStr) {
-      console.log("🔁 Forzando selección de SIM desde simId param:", storedSim);
       dispatch(updateCurrentSim(storedSim.idSim));
       AsyncStorage.setItem("currentICCID", simIdStr);
     }
@@ -191,7 +187,6 @@ const Home = () => {
     country: countryValue.split("-")[0].toUpperCase(),
   };
 
-  console.log("📦 Disparando balance desde useEffect:", body);
   mutation.mutate(body);
 }, [currentSim, countryValue]);
 

@@ -32,6 +32,7 @@ import { resetSimState } from "@/features/sims/simSlice";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useLocalSearchParams } from "expo-router";
 import { updateCurrentSim } from "@/features/sims/simSlice";
+import { usePathname } from "expo-router";
 
 const BalanceScreen = () => {
   const router = useRouter();
@@ -39,6 +40,8 @@ const BalanceScreen = () => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const { simId } = useLocalSearchParams();
+  console.log("📍 Parametro simId desde URL:", simId);
+  const pathname = usePathname();
 
   const [sims, setSims] = useState([]);
   const [selectedSimId, setSelectedSimId] = useState<string | null>(null);
@@ -51,6 +54,7 @@ const BalanceScreen = () => {
   const dispatch = useDispatch();
 
   const fetchSubscriberData = async (id: string) => {
+    console.log("📦 Disparando balance desde useEffect:", { id });
     if (!deviceUUID) {
       console.warn("UUID no disponible, se cancela la petición.");
       return;
@@ -71,10 +75,11 @@ const BalanceScreen = () => {
       setSimPlans(firstProvider?.plans || []);
 
       // Mostrar modal si es Tottoli
-      if (firstProvider.provider === "tottoli") {
+      if (firstProvider.provider === "tottoli" && pathname !== "/balance") {
         setPendingRedirectSim(firstProvider);
         setShowRedirectModal(true);
       }
+      
     } catch (error) {
       console.error("❌ Error al obtener los planes de la SIM:", error);
       setSimPlans([]);
@@ -95,17 +100,18 @@ const BalanceScreen = () => {
 
       const storedICCID = await AsyncStorage.getItem("currentICCID");
 
-     if (data && data.length > 0) {
+      if (data && data.length > 0) {
         const defaultId = simId || storedICCID || data[0]?.iccid;
-        if (defaultId) {
+        if (defaultId && defaultId !== selectedSimId) {
+          console.log("🧪 Actualizando selectedSimId a:", defaultId);
           setSelectedSimId(defaultId);
           await AsyncStorage.setItem("currentICCID", defaultId); 
           fetchSubscriberData(defaultId);
+        } else {
+          console.log("🛑 Saltando update: sim ya seleccionada:", selectedSimId);
         }
-        
-        setSelectedSimId(defaultId);
-        fetchSubscriberData(defaultId);
-      }
+      }      
+      
     } catch (error) {
       console.error("Error listando las SIMs:", error);
     } finally {
@@ -196,22 +202,29 @@ const BalanceScreen = () => {
         <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim" />
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
-          <SimCurrencySelector
-            sims={sims
-              .filter((sim) => sim != null)
-              .map((sim) => ({
+        <SimCurrencySelector
+          sims={sims
+            .filter((sim) => sim != null)
+            .map((sim) => {
+              const mapped = {
                 id: sim.iccid,
                 name: sim.name,
                 logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
                 number: sim.iccid,
-              }))}
-            selectedId={selectedSimId}
-            onSelectSim={(id) => fetchSubscriberData(id)}
-          />
+              };
+              console.log("📋 SIM mapeada para selector:", mapped);
+              return mapped;
+            })}
+          selectedId={selectedSimId}
+          onSelectSim={(id) => {
+            console.log("📤 onSelectSim invocado con id:", id);
+            fetchSubscriberData(id);
+          }}
+        />
 
           <View style={balanceStyles.separator} />
 
-          {loading ? (
+          {loading || !selectedSimId ? (
             <View style={balanceStyles.loadingContainer}>
               <ActivityIndicator size="small" color="#00AEEF" />
             </View>
@@ -232,6 +245,7 @@ const BalanceScreen = () => {
               );
             })
           )}
+
 
           <TopUpCard />
 

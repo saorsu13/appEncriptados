@@ -14,8 +14,7 @@ export function useRestoreSession() {
   useEffect(() => {
     const restore = async () => {
       const iccid = await AsyncStorage.getItem("currentICCID");
-      console.log("🔁 ICCID guardado en AsyncStorage:", iccid);
-      console.log("🔗 UUID del dispositivo:", uuid);
+
 
       if (!uuid) {
         console.warn("🚫 UUID no disponible. Cancelando restauración.");
@@ -25,7 +24,6 @@ export function useRestoreSession() {
 
       try {
         const listResponse = await listSubscriber(uuid);
-        console.log("📥 Respuesta del listSubscriber:", listResponse);
 
         if (!Array.isArray(listResponse) || listResponse.length === 0) {
           console.warn("⚠️ Lista de SIMs vacía. Borrando ICCID");
@@ -40,7 +38,6 @@ export function useRestoreSession() {
           provider: sim.provider,
           iccid: sim.iccid,
         }));
-        console.log("🧩 SIMs parseadas:", parsedSims);
 
         dispatch(setSims(parsedSims));
 
@@ -59,7 +56,6 @@ export function useRestoreSession() {
         }
 
         const response = await getSubscriberData(iccid, uuid);
-        console.log("📦 Detalle del subscriber actual:", response);
 
         const provider = response?.providers?.[0]?.provider;
         if (provider) setRestoredProvider(provider);

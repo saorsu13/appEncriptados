@@ -80,7 +80,6 @@ const Login = () => {
   const handleSubmit = async (values) => {
     try {
       const uuid = await getDeviceUUID();
-      console.log("este es el params.id",params.id)
       await updateSubscriber(params.id, uuid, {
         provider: "tottoli",
         name: values.simName,

@@ -40,10 +40,8 @@ const SimListModal = () => {
   const [newSimName, setNewSimName] = useState<string>("");
 
   const handleUpdateCurrentSim = (idSim: string) => {
-    console.log("🔁 Cambiando SIM actual a:", idSim);
     dispatch(updateCurrentSim(idSim));
     closeModal();
-    console.log("🔁 Navegando a /home con simId:", idSim);
     router.replace({
       pathname: "/home",
       params: {
@@ -96,7 +94,6 @@ const SimListModal = () => {
                     <Pressable
                       style={styles.simItem}
                       onPress={() => {
-                        console.log("🖱 SIM seleccionada en modal:", item);
                         handleUpdateCurrentSim(item.idSim);
                       }}
                       
@@ -124,7 +121,6 @@ const SimListModal = () => {
 
                       <TouchableOpacity
                         onPress={() => {
-                          console.log("✏️ Editar SIM:", item.idSim);
                           closeModal();
                           router.push(`/new-sim/edit-sim/${item.idSim}`);
                         }}
