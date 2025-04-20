@@ -33,6 +33,16 @@ export const simSlice = createSlice({
         state.currentSim = sim;
       }
     },
+    updateSimName: (state, action: PayloadAction<{ idSim: string; newName: string }>) => {
+      const { idSim, newName } = action.payload;
+      const sim = state.sims.find((s) => s.idSim === idSim);
+      if (sim) {
+        sim.simName = newName;
+      }
+      if (state.currentSim?.idSim === idSim) {
+        state.currentSim.simName = newName;
+      }
+    },
     deleteSim: (state, action: PayloadAction<string>) => {
       state.sims = state.sims.filter((item) => item.idSim !== action.payload);
       if (state.currentSim?.idSim === action.payload) {
@@ -57,6 +67,7 @@ export const simSlice = createSlice({
 export const {
   addSim,
   updateCurrentSim,
+  updateSimName,
   deleteSim,
   deleteAllSims,
   resetSimState,

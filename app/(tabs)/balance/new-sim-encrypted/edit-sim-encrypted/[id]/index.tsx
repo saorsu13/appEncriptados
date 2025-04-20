@@ -72,7 +72,10 @@ const Login = () => {
       textConfirm: t("modalSimActivate.goToPanel"),
       title: t("modalSimActivate.changeNameSimTitle"),
       onConfirm: () => {
-        router.replace("/balance"); 
+        router.replace({
+          pathname: "/balance",
+          params: { simId: params.id },
+      }); 
         formik.resetForm();
       },
       

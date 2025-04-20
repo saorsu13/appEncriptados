@@ -12,7 +12,7 @@ const DeleteSimButton = ({ onPress }: { onPress: () => void }) => {
     <TouchableOpacity style={deleteSimButtonStyles.button} onPress={onPress}>
       <View style={deleteSimButtonStyles.content}>
         <Icon name="trash" size={18} color="#D80E0E" />
-        <Text style={deleteSimButtonStyles.text}>{t(`${baseMsg}.delete`)}</Text>delete
+        <Text style={deleteSimButtonStyles.text}>{t(`${baseMsg}.delete`)}</Text>
       </View>
     </TouchableOpacity>
   );

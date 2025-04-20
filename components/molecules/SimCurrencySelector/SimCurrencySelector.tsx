@@ -140,7 +140,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
-                        {item.number}
+                        {item.number.length >= 6 ? "·".repeat(item.number.length - 6) + item.number.slice(-6) : item.number}
                       </Text>
                     </View>
               

@@ -172,13 +172,12 @@ const BalanceScreen = () => {
       setSims(uniqueSims);
 
       if (uniqueSims.length === 0) {
+        await AsyncStorage.removeItem("currentICCID");
         dispatch(resetSimState());
-        router.replace({
-          pathname: "/(tabs)/home",
-          params: { simId: id },
-        });
+        router.replace("/(tabs)/home");
         return;
       }
+      
 
       const newSelectedId = uniqueSims[0].iccid;
       setSelectedSimId(newSelectedId);
