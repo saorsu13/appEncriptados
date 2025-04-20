@@ -8,6 +8,7 @@ import {
   Image,
   Modal,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { getStyles } from "./simCurrencySelectorStyles";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
@@ -32,6 +33,8 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const styles = getStyles(isDarkMode);
+  const { t } = useTranslation();
+  const baseMsg = "pages.home";
   const router = useRouter();
 
   const [simModalVisible, setSimModalVisible] = useState(false);
@@ -47,7 +50,8 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
   return (
     <View style={styles.container}>
       <View style={styles.selectorContainer}>
-        <Text style={styles.label}>SIM ACTUAL</Text>
+        <Text style={styles.label}><Text style={styles.label}>{t(`${baseMsg}.currentSim`)}</Text>
+        </Text>
         <TouchableOpacity
           style={styles.selector}
           onPress={() => setSimModalVisible(true)}
@@ -87,7 +91,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
           onPress={() => setSimModalVisible(false)}
         >
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Mis SIMs disponibles</Text>
+            <Text style={styles.modalTitle}>{t(`${baseMsg}.simList`)}</Text>
             <FlatList
               data={sims}
               keyExtractor={(item) => item.id}
@@ -167,7 +171,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                 router.push("/(tabs)/balance/new-sim-encrypted");
               }}
             >
-              <Text style={styles.addSimText}>+ Añadir nueva SIM</Text>
+              <Text style={styles.addSimText}>+ {t(`${baseMsg}.newSim`)}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

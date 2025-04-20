@@ -139,7 +139,7 @@ const SimListModal = () => {
                 style={styles.addSimButton}
                 onPress={addNewSim}
               >
-                <Text style={styles.addSimText}>+ Añadir nueva SIM</Text>
+                <Text style={styles.addSimText}>+ {t(`${baseMsg}.newSim`)}</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>

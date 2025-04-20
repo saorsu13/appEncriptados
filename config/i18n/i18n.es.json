@@ -68,6 +68,7 @@
       "minutes": "Minutos",
       "mobileData": "Datos mobiles",
       "imsi": "Cambios IMSI",
+      "delete": "Eliminar SIM",
       "helpMessages": {
         "title": "Importante",
         "message": "Selecciona el país donde te encuentras para calcular correctamente tu saldo, este saldo se calcula basado en el perfil recomendado",
@@ -138,7 +139,8 @@
         "newNameOfYourSim": "Ingresa el nuevo nombre de tu SIM.",
         "placeholderSim": "NOMBRE SIM",
         "numberOfCharacters": "Solo se admiten un máximo de 9 caracteres.",
-        "nameOfSimMax": "* El nombre de SIM debe tener un máximo de 9 caracteres."
+        "nameOfSimMax": "* El nombre de SIM debe tener un máximo de 9 caracteres.",
+        "editSim": "Editar SIM"
       },
       "form": {
         "title": "Configura tu SIM",
@@ -245,7 +247,11 @@
         "description": "Si eliges un perfil no recomendado podría aumentar el costo del servicio"
       },
       "simList": "Mis SIMs disponibles",
-      "newSim": "Añadir nueva SIM"
+      "newSim": "Añadir nueva SIM",
+      "topUpCard": {
+        "title": "Recargar tu saldo desde la App fácil y rápido",
+        "buttonText": "Recargar ahora"
+      }
     },
 
     "voiceFilter": {

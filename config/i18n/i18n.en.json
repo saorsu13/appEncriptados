@@ -68,6 +68,7 @@
       "minutes": "Minutes",
       "mobileData": "Mobile data",
       "imsi": "IMSI Changes",
+      "delete": "Delete SIM",
       "helpMessages": {
         "title": "Important",
         "message": "Select the country where you are located to correctly calculate your balance, this balance is calculated based on the recommended profile",
@@ -138,7 +139,8 @@
         "newNameOfYourSim": "Enter the new name for your SIM.",
         "placeholderSim": "SIM NAME",
         "numberOfCharacters": "Only a maximum of 9 characters are allowed.",
-        "nameOfSimMax": "* The SIM name must be a maximum of 9 characters."
+        "nameOfSimMax": "* The SIM name must be a maximum of 9 characters.",
+        "editSim": "Edit SIM"
       },
       "form": {
         "title": "Set up your SIM",
@@ -246,7 +248,11 @@
         "description": "Choosing a non-recommended profile could increase the service cost"
       },
       "simList": "My available SIMs",
-      "newSim": "Add new SIM"
+      "newSim": "Add new SIM",
+      "topUpCard": {
+        "title": "Top up your balance from the app quickly and easily",
+        "buttonText": "Top up now"
+      }
     },
     "voiceFilter": {
       "title": "Choose voice filter",

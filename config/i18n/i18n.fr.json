@@ -66,6 +66,7 @@
       "minutes": "Minutes",
       "mobileData": "Données mobiles",
       "imsi": "Modifications IMSI",
+      "delete": "Supprimer la carte SIM",
       "helpMessages": {
         "title": "Important",
         "message": "Sélectionnez le pays où vous vous trouvez pour calculer correctement votre solde, ce solde est calculé en fonction du profil recommandé",
@@ -136,7 +137,8 @@
         "newNameOfYourSim": "Entrez le nouveau nom de votre SIM",
         "placeholderSim": "NOM SIM",
         "numberOfCharacters": "Un maximum de 9 caractères est autorisé.",
-        "nameOfSimMax": "* Le nom de la SIM doit comporter un maximum de 9 caractères."
+        "nameOfSimMax": "* Le nom de la SIM doit comporter un maximum de 9 caractères.",
+        "editSim": "Modifier la simulation"
       },
       "form": {
         "title": "Configurez votre carte SIM",
@@ -242,7 +244,11 @@
         "description": "Choisir un profil non recommandé pourrait augmenter le coût du service"
       },
       "simList": "Mes SIM disponibles",
-      "newSim": "Ajouter une nouvelle carte SIM"
+      "newSim": "Ajouter une nouvelle carte SIM",
+      "topUpCard": {
+        "title": "Rechargez votre solde depuis l'application rapidement et facilement",
+        "buttonText": "Recharger maintenant"
+      }
     },
     "voiceFilter": {
       "title": "Voice change",

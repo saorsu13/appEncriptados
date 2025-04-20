@@ -129,7 +129,7 @@ const Login = () => {
 
   return (
     <ScrollView>
-      <HeaderEncrypted title={t(`Editar SIM`)} iconBack="/home" />
+      <HeaderEncrypted title={t(`${baseMsg}.header.editSim`)} iconBack="/home" />
 
       <View
         style={[

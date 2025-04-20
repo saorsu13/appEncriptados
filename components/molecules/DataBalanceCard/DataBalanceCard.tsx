@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { View, Text } from "react-native";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -19,10 +20,12 @@ const DataBalanceCard = ({
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const styles = getStyles(isDarkMode);
+  const { t } = useTranslation();
+  const baseMsg = "organism.balanceDetails";
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>DATOS MÓVILES</Text>
+      <Text style={styles.title}>{t(`${baseMsg}.mobileData`)}</Text>
 
       <View style={styles.content}>
         <View style={styles.leftSection}>
