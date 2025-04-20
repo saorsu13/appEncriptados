@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   visible: boolean;
@@ -9,17 +10,23 @@ type Props = {
 };
 
 const SuccessModal = ({ visible, simNumber, onClose }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <Modal animationType="fade" transparent visible={visible}>
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <IconSvg type="checkcircle" width={60} height={60} color="#00C566" />
-          <Text style={styles.title}>¡SIM añadida exitosamente!</Text>
+          <Text style={styles.title}>
+            {t("modalSimActivate.successfully.oktitle")}
+          </Text>
           <Text style={styles.subtitle}>
-            Tu SIM #{simNumber} se ha añadido a la lista de tus SIMs disponibles.
+            {t("modalSimActivate.successfully.ok", { value: simNumber })}
           </Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>Ir a panel de control</Text>
+            <Text style={styles.buttonText}>
+              {t("modalSimActivate.goToPanel")}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

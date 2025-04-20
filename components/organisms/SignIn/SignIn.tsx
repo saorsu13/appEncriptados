@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Redirect, router, useFocusEffect } from "expo-router";
 import {
   View,
@@ -8,6 +8,9 @@ import {
   ImageBackground,
   Pressable,
   InteractionManager,
+  Keyboard,
+  TouchableWithoutFeedback,
+  TextInput,
 } from "react-native";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -53,6 +56,7 @@ const SignIn = () => {
   const baseMsg = "pages.login";
   const loginQuery = useLogin();
   const deviceUUID = useDeviceUUID();
+  const inputRef = useRef<TextInput>(null);
 
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
@@ -73,7 +77,7 @@ const SignIn = () => {
           setTimeout(() => formik.handleSubmit(), 300);
           return;
         }
-        
+
         const response = await loginQuery.loginRequest(values.simNumber, 0, values.simNumber);
 
         if (response?.error) {
@@ -118,59 +122,71 @@ const SignIn = () => {
   const stateModal = useAppSelector((state) => state.modalReset.modalReset);
 
   return (
-    <ScrollView>
-      <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
-      <View style={[themeMode === ThemeMode.Dark ? styles.container : { ...styles.container, backgroundColor: theme.lightMode.colors.cyanSuperLight }]}>
-        <View style={{ gap: 50 }}>
-          <View style={styles.containerHeader}>
-            <ImageBackground source={themeMode === ThemeMode.Dark ? LoginHeaderImage : LoginHeaderImageLight} resizeMode="cover" imageStyle={styles.background}>
-              <View style={styles.containerHeaderImage}>
-                <Text allowFontScaling={false} style={styles.containerHeaderTitle}>{t(`${baseMsg}.header.title`)}</Text>
-                <Text allowFontScaling={false} style={styles.containerHeaderMessage}>{t(`${baseMsg}.header.message`)}</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
+        <View style={[themeMode === ThemeMode.Dark ? styles.container : { ...styles.container, backgroundColor: theme.lightMode.colors.cyanSuperLight }]}>
+          <View style={{ gap: 50 }}>
+            <View style={styles.containerHeader}>
+              <ImageBackground source={themeMode === ThemeMode.Dark ? LoginHeaderImage : LoginHeaderImageLight} resizeMode="cover" imageStyle={styles.background}>
+                <View style={styles.containerHeaderImage}>
+                  <Text allowFontScaling={false} style={styles.containerHeaderTitle}>{t(`${baseMsg}.header.title`)}</Text>
+                  <Text allowFontScaling={false} style={styles.containerHeaderMessage}>{t(`${baseMsg}.header.message`)}</Text>
+                </View>
+              </ImageBackground>
+            </View>
+
+            <View style={styles.containerForm}>
+              <View style={styles.containerTitleForm}>
+                <Text allowFontScaling={false} style={[themeMode === ThemeMode.Dark ? styles.titleForm : { ...styles.titleForm, color: theme.colors.darkBlack }]}>
+                  {t(`${baseMsg}.form.title`)}</Text>
+                <Pressable onPress={() => setModalHowToWorkVisible(true)}>
+                  <Text allowFontScaling={false} style={[themeMode === ThemeMode.Dark ? styles.titleLink : { ...styles.titleLink, color: theme.colors.darkBlack }]}>
+                    {t(`${baseMsg}.form.link`)}</Text>
+                </Pressable>
               </View>
-            </ImageBackground>
+
+              <View style={styles.containerFormFields}>
+                <InputField
+                  ref={inputRef}
+                  label={t(`${baseMsg}.fields.sim.label`)}
+                  onChangeText={formik.handleChange("simNumber")}
+                  handleBlur={formik.handleBlur("simNumber")}
+                  value={formik.values.simNumber}
+                  error={formik.touched.simNumber ? formik.errors.simNumber : null}
+                  required
+                  placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
+                  suffixIcon={<IconSvg color={themeMode === ThemeMode.Dark ? theme.colors.iconDefault : "#A1A1A1"} height={25} width={25} type="info" />}
+                  inputMode="numeric"
+                  status={simType ? "success" : formik.values.simNumber.length > 0 ? "info" : null}
+                  statusMessage={!simType ? t(`${baseMsg}.fields.sim.invalidSim`) : t(`${baseMsg}.fields.sim.${simType}Sim`)}
+                  onPressIcon={() => setModalVisible(true)}
+                />
+              </View>
+
+              <Button
+                onClick={() => {
+                  inputRef.current?.focus(); // evita que se bluree el input (y se cierre el teclado)
+                  formik.handleSubmit();
+                }}
+                variant="primaryPress"
+                disabled={!formik.isValid || !formik.values.simNumber}
+              >
+                <Text allowFontScaling={false} style={styles.loadingButton}>
+                  {formik.values.simNumber.length === 19 ? "Activar SIM" : "Solicitar código"}
+                </Text>
+              </Button>
+
+              <StepList title={t(`${baseMsg}.form.stepsList.title`)} items={[t(`${baseMsg}.form.stepsList.step1`), t(`${baseMsg}.form.stepsList.step2`), t(`${baseMsg}.form.stepsList.step3`)]} />
+            </View>
           </View>
 
-          <View style={styles.containerForm}>
-            <View style={styles.containerTitleForm}>
-              <Text allowFontScaling={false} style={[themeMode === ThemeMode.Dark ? styles.titleForm : { ...styles.titleForm, color: theme.colors.darkBlack }]}>
-                {t(`${baseMsg}.form.title`)}</Text>
-              <Pressable onPress={() => setModalHowToWorkVisible(true)}>
-                <Text allowFontScaling={false} style={[themeMode === ThemeMode.Dark ? styles.titleLink : { ...styles.titleLink, color: theme.colors.darkBlack }]}>
-                  {t(`${baseMsg}.form.link`)}</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.containerFormFields}>
-              <InputField
-                label={t(`${baseMsg}.fields.sim.label`)}
-                onChangeText={formik.handleChange("simNumber")}
-                handleBlur={formik.handleBlur("simNumber")}
-                value={formik.values.simNumber}
-                error={formik.touched.simNumber ? formik.errors.simNumber : null}
-                required
-                placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
-                suffixIcon={<IconSvg color={themeMode === ThemeMode.Dark ? theme.colors.iconDefault : "#A1A1A1"} height={25} width={25} type="info" />}
-                inputMode="numeric"
-                status={simType ? "success" : formik.values.simNumber.length > 0 ? "info" : null}
-                statusMessage={!simType ? t(`${baseMsg}.fields.sim.invalidSim`) : t(`${baseMsg}.fields.sim.${simType}Sim`)}
-                onPressIcon={() => setModalVisible(true)}
-              />
-            </View>
-
-            <Button onClick={formik.handleSubmit} variant="primaryPress" disabled={!formik.isValid || !formik.values.simNumber}>
-              <Text allowFontScaling={false} style={styles.loadingButton}>{formik.values.simNumber.length === 19 ? "Activar SIM" : "Solicitar código"}</Text>
-            </Button>
-
-            <StepList title={t(`${baseMsg}.form.stepsList.title`)} items={[t(`${baseMsg}.form.stepsList.step1`), t(`${baseMsg}.form.stepsList.step2`), t(`${baseMsg}.form.stepsList.step3`)]} />
-          </View>
+          <ModalInfo visible={modalHowToWorkVisible} onClose={() => setModalHowToWorkVisible(false)} title={t(`${baseMsg}.helpMessages.howToWorkHelpTittle`)} description={t(`${baseMsg}.helpMessages.howToWorkHelpMessage`)} buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)} />
+          <ModalInfo visible={modalVisible} onClose={() => setModalVisible(false)} title={t(`${baseMsg}.helpMessages.SimHelpTittle`)} description={t(`${baseMsg}.helpMessages.SimHelpMessage`)} buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)} />
+          <ModalInfo visible={stateModal} onClose={() => dispatch(resetModalUpdate(false))} title={t("pages.home.titleResetDevice")} description={t("pages.home.descriptionResetDevice")} buttonText={t("actions.right")} />
         </View>
-
-        <ModalInfo visible={modalHowToWorkVisible} onClose={() => setModalHowToWorkVisible(false)} title={t(`${baseMsg}.helpMessages.howToWorkHelpTittle`)} description={t(`${baseMsg}.helpMessages.howToWorkHelpMessage`)} buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)} />
-        <ModalInfo visible={modalVisible} onClose={() => setModalVisible(false)} title={t(`${baseMsg}.helpMessages.SimHelpTittle`)} description={t(`${baseMsg}.helpMessages.SimHelpMessage`)} buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)} />
-        <ModalInfo visible={stateModal} onClose={() => dispatch(resetModalUpdate(false))} title={t("pages.home.titleResetDevice")} description={t("pages.home.descriptionResetDevice")} buttonText={t("actions.right")} />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 

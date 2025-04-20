@@ -3,13 +3,14 @@ import { ThemeMode } from "@/context/theme";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { color } from "@shopify/restyle";
 import { FormikErrors } from "formik";
-import React, { ReactNode } from "react";
+import React, { ReactNode, forwardRef } from "react";
 import {
   View,
   TextInput,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TextInputProps,
 } from "react-native";
 
 type props = {
@@ -29,9 +30,9 @@ type props = {
   status?: string | null;
   statusMessage?: string | null | any;
   onPressIcon?: () => void;
-};
+} & TextInputProps;
 
-const InputField = ({
+const InputField = forwardRef<TextInput, props>(({
   label,
   onChangeText,
   editable,
@@ -48,13 +49,13 @@ const InputField = ({
   status = null,
   statusMessage = null,
   onPressIcon,
-}: props) => {
-  const onChangeValue = (value) => {
-    if (inputMode == "numeric") {
+  ...rest
+}, ref) => {
+  const onChangeValue = (value: string) => {
+    if (inputMode === "numeric") {
       onChangeText(value.replace(/[^0-9]/g, ""));
       return;
     }
-
     onChangeText(value);
   };
 
@@ -78,12 +79,13 @@ const InputField = ({
       <View style={styles.containerInput}>
         {prefixIcon && (
           <View
-            style={{ ...styles.prefixIcon, left: variant == "light" ? 15 : 10 }}
+            style={{ ...styles.prefixIcon, left: variant === "light" ? 15 : 10 }}
           >
             {prefixIcon}
           </View>
         )}
         <TextInput
+          ref={ref}
           allowFontScaling={false}
           autoCapitalize="none"
           editable={editable}
@@ -130,6 +132,7 @@ const InputField = ({
           placeholderTextColor={styles.defaultPlaceholder.color}
           inputMode={inputMode}
           maxLength={maxLength}
+          {...rest}
         />
         {suffixIcon && (
           <TouchableOpacity style={styles.suffixIcon} onPress={onPressIcon}>
@@ -154,7 +157,7 @@ const InputField = ({
       )}
     </View>
   );
-};
+});
 
 export default InputField;
 
