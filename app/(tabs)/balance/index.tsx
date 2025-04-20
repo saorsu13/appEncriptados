@@ -211,7 +211,8 @@ const BalanceScreen = () => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-        <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim" />
+      <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign?from=balance" />
+
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
         <SimCurrencySelector
@@ -225,7 +226,6 @@ const BalanceScreen = () => {
                 number: sim.iccid,
                 provider: sim.provider,
               };
-              console.log("📋 SIM mapeada para selector:", mapped);
               return mapped;
             })}
           selectedId={selectedSimId}

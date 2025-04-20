@@ -40,7 +40,6 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
   const [simModalVisible, setSimModalVisible] = useState(false);
 
   const selectedSim = sims.find((sim) => sim.id === selectedId) || null;
-  console.log("🧠 currentSim en SimCurrencySelector:", selectedSim);
   
   useEffect(() => {
     console.log("🧭 SIM seleccionada (selectedId):", selectedId);

@@ -1,6 +1,6 @@
 import { TouchableOpacity, View, StyleSheet, Text, Image, Dimensions } from "react-native";
 import IconSvg from "../IconSvg/IconSvg";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams  } from "expo-router";
 import { useTheme } from "@shopify/restyle";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeCustom } from "@/config/theme2";
@@ -23,7 +23,9 @@ const HeaderEncrypted = ({
   const router = useRouter();
   const { themeMode, toggleThemeMode } = useDarkModeTheme();
   const { colors } = useTheme<ThemeCustom>();
+  const { simId } = useLocalSearchParams<{ simId?: string }>();
 
+  
   const resolvedOwner = owner ?? Constants.expoConfig.owner;
 
   const getLogo = () => {
@@ -41,9 +43,8 @@ const HeaderEncrypted = ({
     }
 
     if (resolvedOwner === "encriptados") {
-      // Adaptamos el tamaño según el ancho de pantalla
       const dynamicWidth = screenWidth < 350 ? 160 : screenWidth < 400 ? 180 : 200;
-      const dynamicHeight = dynamicWidth * (30 / 180); // Relación proporcional 180x30
+      const dynamicHeight = dynamicWidth * (30 / 180); 
 
       return (
         <Image
@@ -69,14 +70,32 @@ const HeaderEncrypted = ({
               ...styles.iconButton,
               backgroundColor: colors.backgroundAlternate,
             }}
-            onPress={() => router.back()}
+            onPress={() => {
+              if (simId) {
+                console.log("🔙 HeaderEncrypted → Reemplazando con simId a /balance:", simId);
+                router.replace(`/balance?simId=${simId}`);
+              } else {
+                console.log("🔙 HeaderEncrypted → No hay simId, ejecutando router.back()");
+                router.back();
+              }
+            }}
           >
             <IconSvg height={20} width={20} color={colors.white} type="arrowback" />
           </TouchableOpacity>
         ) : iconBack === "" ? (
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.backgroundAlternate }]}
-            onPress={() => router.push(settingsLink)}
+            onPress={() => {
+              if (settingsLink) {
+                if (simId) {
+                  console.log("⚙️ HeaderEncrypted → Navegando con simId a:", settingsLink);
+                  router.push({ pathname: settingsLink as any, params: { simId } });
+                } else {
+                  console.log("⚙️ HeaderEncrypted → Navegando sin simId a:", settingsLink);
+                  router.push(settingsLink as any);
+                }
+              }              
+            }}
           >
             <IconSvg color={colors.white} type="settings" height={25} width={25} />
           </TouchableOpacity>
