@@ -39,12 +39,21 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
 
   const [simModalVisible, setSimModalVisible] = useState(false);
 
+  const orderedSims = useMemo(() => {
+    return [...sims].sort((a, b) => {
+      if (a.provider === "telco-vision" && b.provider === "tottoli") return -1;
+      if (a.provider === "tottoli" && b.provider === "telco-vision") return 1;
+      return 0;
+    });
+  }, [sims]);
+  
+
   // const selectedSim = sims.find((sim) => sim.id === selectedId) || null;
 
   const selectedSim = useMemo(
-    () => sims.find((sim) => sim.id === selectedId) || null,
-    [sims, selectedId]
-  );
+    () => orderedSims.find((sim) => sim.id === selectedId) || null,
+    [orderedSims, selectedId]
+  );  
   useEffect(() => {
     console.log("🧭 SIM seleccionada (selectedId):", selectedId);
     console.log("🧭 SIMS disponibles:", sims.map((s) => s.id));
@@ -96,7 +105,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>{t(`${baseMsg}.simList`)}</Text>
             <FlatList
-              data={sims}
+              data={orderedSims}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => {
                 const isSixDigitSim = item.id.length === 6;
