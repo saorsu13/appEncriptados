@@ -251,7 +251,7 @@ const BalanceScreen = () => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-      <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim?from=balance" />
+      <HeaderEncrypted owner="encriptados" settingsLink="balance/settings/sim?from=balance" />
 
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
