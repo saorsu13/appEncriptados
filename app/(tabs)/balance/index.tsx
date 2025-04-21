@@ -31,9 +31,12 @@ import { updateCurrentSim } from "@/features/sims/simSlice";
 import { getDeviceUUID } from "@/utils/getUUID";
 import { useAuth } from "@/context/auth";
 import { getHasRedirectedFromTottoli, setHasRedirectedFromTottoli } from "@/utils/redirectionControl";
+import { useTranslation } from "react-i18next";
 
 
 const BalanceScreen = () => {
+  const { t } = useTranslation();
+  const baseMsg = "pages.deleteSimModal";
   const router = useRouter();
   const { colors } = useTheme<ThemeCustom>();
   const { themeMode } = useDarkModeTheme();
@@ -45,6 +48,7 @@ const BalanceScreen = () => {
   const [simPlans, setSimPlans] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showRedirectModal, setShowRedirectModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [deviceUUID, setDeviceUUID] = useState<string | null>(null);
   const hasRestoredSimRef = useRef(false);
@@ -61,56 +65,56 @@ const BalanceScreen = () => {
       console.log("⛔️ Saltando efecto por redirección a /home");
       return;
     }
-    
+
     console.log("📦 Disparando balance para:", { id });
-    
+
     const sim = sims.find((sim) => sim.iccid === id);
     // Dentro de fetchSubscriberData
-      if (sim?.provider === "tottoli") {
-        console.warn("⛔️ [fetchSubscriberData] SIM 'tottoli' detectada ANTES de fetch. Redirigiendo...");
-        skipBalanceRef.current = true;
-        await AsyncStorage.removeItem("currentICCID");
-        dispatch(resetSimState());
-        setSelectedSimId(null);
-        setHasRedirectedFromTottoli(true);
-        console.log("🚀 [fetchSubscriberData] Redirigiendo a /home...");
-        router.replace("/home");
-        return;
-      }
+    if (sim?.provider === "tottoli") {
+      console.warn("⛔️ [fetchSubscriberData] SIM 'tottoli' detectada ANTES de fetch. Redirigiendo...");
+      skipBalanceRef.current = true;
+      await AsyncStorage.removeItem("currentICCID");
+      dispatch(resetSimState());
+      setSelectedSimId(null);
+      setHasRedirectedFromTottoli(true);
+      console.log("🚀 [fetchSubscriberData] Redirigiendo a /home...");
+      router.replace("/home");
+      return;
+    }
 
 
     if (isFetching.current) {
       console.log("⏳ Ya hay un fetch en curso");
       return;
     }
-  
+
     if (lastFetchedSimId.current === id) {
       console.log("⚠️ Ya se hizo fetch de esta SIM, evitando duplicado:", id);
       return;
     }
-  
+
     isFetching.current = true;
     lastFetchedSimId.current = id;
-  
+
     try {
       setLoading(true);
       setSelectedSimId(id);
       dispatch(updateCurrentSim(sim));
       await AsyncStorage.setItem("currentICCID", id);
       console.log("💾 SIM guardada en AsyncStorage:", id);
-  
+
       const response = await getSubscriberData(id, uuid);
-  
+
       if (!response || !response.providers || response.providers.length === 0) {
         console.warn("⚠️ Respuesta vacía, la SIM puede no estar procesada aún.");
         setSimPlans([]);
         return;
       }
-  
+
       const firstProvider = response.providers[0];
       console.log("📡 Provider actual:", firstProvider.provider);
       setSimPlans(firstProvider?.plans || []);
-  
+
       if (firstProvider.provider === "tottoli") {
         console.warn("🚨 Provider es tottoli, abortando carga antes de guardar nada");
         if (!(await getHasRedirectedFromTottoli())) {
@@ -130,85 +134,93 @@ const BalanceScreen = () => {
       setLoading(false);
     }
   };
-  
-useEffect(() => {
-  let isActive = true;
 
-  const init = async () => {
-    console.log("🚀 Ejecutando init de BalanceScreen");
-  
-    const uuid = await getDeviceUUID();
-    console.log("🔑 UUID cargado:", uuid);
-    setDeviceUUID(uuid);
-  
-    const simsList = await listSubscriber(uuid);
-    console.log("📱 SIMs disponibles:", simsList.map(s => s.iccid));
-    setSims(simsList);
-  
-    const storedICCID = await AsyncStorage.getItem("currentICCID");
-    console.log("💾 ICCID almacenado:", storedICCID);
-  
-    const sim = simsList.find(s => s.iccid === storedICCID);
-  
-    if (sim?.provider === "tottoli") {
-      console.warn("🔁 SIM tottoli detectada, redirigiendo a /home");
-      skipBalanceRef.current = true;
-      setHasRedirectedFromTottoli(true);
-      await AsyncStorage.removeItem("currentICCID");
-      dispatch(resetSimState());
-      setSelectedSimId(null);
-      router.replace({ pathname: "/home" });
-      return;
-    }
-  
-    const alreadyRedirected = await getHasRedirectedFromTottoli();
-    if (alreadyRedirected) {
-      console.warn("🛑 Ya se redirigió por tottoli. No se restaura SIM.");
-      return;
-    }
-  
-    const defaultId = sim?.iccid || simsList[0]?.iccid;
-    if (defaultId && isActive) {
-      console.log("✅ [init] Restaurando SIM válida:", defaultId);
-      hasRestoredSimRef.current = true;
-      await fetchSubscriberData(defaultId, uuid);
-    }
-  };
-  
+  useEffect(() => {
+    let isActive = true;
 
-  if (!hasRestoredSimRef.current && !skipBalanceRef.current) {
-    init();
-  }
+    const init = async () => {
+      console.log("🚀 Ejecutando init de BalanceScreen");
 
-  return () => {
-    isActive = false;
-  };
-}, []);
+      const uuid = await getDeviceUUID();
+      console.log("🔑 UUID cargado:", uuid);
+      setDeviceUUID(uuid);
+
+      const simsList = await listSubscriber(uuid);
+      console.log("📱 SIMs disponibles:", simsList.map(s => s.iccid));
+      setSims(simsList);
+
+      const storedICCID = await AsyncStorage.getItem("currentICCID");
+      console.log("💾 ICCID almacenado:", storedICCID);
+
+      const sim = simsList.find(s => s.iccid === storedICCID);
+
+      if (sim?.provider === "tottoli") {
+        console.warn("🔁 SIM tottoli detectada, redirigiendo a /home");
+        skipBalanceRef.current = true;
+        setHasRedirectedFromTottoli(true);
+        await AsyncStorage.removeItem("currentICCID");
+        dispatch(resetSimState());
+        setSelectedSimId(null);
+        router.replace({ pathname: "/home" });
+        return;
+      }
+
+      const alreadyRedirected = await getHasRedirectedFromTottoli();
+      if (alreadyRedirected) {
+        console.warn("🛑 Ya se redirigió por tottoli. No se restaura SIM.");
+        return;
+      }
+
+      const defaultId = sim?.iccid || simsList[0]?.iccid;
+      if (defaultId && isActive) {
+        console.log("✅ [init] Restaurando SIM válida:", defaultId);
+        hasRestoredSimRef.current = true;
+        await fetchSubscriberData(defaultId, uuid);
+      }
+    };
+
+
+    if (!hasRestoredSimRef.current && !skipBalanceRef.current) {
+      init();
+    }
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
 
   const handleDeleteSim = async (iccid: string) => {
     const uuid = await getDeviceUUID();
-  
+
     try {
       await deleteSubscriber(iccid, uuid);
-  
+
       const updatedSims = await listSubscriber(uuid);
       const uniqueSims = Array.isArray(updatedSims)
         ? Array.from(new Map(updatedSims.map((sim: any) => [sim.iccid, sim])).values())
         : [];
 
-  
+
       setSims(uniqueSims);
-  
+
       if (uniqueSims.length === 0) {
         await AsyncStorage.removeItem("currentICCID");
         dispatch(resetSimState());
         router.replace("/(tabs)/home");
         return;
       }
-  
-      const newSelectedId = uniqueSims[0].iccid;
-      await fetchSubscriberData(newSelectedId, uuid);
+
+      const newSim = uniqueSims[0];
+      if (newSim.provider === "tottoli") {
+        await AsyncStorage.removeItem("currentICCID");
+        dispatch(resetSimState());
+        setSelectedSimId(null);
+        router.replace("/(tabs)/home");
+        return;
+      }
+
+      await fetchSubscriberData(newSim.iccid, uuid);
     } catch (error) {
       console.error("🚨 Error eliminando la SIM:", error);
     }
@@ -243,54 +255,53 @@ useEffect(() => {
 
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
-        <SimCurrencySelector
-          sims={sims
-            .filter((sim) => sim != null)
-            .map((sim) => {
-              const mapped = {
-                id: sim.iccid,
-                name: sim.name,
-                logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
-                number: sim.iccid,
-                provider: sim.provider,
-              };
-              return mapped;
-            })}
-          selectedId={selectedSimId}
-          // Dentro de onSelectSim
-          onSelectSim={ async (id) => {
-            console.log("📤 onSelectSim invocado con id:", id);
-            const uuid = await getDeviceUUID();
-            const sim = sims.find(sim => sim.iccid === id);
-          
-            if (!sim) return;
-          
-            console.log("🖱 SIM seleccionada en modal:", sim);
-          
-            if (sim.provider === "tottoli") {
-              console.warn("⛔️ SIM tottoli seleccionada en /balance. Redirigiendo...");
-              skipBalanceRef.current = true;
-              await AsyncStorage.removeItem("currentICCID");
-              dispatch(resetSimState());
-              setSelectedSimId(null);
-          
-              // ✅ ACTUALIZAMOS EL CONTEXTO DE AUTENTICACIÓN
-              signIn({
-                simName: sim.name,
-                idSim: Number(sim.iccid),
-                code: 0,
-                provider: sim.provider,
-              });
-          
-              setHasRedirectedFromTottoli(true);
-              router.replace({ pathname: "/(tabs)/home" });
-              return;
-            }
-          
-            console.log("🔁 Cambiando SIM actual a:", sim.iccid);
-            await fetchSubscriberData(id, uuid);
-          }}
-        />
+          <SimCurrencySelector
+            sims={sims
+              .filter((sim) => sim != null)
+              .map((sim) => {
+                const mapped = {
+                  id: sim.iccid,
+                  name: sim.name,
+                  logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
+                  number: sim.iccid,
+                  provider: sim.provider,
+                };
+                return mapped;
+              })}
+            selectedId={selectedSimId}
+            // Dentro de onSelectSim
+            onSelectSim={async (id) => {
+              console.log("📤 onSelectSim invocado con id:", id);
+              const uuid = await getDeviceUUID();
+              const sim = sims.find(sim => sim.iccid === id);
+
+              if (!sim) return;
+
+              console.log("🖱 SIM seleccionada en modal:", sim);
+
+              if (sim.provider === "tottoli") {
+                console.warn("⛔️ SIM tottoli seleccionada en /balance. Redirigiendo...");
+                skipBalanceRef.current = true;
+                await AsyncStorage.removeItem("currentICCID");
+                dispatch(resetSimState());
+                setSelectedSimId(null);
+
+                signIn({
+                  simName: sim.name,
+                  idSim: Number(sim.iccid),
+                  code: 0,
+                  provider: sim.provider,
+                });
+
+                setHasRedirectedFromTottoli(true);
+                router.replace({ pathname: "/(tabs)/home" });
+                return;
+              }
+
+              console.log("🔁 Cambiando SIM actual a:", sim.iccid);
+              await fetchSubscriberData(id, uuid);
+            }}
+          />
 
           <View style={balanceStyles.separator} />
 
@@ -320,7 +331,7 @@ useEffect(() => {
           <TopUpCard />
 
           {selectedSimId && (
-            <DeleteSimButton onPress={() => handleDeleteSim(selectedSimId)} />
+            <DeleteSimButton onPress={() => setShowDeleteModal(true)} />
           )}
         </ScrollView>
       </BackgroundWrapper>
@@ -378,6 +389,85 @@ useEffect(() => {
                   ]}
                 >
                   Cancelar
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
+      {showDeleteModal && (
+        <Modal animationType="fade" transparent visible={showDeleteModal}>
+          <View style={balanceStyles.modalOverlay}>
+            <View
+              style={[
+                balanceStyles.modalBox,
+                { backgroundColor: isDarkMode ? "#000" : "#fff" },
+              ]}
+            >
+              <IconSvg
+                height={50}
+                width={50}
+                type="verificationiconfailed"
+              />
+
+              <Text
+                style={[
+                  balanceStyles.modalTitle,
+                  {
+                    color: isDarkMode ? "#fff" : "#000",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                    marginTop: 10,
+                  },
+                ]}
+              >
+                {`${t(`${baseMsg}.deleteTitle`)} ${sims.find((sim) => sim.iccid === selectedSimId)?.name}?`}
+              </Text>
+
+              <Text
+                style={{
+                  color: isDarkMode ? "#aaa" : "#555",
+                  fontSize: 14,
+                  textAlign: "center",
+                  marginTop: 6,
+                }}
+              >
+                {sims.find((sim) => sim.iccid === selectedSimId)?.name}
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  balanceStyles.modalButton,
+                  { backgroundColor: "#D32F2F", marginTop: 20 },
+                ]}
+                onPress={async () => {
+                  if (selectedSimId) {
+                    await handleDeleteSim(selectedSimId);
+                    setShowDeleteModal(false);
+                  }
+                }}
+              >
+                <Text style={balanceStyles.modalButtonText}>{t(`${baseMsg}.deleteSim`)}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  balanceStyles.modalButton,
+                  {
+                    backgroundColor: isDarkMode ? "#444" : "#ccc",
+                    marginTop: 8,
+                  },
+                ]}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <Text
+                  style={[
+                    balanceStyles.modalButtonText,
+                    { color: isDarkMode ? "#fff" : "#000" },
+                  ]}
+                >
+                  {t(`${baseMsg}.cancel`)}
                 </Text>
               </TouchableOpacity>
             </View>
