@@ -23,6 +23,8 @@ import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimC
 import DataBalanceCard from "@/components/molecules/DataBalanceCard/DataBalanceCard";
 import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import DeleteSimButton from "@/components/molecules/DeleteSimButton/DeleteSimButton";
+import DeleteSimModal from "@/components/molecules/BalanceModals/DeleteSimModal";
+import RedirectToTottoliModal from "@/components/molecules/BalanceModals/RedirectToTottoliModal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch } from "react-redux";
 import { resetSimState } from "@/features/sims/simSlice";
@@ -251,7 +253,7 @@ const BalanceScreen = () => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-      <HeaderEncrypted owner="encriptados" settingsLink="balance/settings/sim?from=balance" />
+        <HeaderEncrypted owner="encriptados" settingsLink="balance/settings/sim?from=balance" />
 
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
@@ -336,144 +338,26 @@ const BalanceScreen = () => {
         </ScrollView>
       </BackgroundWrapper>
 
-      {showRedirectModal && (
-        <Modal animationType="fade" transparent visible={showRedirectModal}>
-          <View style={balanceStyles.modalOverlay}>
-            <View
-              style={[
-                balanceStyles.modalBox,
-                { backgroundColor: isDarkMode ? "#000" : "#fff" },
-              ]}
-            >
-              <IconSvg type="checkcircle" width={60} height={60} color="#00C566" />
-              <Text
-                style={[
-                  balanceStyles.modalTitle,
-                  { color: isDarkMode ? "#fff" : "#000" },
-                ]}
-              >
-                ¿Deseas ir a la vista de Tottoli?
-              </Text>
-              <Text
-                style={[
-                  balanceStyles.modalSubtitle,
-                  { color: isDarkMode ? "#ccc" : "#444" },
-                ]}
-              >
-                Esta SIM está asociada a Tottoli. Puedes ir al panel correspondiente.
-              </Text>
-              <TouchableOpacity
-                style={[balanceStyles.modalButton, { backgroundColor: "#D32F2F" }]}
-                onPress={() => {
-                  setShowRedirectModal(false);
-                  dispatch(resetSimState());
-                  router.replace("/(tabs)/home");
-                }}
-              >
-                <Text style={balanceStyles.modalButtonText}>Ir al panel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  balanceStyles.modalButton,
-                  {
-                    backgroundColor: isDarkMode ? "#444" : "#ccc",
-                    marginTop: 8,
-                  },
-                ]}
-                onPress={() => setShowRedirectModal(false)}
-              >
-                <Text
-                  style={[
-                    balanceStyles.modalButtonText,
-                    { color: isDarkMode ? "#fff" : "#000" },
-                  ]}
-                >
-                  Cancelar
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
-      {showDeleteModal && (
-        <Modal animationType="fade" transparent visible={showDeleteModal}>
-          <View style={balanceStyles.modalOverlay}>
-            <View
-              style={[
-                balanceStyles.modalBox,
-                { backgroundColor: isDarkMode ? "#000" : "#fff" },
-              ]}
-            >
-              <IconSvg
-                height={50}
-                width={50}
-                type="verificationiconfailed"
-              />
+      <RedirectToTottoliModal
+        visible={showRedirectModal}
+        onClose={() => setShowRedirectModal(false)}
+        isDarkMode={isDarkMode}
+      />
 
-              <Text
-                style={[
-                  balanceStyles.modalTitle,
-                  {
-                    color: isDarkMode ? "#fff" : "#000",
-                    textAlign: "center",
-                    fontWeight: "bold",
-                    fontSize: 16,
-                    marginTop: 10,
-                  },
-                ]}
-              >
-                {`${t(`${baseMsg}.deleteTitle`)} ${sims.find((sim) => sim.iccid === selectedSimId)?.name}?`}
-              </Text>
-
-              <Text
-                style={{
-                  color: isDarkMode ? "#aaa" : "#555",
-                  fontSize: 14,
-                  textAlign: "center",
-                  marginTop: 6,
-                }}
-              >
-                {sims.find((sim) => sim.iccid === selectedSimId)?.name}
-              </Text>
-
-              <TouchableOpacity
-                style={[
-                  balanceStyles.modalButton,
-                  { backgroundColor: "#D32F2F", marginTop: 20 },
-                ]}
-                onPress={async () => {
-                  if (selectedSimId) {
-                    await handleDeleteSim(selectedSimId);
-                    setShowDeleteModal(false);
-                  }
-                }}
-              >
-                <Text style={balanceStyles.modalButtonText}>{t(`${baseMsg}.deleteSim`)}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  balanceStyles.modalButton,
-                  {
-                    backgroundColor: isDarkMode ? "#444" : "#ccc",
-                    marginTop: 8,
-                  },
-                ]}
-                onPress={() => setShowDeleteModal(false)}
-              >
-                <Text
-                  style={[
-                    balanceStyles.modalButtonText,
-                    { color: isDarkMode ? "#fff" : "#000" },
-                  ]}
-                >
-                  {t(`${baseMsg}.cancel`)}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
+      <DeleteSimModal
+        visible={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={async () => {
+          if (selectedSimId) {
+            await handleDeleteSim(selectedSimId);
+            setShowDeleteModal(false);
+          }
+        }}
+        simName={sims.find((sim) => sim.iccid === selectedSimId)?.name}
+        isDarkMode={isDarkMode}
+        t={t}
+        baseMsg={baseMsg}
+      />
     </>
   );
 };
