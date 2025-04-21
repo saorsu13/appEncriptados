@@ -12,7 +12,6 @@ import { useDispatch } from "react-redux";
 import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { listSubscriber } from "@/api/subscriberApi";
-import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 import { getDeviceUUID } from "../utils/getUUID";
 
 
@@ -64,7 +63,7 @@ export function useAuth() {
 
 const storeUser = async (user: User, balance: string | null) => {
   try {
-    console.log("💾 Guardando user en AsyncStorage:", user); 
+    console.log("💾 Guardando user en AsyncStorage:", user);
     await AsyncStorage.setItem("@user", JSON.stringify(user));
     await AsyncStorage.setItem("@balance", balance ?? "");
   } catch (e) {
@@ -89,11 +88,11 @@ export const loadUser = async (): Promise<{ user: User | null; balance: string |
     if (userString) {
       const user = JSON.parse(userString);
       console.log("🔄 Restaurando sesión desde AsyncStorage:", user);
-      if (user?.provider === "tottoli") {
-        console.warn("🟡 Usuario tottoli detectado. No se borra, pero se maneja aparte");
-        return { user, balance };
-      }
-      
+      // if (user?.provider === "tottoli") {
+      //   console.warn("🟡 Usuario tottoli detectado. No se borra, pero se maneja aparte");
+      //   return { user, balance };
+      // }
+
     }
 
     const uuid = await getDeviceUUID();
@@ -152,13 +151,15 @@ export function AuthProvider({
           setIsLoggedIn(true);
         }
       } else {
+        setUser(null);
+        setBalance(null);
         setIsLoggedIn(false);
       }
       setIsLoading(false);
       onLoaded();
     });
   }, []);
-  
+
 
   return (
     <AuthContext.Provider
@@ -176,7 +177,7 @@ export function AuthProvider({
           storeUser(user, userBalance);
           setIsLoggedIn(true);
         },
-        
+
         signOut: () => {
           setUser(null);
           setIsLoggedIn(false);

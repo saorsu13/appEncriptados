@@ -239,7 +239,7 @@ useEffect(() => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-      <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign?from=balance" />
+      <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim?from=balance" />
 
 
         <ScrollView contentContainerStyle={balanceStyles.content}>

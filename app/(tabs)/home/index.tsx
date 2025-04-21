@@ -86,7 +86,6 @@ const Home = () => {
 
   const [selectedSimIdVisual, setSelectedSimIdVisual] = useState<string | null>(null);
 
-  console.log("🟢 Vista /home montada");
 
   const handleCountry = (value: string) => {
     setCountryValue(value);
