@@ -146,7 +146,7 @@ async function handleRequestCode() {
     const subscriberData = {
       iccid: formik.values.simNumber,
       provider: isSim19Digits ? "telco-vision" : "tottoli",
-      name: isSim19Digits ? "Sim Tim" : "Sim Encr",
+      name: isSim19Digits ? "Sim" : "Sim",
       uuid: await getDeviceUUID(),
     };
 
@@ -158,7 +158,10 @@ async function handleRequestCode() {
       dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
       router.replace({
         pathname: "/home",
-        params: { refetchSims: "true" }
+        params: {
+          simId: formik.values.simNumber, 
+          refetchSims: "true"
+        }
       });
     } else {
       throw new Error("Failed to create");

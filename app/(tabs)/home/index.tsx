@@ -76,6 +76,7 @@ const Home = () => {
   const [deviceUUID, setDeviceUUID] = useState<string | null>(null);
 
   const currentSim = useAppSelector((s) => s.sims.currentSim);
+  const sims = useAppSelector((state) => state.sims.sims);
   const countryCode = useAppSelector((s) => s.country.countryCode);
   const globalCurrency = useAppSelector((s) => s.currency.currency);
   const hasShownModal = useAppSelector((s) => s.version.hasShownModal);
@@ -86,6 +87,7 @@ const Home = () => {
 
   const [selectedSimIdVisual, setSelectedSimIdVisual] = useState<string | null>(null);
 
+  const [didFetchSims, setDidFetchSims] = useState(false);
 
   const handleCountry = (value: string) => {
     setCountryValue(value);
@@ -102,6 +104,7 @@ const Home = () => {
   const mutation = useMutation({
     mutationFn: getSimBalance,
     onSuccess: (res) => {
+      console.log("✅ [onSuccess] Balance API:", res.data);
       dispatch(setLoading(false));
       res.data.voice && dispatch(updateVoice(res.data.voice));
       res.data.callback && dispatch(updateCallback(res.data.callback === "1"));
@@ -131,119 +134,101 @@ const Home = () => {
     () => Constants.expoConfig.version === versionFetched,
     [versionFetched]
   );
+// ─── 1. Carga de UUID y listado de SIMs (sólo una vez) ───────────────────
+useEffect(() => {
+  if (didFetchSims) return;
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchUpdatedSimList = async () => {
-        if (!deviceUUID) return;
-  
-        const sims = await listSubscriber(deviceUUID);
+  const init = async () => {
+    try {
+      // 1️⃣ Obtener UUID
+      const uuid = await getDeviceUUID();
+      setDeviceUUID(uuid);
 
-        const parsedSims = sims.map((sim) => ({
-          idSim: String(sim.iccid),
-          simName: sim.name,
-          provider: sim.provider,
-          iccid: String(sim.iccid),
-        }));
-  
-        dispatch(setSims(parsedSims));
-  
-        const storedICCID = await AsyncStorage.getItem("currentICCID");
-        let finalSimId = simId?.toString() || storedICCID;
-        if (!finalSimId) {
-          const nonTottoli = parsedSims.find((sim) => sim.provider !== "tottoli");
-          finalSimId = nonTottoli?.iccid || parsedSims[0]?.iccid;
-        }
+      // 2️⃣ Listar suscripciones y almacenar en Redux
+      const simsRaw = await listSubscriber(uuid);
+      const parsedSims = simsRaw.map((sim) => ({
+        idSim: String(sim.iccid),
+        simName: sim.name,
+        provider: sim.provider,
+        iccid: String(sim.iccid),
+      }));
+      console.log("🗂 Sims recibidas:", parsedSims);
+      dispatch(setSims(parsedSims));
 
-  
-        const selectedSim = parsedSims.find((sim) => sim.iccid === finalSimId);
-        console.log("🔄 SIM seleccionada desde lista actualizada:", selectedSim);
+      // 3️⃣ Elegir SIM por defecto (no-Tottoli o la primera)
+      const nonTottoli = parsedSims.find((s) => s.provider !== "tottoli");
+      const finalSim = nonTottoli ?? parsedSims[0];
+      console.log("🔄 SIM por defecto elegida:", finalSim);
 
-        if (
-          selectedSim &&
-          selectedSim.idSim !== currentSim?.idSim &&
-          selectedSim.provider !== "tottoli" &&
-          currentSim?.provider !== "tottoli"
-        ) {
-          console.log("✅ Restaurando SIM desde:", selectedSim);
-          console.log("✅ Restaurando SIM desde /home:", selectedSim.iccid);
-          await AsyncStorage.setItem("currentICCID", selectedSim.iccid);
-          dispatch(updateCurrentSim(selectedSim));
-        } else if (selectedSim?.provider === "tottoli") {
-          console.warn("🚫 No se restaura SIM 'tottoli' desde /home");
-        }
-        
-      };
-      if (currentSim?.provider === "tottoli") {
-        console.log("🛑 Ya hay una SIM 'tottoli' activa, no se modifica");
-        return;
-      }      
-      fetchUpdatedSimList();
-    }, [deviceUUID, simId])
-  );
-  const sims = useAppSelector((state) => state.sims.sims);
+      // 4️⃣ Almacenar ICCID y actualizar estado
+      await AsyncStorage.setItem("currentICCID", finalSim.iccid);
+      dispatch(updateCurrentSim(finalSim));
+      setSelectedSimIdVisual(finalSim.idSim);
 
-  useEffect(() => {
-    if (!simId) return;
-    console.log("📥 useEffect: simId desde URL:", simId);
-
-    const simIdStr = simId.toString();
-    const storedSim = sims.find((sim) => sim.idSim === simIdStr);
-  
-    if (storedSim?.provider === "tottoli") {
-      console.warn("👁 Marcando visualmente SIM 'tottoli' seleccionada:", simIdStr);
-      setSelectedSimIdVisual(simIdStr);
-    } else if (storedSim && currentSim?.idSim !== simIdStr) {
-      console.log("✅ Restaurando SIM desde simId param:", simIdStr);
-      dispatch(updateCurrentSim(storedSim.idSim));
-      AsyncStorage.setItem("currentICCID", simIdStr);
-      setSelectedSimIdVisual(simIdStr); // También la marcamos visualmente
+    } catch (e) {
+      console.error("❌ Error inicializando UUID/SIMs:", e);
+    } finally {
+      setDidFetchSims(true);
     }
-        
-  }, [simId, sims, currentSim]);
-  
-  useEffect(() => {
-  if (!currentSim) return;
+  };
+
+  init();
+}, [didFetchSims]);
+
+// ─── 2. Sincronizar simId de URL cuando cambian simId, sims o currentSim ───
+useEffect(() => {
+  if (!simId) return;
+  console.log("📥 simId desde URL:", simId);
+
+  const simIdStr = simId.toString();
+  const storedSim = sims.find((s) => s.idSim === simIdStr);
+
+  if (storedSim?.provider === "tottoli") {
+    console.warn("👁 SIM 'tottoli' seleccionada (visual):", simIdStr);
+    setSelectedSimIdVisual(simIdStr);
+
+  } else if (storedSim && currentSim?.idSim !== simIdStr) {
+    console.log("✅ Restaurando SIM desde param:", simIdStr);
+    dispatch(updateCurrentSim(storedSim.idSim));
+    AsyncStorage.setItem("currentICCID", simIdStr);
+    setSelectedSimIdVisual(simIdStr);
+  }
+}, [simId, sims, currentSim]);
+
+// ─── 3. Disparar mutación de balance ───────
+useEffect(() => {
 
   const body: BalanceRequest = {
     id: Number(currentSim.idSim),
     currencyCode: countryValue.split("-")[1],
     country: countryValue.split("-")[0].toUpperCase(),
   };
-
+  console.log("🚀 Mutating balance con:", body);
   mutation.mutate(body);
 }, [currentSim, countryValue]);
 
-  
-  useEffect(() => {
-    if (
-      version &&
-      !hasShownModal &&
-      !areVersionsEqual &&
-      refetchSims !== "true"
-    ) {
-      showModal({
-        type: "confirm",
-        title: t("pages.home-tab.versiontitle"),
-        description: t("pages.home-tab.versiondescription") + "?",
-        buttonColorConfirm: colors.primaryColor,
-        textConfirm: t("pages.home.confirm"),
-        textCancel: t("pages.home.cancel"),
-        buttonColorCancel: colors.danger,
-        onConfirm: openPlayStoreAppStore,
-      });
-      dispatch(setHasShownModal(true));
-    }
-  }, [areVersionsEqual, versionFetched, hasShownModal]);
+// ─── 4. Mostrar modal de versión si procede ───────────────────────────────
+useEffect(() => {
+  if (
+    version &&
+    !hasShownModal &&
+    !areVersionsEqual &&
+    refetchSims !== "true"
+  ) {
+    showModal({
+      type: "confirm",
+      title: t("pages.home-tab.versiontitle"),
+      description: t("pages.home-tab.versiondescription") + "?",
+      buttonColorConfirm: colors.primaryColor,
+      textConfirm: t("pages.home.confirm"),
+      textCancel: t("pages.home.cancel"),
+      buttonColorCancel: colors.danger,
+      onConfirm: openPlayStoreAppStore,
+    });
+    dispatch(setHasShownModal(true));
+  }
+}, [areVersionsEqual, versionFetched, hasShownModal]);
 
-  useEffect(() => {
-  const fetchUUID = async () => {
-    const uuid = await getDeviceUUID();
-    setDeviceUUID(uuid);
-  };
-
-  fetchUUID();
-}, []);
   
   useFocusEffect(
     useCallback(() => {
@@ -282,6 +267,7 @@ const Home = () => {
 
   const data = mutation.data;
 
+
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
@@ -302,7 +288,6 @@ const Home = () => {
           country={countryValue}
           handleCountry={handleCountry}
         />
-
         {data && <BalanceDetails data={data} />}
 
         <NetworkProfile />

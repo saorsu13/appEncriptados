@@ -60,7 +60,7 @@ export function useLogin() {
         }
 
         const inputIsIccid = id.toString().length === 19;
-        const defaultName = inputIsIccid ? "Sim Tim" : "Sim Encr";
+        const defaultName = inputIsIccid ? "Sim" : "Sim";
         const finalIdSim = inputIsIccid ? subscriberRes?.providers?.[0]?.iccid : subscriberRes?.providers?.[0]?.imsi;
 
         let sims = [];
