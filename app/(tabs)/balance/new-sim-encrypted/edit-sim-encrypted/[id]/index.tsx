@@ -15,6 +15,8 @@ import theme from "@/config/theme";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
 
@@ -71,11 +73,10 @@ const Login = () => {
       buttonColorCancel: colors.danger,
       textConfirm: t("modalSimActivate.goToPanel"),
       title: t("modalSimActivate.changeNameSimTitle"),
-      onConfirm: () => {
-        router.replace({
-          pathname: "/balance",
-          params: { simId: params.id },
-      }); 
+      onConfirm: async () => {
+        await AsyncStorage.setItem("currentICCID", params.id);
+        router.replace("/balance");
+
         formik.resetForm();
       },
       

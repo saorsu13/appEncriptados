@@ -35,6 +35,7 @@ import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 import { useDispatch } from "react-redux";
 import { resetModalUpdate } from "@/features/settings/settingsSlice";
+import { setHasRedirectedFromTottoli } from "@/utils/redirectionControl";
 import theme from "@/config/theme";
 
 const LoginHeaderImage = require("@/assets/images/login-header.png");
@@ -94,6 +95,7 @@ const SignIn = () => {
         }
 
         InteractionManager.runAfterInteractions(() => {
+          setHasRedirectedFromTottoli(false);
           setHasAlreadyRedirected(true);
           if (provider === "telco-vision") router.replace("/balance");
           else if (provider === "tottoli") router.replace("/home");

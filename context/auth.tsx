@@ -64,6 +64,7 @@ export function useAuth() {
 
 const storeUser = async (user: User, balance: string | null) => {
   try {
+    console.log("💾 Guardando user en AsyncStorage:", user); 
     await AsyncStorage.setItem("@user", JSON.stringify(user));
     await AsyncStorage.setItem("@balance", balance ?? "");
   } catch (e) {
@@ -82,13 +83,24 @@ const deleteUser = async () => {
 
 export const loadUser = async (): Promise<{ user: User | null; balance: string | null }> => {
   try {
+    const userString = await AsyncStorage.getItem("@user");
+    const balance = await AsyncStorage.getItem("@balance");
+
+    if (userString) {
+      const user = JSON.parse(userString);
+      console.log("🔄 Restaurando sesión desde AsyncStorage:", user);
+      if (user?.provider === "tottoli") {
+        console.warn("🟡 Usuario tottoli detectado. No se borra, pero se maneja aparte");
+        return { user, balance };
+      }
+      
+    }
+
     const uuid = await getDeviceUUID();
     const sims = await listSubscriber(uuid);
 
     if (!Array.isArray(sims) || sims.length === 0 || sims?.code === "not_found") {
       console.warn("📭 No hay SIMs asociadas al UUID. Borrando sesión.");
-      await AsyncStorage.removeItem("@user");
-      await AsyncStorage.removeItem("@balance");
       return { user: null, balance: null };
     }
 
@@ -99,17 +111,13 @@ export const loadUser = async (): Promise<{ user: User | null; balance: string |
       provider: sims[0].provider,
     };
 
-    await AsyncStorage.setItem("@user", JSON.stringify(restoredUser));
-    await AsyncStorage.setItem("@balance", "");
-
+    console.log("♻️ Restaurando sesión fallback:", restoredUser);
     return { user: restoredUser, balance: "" };
   } catch (e) {
     console.error("❌ Error al restaurar sesión:", e);
     return { user: null, balance: null };
   }
 };
-
-
 
 export function AuthProvider({
   children,
@@ -168,6 +176,7 @@ export function AuthProvider({
           storeUser(user, userBalance);
           setIsLoggedIn(true);
         },
+        
         signOut: () => {
           setUser(null);
           setIsLoggedIn(false);

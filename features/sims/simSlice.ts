@@ -16,6 +16,7 @@ export interface Sim {
   simName: string;
   provider: string;
   iccid: string;
+  code?: string;
 }
 
 export const simSlice = createSlice({

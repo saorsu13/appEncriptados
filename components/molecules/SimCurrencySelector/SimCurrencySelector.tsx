@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "expo-router";
 import {
   View,
@@ -39,8 +39,12 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
 
   const [simModalVisible, setSimModalVisible] = useState(false);
 
-  const selectedSim = sims.find((sim) => sim.id === selectedId) || null;
-  
+  // const selectedSim = sims.find((sim) => sim.id === selectedId) || null;
+
+  const selectedSim = useMemo(
+    () => sims.find((sim) => sim.id === selectedId) || null,
+    [sims, selectedId]
+  );
   useEffect(() => {
     console.log("🧭 SIM seleccionada (selectedId):", selectedId);
     console.log("🧭 SIMS disponibles:", sims.map((s) => s.id));
@@ -108,17 +112,16 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                       setSimModalVisible(false);
                       if (item.id !== selectedId) {
                         console.log("🔁 Cambiando SIM actual a:", item.id);
-                        onSelectSim?.(item.id);
                         await AsyncStorage.setItem("currentICCID", item.id);
-                        console.log("🔁 Navegando a /home con simId:", item.id);
+                        console.log("💾 SIM guardada en modal:", item.id);
+                        onSelectSim?.(item.id);
+                      
                         if (item.provider === "tottoli") {
                           console.log("🚀 SIM con provider 'tottoli', navegando a /home");
                           router.replace({ pathname: "/home", params: { simId: item.id } });
-                        } else {
-                          console.log("✅ SIM con provider diferente, no se redirige");
-                          onSelectSim?.(item.id);
-                        }                        
+                        }
                       }
+                      
                     }}
                     
                   >

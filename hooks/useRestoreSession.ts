@@ -5,25 +5,19 @@ import { getSubscriberData, listSubscriber } from "@/api/subscriberApi";
 import { useDispatch } from "react-redux";
 import { setSims } from "@/features/sims/simSlice";
 
-export function useRestoreSession() {
-  const uuid = useDeviceUUID();
+export function useRestoreSession(deviceUUID: string | null) {
   const [restoring, setRestoring] = useState(true);
   const [restoredProvider, setRestoredProvider] = useState<string | null>(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (!deviceUUID) return;
+
     const restore = async () => {
       const iccid = await AsyncStorage.getItem("currentICCID");
 
-
-      if (!uuid) {
-        console.warn("🚫 UUID no disponible. Cancelando restauración.");
-        setRestoring(false);
-        return;
-      }
-
       try {
-        const listResponse = await listSubscriber(uuid);
+        const listResponse = await listSubscriber(deviceUUID);
 
         if (!Array.isArray(listResponse) || listResponse.length === 0) {
           console.warn("⚠️ Lista de SIMs vacía. Borrando ICCID");
@@ -37,6 +31,7 @@ export function useRestoreSession() {
           simName: sim.name,
           provider: sim.provider,
           iccid: sim.iccid,
+          code: sim.code ?? "",
         }));
 
         dispatch(setSims(parsedSims));
@@ -55,7 +50,7 @@ export function useRestoreSession() {
           return;
         }
 
-        const response = await getSubscriberData(iccid, uuid);
+        const response = await getSubscriberData(iccid, deviceUUID);
 
         const provider = response?.providers?.[0]?.provider;
         if (provider) setRestoredProvider(provider);
@@ -67,7 +62,7 @@ export function useRestoreSession() {
     };
 
     restore();
-  }, [uuid]);
+  }, [deviceUUID]);
 
   return { restoring, restoredProvider };
 }

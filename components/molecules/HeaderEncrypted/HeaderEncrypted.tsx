@@ -6,6 +6,7 @@ import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeCustom } from "@/config/theme2";
 import { ThemeMode } from "@/context/theme";
 import Constants from "expo-constants";
+import { useAppSelector } from "@/hooks/hooksStoreRedux";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -23,7 +24,17 @@ const HeaderEncrypted = ({
   const router = useRouter();
   const { themeMode, toggleThemeMode } = useDarkModeTheme();
   const { colors } = useTheme<ThemeCustom>();
+  const currentSim = useAppSelector((state) => state.sims.currentSim);
   const { simId } = useLocalSearchParams<{ simId?: string }>();
+  const simToUse = simId || currentSim;
+
+  const resolvedSimId =
+  simId ?? (typeof currentSim === "object" ? currentSim?.iccid : currentSim);
+
+  if (!simId && !currentSim) {
+    return null;
+  }
+  
 
   
   const resolvedOwner = owner ?? Constants.expoConfig.owner;
@@ -71,14 +82,16 @@ const HeaderEncrypted = ({
               backgroundColor: colors.backgroundAlternate,
             }}
             onPress={() => {
-              if (simId) {
-                console.log("🔙 HeaderEncrypted → Reemplazando con simId a /balance:", simId);
-                router.replace(`/balance?simId=${simId}`);
+              if (resolvedSimId) {
+                console.log("🔙 Regresando con simId a /balance", resolvedSimId);
+                router.replace({ pathname: "/balance", params: { simId: resolvedSimId } });
               } else {
-                console.log("🔙 HeaderEncrypted → No hay simId, ejecutando router.back()");
-                router.back();
+                console.log("🔙 No hay simId, navegando a /home");
+                router.replace("/home");
               }
+
             }}
+            
           >
             <IconSvg height={20} width={20} color={colors.white} type="arrowback" />
           </TouchableOpacity>

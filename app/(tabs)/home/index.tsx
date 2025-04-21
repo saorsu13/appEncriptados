@@ -84,6 +84,10 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [versionFetched, setVersionFetched] = useState("");
 
+  const [selectedSimIdVisual, setSelectedSimIdVisual] = useState<string | null>(null);
+
+  console.log("🟢 Vista /home montada");
+
   const handleCountry = (value: string) => {
     setCountryValue(value);
   };
@@ -135,7 +139,7 @@ const Home = () => {
         if (!deviceUUID) return;
   
         const sims = await listSubscriber(deviceUUID);
-  
+
         const parsedSims = sims.map((sim) => ({
           idSim: String(sim.iccid),
           simName: sim.name,
@@ -146,21 +150,35 @@ const Home = () => {
         dispatch(setSims(parsedSims));
   
         const storedICCID = await AsyncStorage.getItem("currentICCID");
-        let finalSimId = simId?.toString() || storedICCID || parsedSims[0]?.iccid;
-  
+        let finalSimId = simId?.toString() || storedICCID;
+        if (!finalSimId) {
+          const nonTottoli = parsedSims.find((sim) => sim.provider !== "tottoli");
+          finalSimId = nonTottoli?.iccid || parsedSims[0]?.iccid;
+        }
+
   
         const selectedSim = parsedSims.find((sim) => sim.iccid === finalSimId);
-  
+        console.log("🔄 SIM seleccionada desde lista actualizada:", selectedSim);
+
         if (
           selectedSim &&
-          selectedSim.idSim !== currentSim?.idSim
+          selectedSim.idSim !== currentSim?.idSim &&
+          selectedSim.provider !== "tottoli" &&
+          currentSim?.provider !== "tottoli"
         ) {
+          console.log("✅ Restaurando SIM desde:", selectedSim);
+          console.log("✅ Restaurando SIM desde /home:", selectedSim.iccid);
           await AsyncStorage.setItem("currentICCID", selectedSim.iccid);
           dispatch(updateCurrentSim(selectedSim));
-          
+        } else if (selectedSim?.provider === "tottoli") {
+          console.warn("🚫 No se restaura SIM 'tottoli' desde /home");
         }
+        
       };
-  
+      if (currentSim?.provider === "tottoli") {
+        console.log("🛑 Ya hay una SIM 'tottoli' activa, no se modifica");
+        return;
+      }      
       fetchUpdatedSimList();
     }, [deviceUUID, simId])
   );
@@ -168,14 +186,21 @@ const Home = () => {
 
   useEffect(() => {
     if (!simId) return;
-  
+    console.log("📥 useEffect: simId desde URL:", simId);
+
     const simIdStr = simId.toString();
     const storedSim = sims.find((sim) => sim.idSim === simIdStr);
   
-    if (storedSim && currentSim?.idSim !== simIdStr) {
+    if (storedSim?.provider === "tottoli") {
+      console.warn("👁 Marcando visualmente SIM 'tottoli' seleccionada:", simIdStr);
+      setSelectedSimIdVisual(simIdStr);
+    } else if (storedSim && currentSim?.idSim !== simIdStr) {
+      console.log("✅ Restaurando SIM desde simId param:", simIdStr);
       dispatch(updateCurrentSim(storedSim.idSim));
       AsyncStorage.setItem("currentICCID", simIdStr);
+      setSelectedSimIdVisual(simIdStr); // También la marcamos visualmente
     }
+        
   }, [simId, sims, currentSim]);
   
   useEffect(() => {
@@ -251,6 +276,8 @@ const Home = () => {
   if (!isLoggedIn || !currentSim) {
     return <SignIn />;
   }
+  
+  
 
   const simType = determineType(currentSim.idSim);
 
@@ -268,11 +295,11 @@ const Home = () => {
         />
       }
     >
-      <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim" />
+      <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
 
       <View style={styles.container}>
         <SimCountry
-          sim={currentSim.idSim}
+          sim={selectedSimIdVisual || currentSim.idSim}
           country={countryValue}
           handleCountry={handleCountry}
         />

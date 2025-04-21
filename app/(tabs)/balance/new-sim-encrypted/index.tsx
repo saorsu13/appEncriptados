@@ -54,6 +54,9 @@ const Login = () => {
   const [modalSuccessVisible, setModalSuccessVisible] = useState(false);
   const { themeMode } = useDarkModeTheme();
 
+  const [newSimProvider, setNewSimProvider] = useState<string | null>(null);
+
+
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
       .required(t("validators.required"))
@@ -71,22 +74,30 @@ const Login = () => {
     try {
       setIsLoading(true);
       const subscriberData = values.simNumber.length === 6
-      ? {
-          iccid: values.simNumber,
-          provider: "tottoli",
-          name: "Sim Encr",
-          uuid: deviceUUID,
-        }
-      : {
-          iccid: values.simNumber,
-          provider: "telco-vision",
-          name: "Sim Tim",
-          uuid: deviceUUID,
-        };
+        ? {
+            iccid: values.simNumber,
+            provider: "tottoli",
+            name: "Sim",
+            uuid: deviceUUID,
+          }
+        : {
+            iccid: values.simNumber,
+            provider: "telco-vision",
+            name: "Sim",
+            uuid: deviceUUID,
+          };
+  
+      console.log("🆕 Creando SIM con provider:", subscriberData.provider);
+  
       const result = await createSubscriber(subscriberData);
+      setNewSimProvider(subscriberData.provider);
+  
+      console.log("📦 SIM creada. Guardando ICCID:", values.simNumber);
+      await AsyncStorage.setItem("currentICCID", values.simNumber);
+  
       setModalSuccessVisible(true);
     } catch (error) {
-      console.error("Error al crear la SIM:", error);
+      console.error("❌ Error al crear la SIM:", error);
       setAlertMessage("Error al agregar la SIM");
       setAlertType("error");
     } finally {
@@ -94,10 +105,21 @@ const Login = () => {
     }
   };
   
-  const handleSuccessModalClose = () => {
+  const handleSuccessModalClose = async () => {
     setModalSuccessVisible(false);
-    router.replace("/balance");
+    await AsyncStorage.setItem("currentICCID", formik.values.simNumber);
+  
+    console.log("📲 Cerrando modal de éxito");
+    console.log("✅ Provider guardado:", newSimProvider);
+    console.log("➡️ Redirigiendo a:", newSimProvider === "tottoli" ? "/home" : "/balance");
+  
+    if (newSimProvider === "tottoli") {
+      router.replace("/home");
+    } else {
+      router.replace("/balance");
+    }
   };
+  
   
   useEffect(() => {
     const fetchPersistedState = async () => {
