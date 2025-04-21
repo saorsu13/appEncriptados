@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useRef } from "react";
 
 interface ModalAdminSimsState {
   isModalOpen: boolean;
@@ -6,7 +6,7 @@ interface ModalAdminSimsState {
 }
 
 interface ModalAdminSimsContextType extends ModalAdminSimsState {
-  openModal: (sims?: any[]) => void;
+  openModal: (sims?: any[], onSelect?: (sim: any) => void) => void;
   closeModal: () => void;
 }
 
@@ -27,15 +27,22 @@ export const ModalAdminSimsProvider = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [simsList, setSimsList] = useState<any[]>([]);
 
-  const openModal = (sims?: any[]) => {
-    if (sims) {
-      setSimsList(sims);
-    }
+  const onSelectRef = useRef<(sim: any) => void>();
+
+  const openModal = (sims?: any[], onSelect?: (sim: any) => void) => {
+    if (sims) setSimsList(sims);
+    onSelectRef.current = onSelect;
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+    onSelectRef.current = undefined; 
+  };
+
+  const handlePick = (sim: any) => {
+    closeModal();
+    onSelectRef.current?.(sim);
   };
 
   return (
@@ -48,6 +55,7 @@ export const ModalAdminSimsProvider = ({
       }}
     >
       {children}
+      
     </ModalAdminSimsContext.Provider>
   );
 };

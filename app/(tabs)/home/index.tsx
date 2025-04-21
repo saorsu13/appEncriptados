@@ -73,7 +73,9 @@ const Home = () => {
   const { colors } = useTheme<ThemeCustom>();
   const queryClient = useQueryClient();
   const { showModal } = useModalAll();
+
   const [deviceUUID, setDeviceUUID] = useState<string | null>(null);
+  const [selectedSimIdVisual, setSelectedSimIdVisual] = useState<string | null>(null);
 
   const currentSim = useAppSelector((s) => s.sims.currentSim);
   const sims = useAppSelector((state) => state.sims.sims);
@@ -85,248 +87,263 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [versionFetched, setVersionFetched] = useState("");
 
-  const [selectedSimIdVisual, setSelectedSimIdVisual] = useState<string | null>(null);
-
-  const [didFetchSims, setDidFetchSims] = useState(false);
+  const [userHasSelectedSim, setUserHasSelectedSim] = useState(false);
 
   const handleCountry = (value: string) => {
     setCountryValue(value);
   };
 
-  const openPlayStoreAppStore = async () => {
-    const storeUrls = STORE_URLS[Constants.expoConfig.owner] || {};
-    const url = storeUrls[Platform.OS];
-    if (url && (await Linking.canOpenURL(url))) {
-      await Linking.openURL(url);
-    }
-  };
-
-  const mutation = useMutation({
-    mutationFn: getSimBalance,
-    onSuccess: (res) => {
-      console.log("✅ [onSuccess] Balance API:", res.data);
-      dispatch(setLoading(false));
-      res.data.voice && dispatch(updateVoice(res.data.voice));
-      res.data.callback && dispatch(updateCallback(res.data.callback === "1"));
-      res.data.profile && dispatch(updateCurrentNetwork(res.data.profile));
-      res.data.recommended_profile &&
-        dispatch(updateRecommendedNetwork(res.data.recommended_profile));
-    },
-    onError: (err) => console.error("❌ Error balance:", err),
-  });
-
-  const { refetch: refetchCurrency } = useQuery<BalanceResponse>({
-    queryKey: ["getCurrentBalanceByCurrency", currentSim?.idSim?.toString(), globalCurrency],
-    queryFn: () => {
-      return getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
-    },
-    enabled: !!currentSim,
-    onSuccess: (data) => console.log("💱 Balance moneda:", data),
-    onError: (err) => console.error("💱 Error moneda:", err),
-  });
-
-  const { data: version, isFetching } = useQuery({
-    queryKey: ["getVersion"],
-    queryFn: () => getVersion("fantasma"),
-  });
-
-  const areVersionsEqual = useMemo(
-    () => Constants.expoConfig.version === versionFetched,
-    [versionFetched]
-  );
-// ─── 1. Carga de UUID y listado de SIMs (sólo una vez) ───────────────────
-useEffect(() => {
-  if (didFetchSims) return;
-
-  const init = async () => {
-    try {
-      // 1️⃣ Obtener UUID
-      const uuid = await getDeviceUUID();
-      setDeviceUUID(uuid);
-
-      // 2️⃣ Listar suscripciones y almacenar en Redux
-      const simsRaw = await listSubscriber(uuid);
-      const parsedSims = simsRaw.map((sim) => ({
-        idSim: String(sim.iccid),
-        simName: sim.name,
-        provider: sim.provider,
-        iccid: String(sim.iccid),
-      }));
-      console.log("🗂 Sims recibidas:", parsedSims);
-      dispatch(setSims(parsedSims));
-
-      // 3️⃣ Elegir SIM por defecto (no-Tottoli o la primera)
-      const nonTottoli = parsedSims.find((s) => s.provider !== "tottoli");
-      const finalSim = nonTottoli ?? parsedSims[0];
-      console.log("🔄 SIM por defecto elegida:", finalSim);
-
-      // 4️⃣ Almacenar ICCID y actualizar estado
-      await AsyncStorage.setItem("currentICCID", finalSim.iccid);
-      dispatch(updateCurrentSim(finalSim));
-      setSelectedSimIdVisual(finalSim.idSim);
-
-    } catch (e) {
-      console.error("❌ Error inicializando UUID/SIMs:", e);
-    } finally {
-      setDidFetchSims(true);
-    }
-  };
-
-  init();
-}, [didFetchSims]);
-
-// ─── 2. Sincronizar simId de URL cuando cambian simId, sims o currentSim ───
-useEffect(() => {
-  if (!simId) return;
-  console.log("📥 simId desde URL:", simId);
-
-  const simIdStr = simId.toString();
-  const storedSim = sims.find((s) => s.idSim === simIdStr);
-
-  if (storedSim?.provider === "tottoli") {
-    console.warn("👁 SIM 'tottoli' seleccionada (visual):", simIdStr);
-    setSelectedSimIdVisual(simIdStr);
-
-  } else if (storedSim && currentSim?.idSim !== simIdStr) {
-    console.log("✅ Restaurando SIM desde param:", simIdStr);
-    dispatch(updateCurrentSim(storedSim.idSim));
-    AsyncStorage.setItem("currentICCID", simIdStr);
-    setSelectedSimIdVisual(simIdStr);
-  }
-}, [simId, sims, currentSim]);
-
-// ─── 3. Disparar mutación de balance ───────
-useEffect(() => {
-
-  const body: BalanceRequest = {
-    id: Number(currentSim.idSim),
-    currencyCode: countryValue.split("-")[1],
-    country: countryValue.split("-")[0].toUpperCase(),
-  };
-  console.log("🚀 Mutating balance con:", body);
-  mutation.mutate(body);
-}, [currentSim, countryValue]);
-
-// ─── 4. Mostrar modal de versión si procede ───────────────────────────────
-useEffect(() => {
-  if (
-    version &&
-    !hasShownModal &&
-    !areVersionsEqual &&
-    refetchSims !== "true"
-  ) {
-    showModal({
-      type: "confirm",
-      title: t("pages.home-tab.versiontitle"),
-      description: t("pages.home-tab.versiondescription") + "?",
-      buttonColorConfirm: colors.primaryColor,
-      textConfirm: t("pages.home.confirm"),
-      textCancel: t("pages.home.cancel"),
-      buttonColorCancel: colors.danger,
-      onConfirm: openPlayStoreAppStore,
-    });
-    dispatch(setHasShownModal(true));
-  }
-}, [areVersionsEqual, versionFetched, hasShownModal]);
-
+    // Extraemos la lógica de fetch para poder reutilizarla
+    const fetchAndStoreSims = useCallback(async () => {
+      try {
+        const uuid = await getDeviceUUID();
+        setDeviceUUID(uuid);
   
-  useFocusEffect(
-    useCallback(() => {
-      queryClient.invalidateQueries({ queryKey: ["getVersion"] });
-      version && setVersionFetched(version[0]?.version);
-    }, [isFetching, version])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (Platform.OS === "android") {
-        const sub = BackHandler.addEventListener(
-          "hardwareBackPress",
-          () => true
-        );
-        return () => sub.remove();
+        const simsRaw = await listSubscriber(uuid);
+        if (!Array.isArray(simsRaw)) {
+          console.warn("🚨 listSubscriber no devolvió un array:", simsRaw);
+          return;
+        }
+        const parsed = simsRaw.map(sim => ({
+          idSim: String(sim.iccid),
+          simName: sim.name,
+          provider: sim.provider,
+          iccid: String(sim.iccid),
+          code: sim.id !== undefined
+          ? Number(sim.id)  
+          : 0, 
+        }));
+        dispatch(setSims(parsed));
+  
+        if (!currentSim && !userHasSelectedSim) {
+               const nonT = parsed.find(s => s.provider !== "tottoli");
+               const finalSim = nonT ?? parsed[0];
+               await AsyncStorage.setItem("currentICCID", finalSim.iccid);
+               dispatch(updateCurrentSim(finalSim.idSim));
+               // el useEffect de abajo sincronizará selectedSimIdVisual
+             }
+      } catch (e) {
+        console.error("❌ Error listSubscriber:", e);
       }
-    }, [])
-  );
+    }, [dispatch, currentSim]);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    dispatch(updateCurrentCountry(countryCode));
-    Promise.all([mutation.mutateAsync(body), refetchCurrency()]).finally(() =>
-      setRefreshing(false)
+    const onUserSelectSim = useCallback((newIdSim: string) => {
+      dispatch(updateCurrentSim(newIdSim));
+      AsyncStorage.setItem("currentICCID", newIdSim);
+    }, [dispatch]);
+
+     // 1) Efecto “init” que corre sólo una vez, o si nos piden refetch
+     useEffect(() => {
+      fetchAndStoreSims();
+    }, []);
+     
+
+    // 2) Tras volver de “new‑sim”, limpiar el flag para no refetchear eternamente
+    useFocusEffect(
+      useCallback(() => {
+        if (refetchSims === "true") {
+          router.replace({ pathname: "/home" });
+        }
+      }, [refetchSims])
     );
-  }, [countryCode, mutation, refetchCurrency]);
 
-  if (!isLoggedIn || !currentSim) {
-    return <SignIn />;
-  }
-  
-  
-
-  const simType = determineType(currentSim.idSim);
-
-  const data = mutation.data;
-
-
-  return (
-    <ScrollView
-      style={{ backgroundColor: colors.background }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          progressBackgroundColor={colors.backgroundAlternate}
-          colors={[colors.white]}
-        />
+    // 3) Mantenemos tu effect de simId URL → currentSim como antes…
+    useEffect(() => {
+      if (!simId) return;
+      const simIdStr = simId.toString();
+      const stored = sims.find(s => s.idSim === simIdStr);
+      if (stored && stored.idSim !== currentSim?.idSim) {
+          dispatch(updateCurrentSim(stored.idSim));
+        AsyncStorage.setItem("currentICCID", simIdStr);
+        setSelectedSimIdVisual(simIdStr);
       }
-    >
-      <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
+    }, [simId, sims, currentSim, dispatch]);
 
-      <View style={styles.container}>
-        <SimCountry
-          sim={selectedSimIdVisual || currentSim.idSim}
-          country={countryValue}
-          handleCountry={handleCountry}
-        />
-        {data && <BalanceDetails data={data} />}
 
-        <NetworkProfile />
+    const openPlayStoreAppStore = async () => {
+      const storeUrls = STORE_URLS[Constants.expoConfig.owner] || {};
+      const url = storeUrls[Platform.OS];
+      if (url && (await Linking.canOpenURL(url))) {
+        await Linking.openURL(url);
+      }
+    };
 
-        <Alert
-          message={t(`${baseMsg}.profileWarning.title`)}
-          description={t(`${baseMsg}.profileWarning.description`)}
-          type="warning"
-          showIcon
-        />
+    const mutation = useMutation({
+      mutationFn: getSimBalance,
+      onSuccess: (res) => {
+        console.log("✅ [onSuccess] Balance API:", res.data);
+        dispatch(setLoading(false));
+        res.data.voice && dispatch(updateVoice(res.data.voice));
+        res.data.callback && dispatch(updateCallback(res.data.callback === "1"));
+        res.data.profile && dispatch(updateCurrentNetwork(res.data.profile));
+        res.data.recommended_profile &&
+          dispatch(updateRecommendedNetwork(res.data.recommended_profile));
+      },
+      onError: (err) => console.error("❌ Error balance:", err),
+    });
 
-        <Label fixWidth label={t("pages.home.simOptions.title")} variant="semiBold" />
+    const { refetch: refetchCurrency } = useQuery<BalanceResponse>({
+      queryKey: ["getCurrentBalanceByCurrency", currentSim?.idSim?.toString(), globalCurrency],
+      queryFn: () => {
+        return getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
+      },
+      enabled: !!currentSim,
+      onSuccess: (data) => console.log("💱 Balance moneda:", data),
+      onError: (err) => console.error("💱 Error moneda:", err),
+    });
 
-        {mutation.isPending ? (
-          <Skeleton2x2
-            layout={
-              simType === "physical"
-                ? new Array(4).fill({
-                    width: "48%",
-                    height: 140,
-                    marginVertical: 5,
-                    borderRadius: 20,
-                  })
-                : new Array(2).fill({
-                    width: "48%",
-                    height: 135,
-                    marginVertical: 5,
-                    borderRadius: 20,
-                  })
-            }
-            containerStyle={{ width: "100%" }}
+    const { data: version, isFetching } = useQuery({
+        queryKey: ["getVersion"],
+        queryFn: () => getVersion("fantasma"),
+      });
+
+    const areVersionsEqual = useMemo(
+      () => Constants.expoConfig.version === versionFetched,
+      [versionFetched]
+    );
+  
+  // ─── 4. Mostrar modal de versión si procede ───────────────────────────────
+  useEffect(() => {
+    if (
+      version &&
+      !hasShownModal &&
+      !areVersionsEqual &&
+      refetchSims !== "true"
+    ) {
+      showModal({
+        type: "confirm",
+        title: t("pages.home-tab.versiontitle"),
+        description: t("pages.home-tab.versiondescription") + "?",
+        buttonColorConfirm: colors.primaryColor,
+        textConfirm: t("pages.home.confirm"),
+        textCancel: t("pages.home.cancel"),
+        buttonColorCancel: colors.danger,
+        onConfirm: openPlayStoreAppStore,
+      });
+      dispatch(setHasShownModal(true));
+    }
+  }, [version, hasShownModal, areVersionsEqual, refetchSims]);
+
+    
+  // ─── 5. Disparar mutación de balance cuando currentSim o countryValue cambian ───────
+  useEffect(() => {
+    if (!currentSim) return;
+    const body: BalanceRequest = {
+      id: Number(currentSim.idSim),
+      country: countryValue.split("-")[0].toUpperCase(),
+      currencyCode: countryValue.split("-")[1],
+    };
+
+    console.log("🚀 Mutating balance con:", body);
+    mutation.mutate(body);
+  }, [currentSim, countryValue]);
+
+  useEffect(() => {
+    if (currentSim?.idSim) {
+      setSelectedSimIdVisual(currentSim.idSim);
+    }
+  }, [currentSim]);
+
+    useFocusEffect(
+      useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ["getVersion"] });
+        version && setVersionFetched(version[0]?.version);
+      }, [isFetching, version])
+    );
+
+    useFocusEffect(
+      useCallback(() => {
+        if (Platform.OS === "android") {
+          const sub = BackHandler.addEventListener(
+            "hardwareBackPress",
+            () => true
+          );
+          return () => sub.remove();
+        }
+      }, [])
+    );
+
+    const onRefresh = useCallback(() => {
+      setRefreshing(true);
+      dispatch(updateCurrentCountry(countryCode));
+      const body: BalanceRequest = {
+          id: Number(currentSim.idSim),
+          currencyCode: countryValue.split("-")[1],
+          country: countryValue.split("-")[0].toUpperCase(),
+        };
+        Promise.all([mutation.mutateAsync(body), refetchCurrency()]).finally(() =>
+            setRefreshing(false)
+      );
+    }, [countryCode, mutation, refetchCurrency]);
+
+    if (!isLoggedIn || !currentSim) {
+      return <SignIn />;
+    }
+    
+    const simType = determineType(currentSim.idSim);
+
+    const data = mutation.data;
+
+    return (
+      <ScrollView
+        style={{ backgroundColor: colors.background }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            progressBackgroundColor={colors.backgroundAlternate}
+            colors={[colors.white]}
           />
-        ) : (
-          <SimOptions />
-        )}
-      </View>
-    </ScrollView>
-  );
-};
+        }
+      >
+        <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
+
+        <View style={styles.container}>
+          <SimCountry
+            sim={selectedSimIdVisual}
+            country={countryValue}
+            handleCountry={handleCountry}
+            onSelectSim={onUserSelectSim}
+          />
+          {data && <BalanceDetails data={data} />}
+
+          <NetworkProfile />
+
+          <Alert
+            message={t(`${baseMsg}.profileWarning.title`)}
+            description={t(`${baseMsg}.profileWarning.description`)}
+            type="warning"
+            showIcon
+          />
+
+          <Label fixWidth label={t("pages.home.simOptions.title")} variant="semiBold" />
+
+          {mutation.isPending ? (
+            <Skeleton2x2
+              layout={
+                simType === "physical"
+                  ? new Array(4).fill({
+                      width: "48%",
+                      height: 140,
+                      marginVertical: 5,
+                      borderRadius: 20,
+                    })
+                  : new Array(2).fill({
+                      width: "48%",
+                      height: 135,
+                      marginVertical: 5,
+                      borderRadius: 20,
+                    })
+              }
+              containerStyle={{ width: "100%" }}
+            />
+          ) : (
+            <SimOptions />
+          )}
+        </View>
+      </ScrollView>
+    );
+  };
 
 export default Home;
 
@@ -338,3 +355,4 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
 });
+

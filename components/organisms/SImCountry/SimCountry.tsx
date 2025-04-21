@@ -18,7 +18,6 @@ import { useAppSelector, useAppDispatch } from "@/hooks/hooksStoreRedux";
 // Redux actions
 import { updateCurrentCountry } from "@/features/country/countrySlice";
 import { setCurrency } from "@/features/currentCurrency/currencySlice";
-import { setSimList } from "@/features/sims/simSlice";
 
 // React Query
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -43,9 +42,10 @@ interface SimCountryProps {
   sim: string;
   country: string;
   handleCountry: (value: string) => void;
+  onSelectSim: (idSim: string) => void;
 }
 
-const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) => {
+const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, onSelectSim }) => {
   const { themeMode } = useDarkModeTheme();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -130,7 +130,9 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry }) 
             const safeSims = sims.filter(
               (sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string"
             );
-            openModal(safeSims);
+            openModal(safeSims, (pickedSim) => {
+              onSelectSim(pickedSim.idSim);
+            });
           }}
         >
           <View style={styles.simButtonContent}>
