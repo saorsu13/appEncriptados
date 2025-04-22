@@ -11,26 +11,29 @@ export default function Index() {
   const hasRedirectedRef = useRef(false);
   
   useEffect(() => {
+    console.log("🔄 [Index] useEffect → isLoading:", isLoading, "| hasRedirectedRef:", hasRedirectedRef.current);
     if (isLoading || hasRedirectedRef.current) return;
   
     InteractionManager.runAfterInteractions(async () => {
-      console.log("🔍 Autenticado:", isLoggedIn, "SIM:", user?.idSim, "Provider:", user?.provider);
+      console.log("🔍 [Index] Autenticado:", isLoggedIn, "SIM:", user?.idSim, "Provider:", user?.provider);
   
       if (!isLoggedIn || !user?.idSim) {
-        console.log("🚪 Redirigiendo a /home (no autenticado o sin SIM)");
+        console.log("🚪 [Index] Redirigiendo a /home (no autenticado o sin SIM)");
         router.replace("/(tabs)/home");
         hasRedirectedRef.current = true;
         return;
       }
   
       if (user?.provider === "tottoli") {
+        console.log("🧭 [Index] Detectado provider 'tottoli'");
         const alreadyRedirected = await getHasRedirectedFromTottoli();
-      
+        console.log("🔁 [Index] ¿Ya se redirigió desde tottoli?:", alreadyRedirected);
+
         if (!alreadyRedirected) {
-          console.warn("🚫 Redirigiendo por primera vez desde SIM 'tottoli'");
+          console.warn("🚫 [Index] Redirigiendo por primera vez desde SIM 'tottoli'");
           await setHasRedirectedFromTottoli(true);
         } else {
-          console.log("✅ Ya se redirigió antes desde 'tottoli'");
+          console.log("✅ [Index] Ya se redirigió antes desde 'tottoli'");
         }
         router.replace("/(tabs)/home");
         hasRedirectedRef.current = true;
@@ -38,7 +41,7 @@ export default function Index() {
       }
       
   
-      console.log("📦 Redirigiendo a /balance con SIM:", user.idSim);
+      console.log("📦 [Index] Redirigiendo a /balance con SIM:", user.idSim);
       router.replace({
         pathname: "/(tabs)/balance",
         params: { simId: user.idSim },
@@ -51,12 +54,15 @@ export default function Index() {
   
 
   if (isLoading || !hasRedirectedRef.current) {
-    return null;
+    console.log("⏳ [Index] Mostrando pantalla de carga...");
+    return (
+      <View style={{ flex: 1, backgroundColor: "black", justifyContent: "center", alignItems: "center" }}>
+        <Text style={{ color: "white" }}>Cargando...</Text>
+      </View>
+    );
   }
 
-  return (
-    <View style={{ flex: 1, backgroundColor: "black", justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ color: "white" }}>Cargando...</Text>
-    </View>
-  );
+
+  return null;
 }
+

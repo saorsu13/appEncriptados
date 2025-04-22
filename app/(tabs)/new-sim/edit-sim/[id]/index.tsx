@@ -40,10 +40,9 @@ import { useDispatch } from "react-redux";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
-  MyRoute: { id: string }; // O el tipo adecuado para tu ID
+  MyRoute: { id: string }; 
 };
 
-// Define el tipo de la ruta usando RouteProp
 type MyRouteProp = RouteProp<RootStackParamList, "MyRoute">;
 const Login = () => {
   const { isModalVisible } = useModalPassword();
@@ -80,12 +79,24 @@ const Login = () => {
   const handleSubmit = async (values) => {
     try {
       const uuid = await getDeviceUUID();
+      console.log("📦 [edit-sim] Enviando actualización:", {
+        id: params.id,
+        name: values.simName,
+        uuid,
+      });
+
       await updateSubscriber(params.id, uuid, {
         provider: "tottoli",
         name: values.simName,
       });
-  
-  
+      
+      await AsyncStorage.setItem("currentICCID", params.id);
+      dispatch({
+        type: "sims/updateCurrentSim",
+        payload: params.id,
+      });
+      console.log("✅ [edit-sim] SIM actualizada en AsyncStorage y store:", params.id);
+    
       showModal({
         type: "confirm",
         buttonColorConfirm: colors.primaryColor,
@@ -94,12 +105,19 @@ const Login = () => {
         textConfirm: t("modalSimActivate.goToPanel"),
         title: t("modalSimActivate.changeNameSimTitle"),
         onConfirm: () => {
-          router.replace("/home?refetchSims=true");
-          formik.resetForm();
-        },
-      });
+          router.replace({
+            pathname: "/home",
+            params: {
+              simId: params.id,
+              refetchSims: "true",
+            },
+          });
+          console.log("🚀 [edit-sim] Redirigiendo a Home con SIM ID:", params.id);
+        formik.resetForm();
+      },
+    });
     } catch (err) {
-      console.error("🚨 Error al actualizar la SIM:", err);
+      console.error("🚨 [edit-sim] Error al actualizar la SIM:", err);
       showModal({
         type: "alert",
         title: "Error",

@@ -11,17 +11,24 @@ export function useRestoreSession(deviceUUID: string | null) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!deviceUUID) return;
+    if (!deviceUUID) {
+      console.warn("🔌 [useRestoreSession] No hay deviceUUID, cancelando restauración");
+      return;
+    } 
 
     const restore = async () => {
+      console.log("🧩 [useRestoreSession] Iniciando restauración con UUID:", deviceUUID);
       const auth = useAuth();
+
       const iccid = await AsyncStorage.getItem("currentICCID");
+      console.log("📦 [useRestoreSession] ICCID guardado:", iccid);
 
       try {
         const listResponse = await listSubscriber(deviceUUID);
+        console.log("📡 [useRestoreSession] SIMs obtenidas del backend:", listResponse);
 
         if (!Array.isArray(listResponse) || listResponse.length === 0) {
-          console.warn("⚠️ Lista de SIMs vacía. Borrando ICCID");
+          console.warn("⚠️ [useRestoreSession] Lista de SIMs vacía. Borrando ICCID y cerrando sesión.");
           await AsyncStorage.removeItem("currentICCID");
           auth.signOut();
           setRestoring(false);
@@ -35,18 +42,21 @@ export function useRestoreSession(deviceUUID: string | null) {
           iccid: sim.iccid,
           code: sim.code ?? "",
         }));
-
+        console.log("🧾 [useRestoreSession] SIMs parseadas:", parsedSims);
         dispatch(setSims(parsedSims));
 
         if (!iccid) {
-          console.warn("🚫 No hay ICCID guardado. Saltando validación de existencia.");
+          console.warn("🚫 [useRestoreSession] No hay ICCID en almacenamiento. No se valida existencia.");
           setRestoring(false);
           return;
         }
 
         const simExists = listResponse.some((sim) => String(sim.iccid) === String(iccid));
+        console.log("🔎 [useRestoreSession] ¿SIM guardada existe?", simExists);
+
+
         if (!simExists) {
-          console.warn("❌ SIM guardada no existe, limpiando sesión");
+          console.warn("❌ [useRestoreSession] La SIM guardada no existe en la lista. Cerrando sesión.");
           await AsyncStorage.removeItem("currentICCID");
           auth.signOut();
           setRestoring(false);
@@ -54,14 +64,19 @@ export function useRestoreSession(deviceUUID: string | null) {
         }
 
         const response = await getSubscriberData(iccid, deviceUUID);
+        console.log("📬 [useRestoreSession] Detalle de SIM restaurada:", response);
 
         const provider = response?.providers?.[0]?.provider;
-        if (provider) setRestoredProvider(provider);
+        if (provider){
+          console.log("🏷️ [useRestoreSession] Provider restaurado:", provider);
+           setRestoredProvider(provider);
+        }
       } catch (err) {
-        console.error("🧨 Error restaurando sesión:", err);
+        console.error("🧨 [useRestoreSession] Error restaurando sesión:", err);
         auth.signOut();
       } finally {
         setRestoring(false);
+        console.log("✅ [useRestoreSession] Restauración finalizada");
       }
     };
 

@@ -45,7 +45,7 @@ import { ThemeCustom } from "@/config/theme2";
 
 //ESTE ANY DEBE ELIMINARSE LUEGO, ESTO ES POR EL MAL CODIGO QUE DEJARON =(
 
-const BalanceDetails = ({ data }: any) => {
+const BalanceDetails = React.memo(({ data }: any) => {
   // ============ HOOKS ============
   const [prevBalance, setPrevBalance] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
@@ -66,7 +66,7 @@ const BalanceDetails = ({ data }: any) => {
   const balance = useAppSelector((state) => state.insufficientFunds);
 
   // ============ UTIL ============
-  const simType = determineType(currentSim?.idSim);
+  const simType = useMemo(() => determineType(currentSim?.idSim), [currentSim?.idSim]);
 
   // ============ API QUERY ============
   const { data: getbalance, isFetching, refetch } = useQuery<BalanceResponse>({
@@ -74,6 +74,7 @@ const BalanceDetails = ({ data }: any) => {
     queryKey: ["getCurrentBalanceByCurrency", currentSim?.idSim, globalCurrency],
     queryFn: async () => {
       if (!currentSim) return null;
+      console.log("🔍 [BalanceDetails] Llamando a API getCurrentBalanceByCurrency con:", currentSim?.idSim, globalCurrency);
       return await getCurrentBalanceByCurrency(currentSim?.idSim, globalCurrency);
     },
     enabled: !!currentSim,
@@ -81,18 +82,20 @@ const BalanceDetails = ({ data }: any) => {
 
   // ============ EFFECTS ============
   useEffect(() => {
-    if (!isFetching && getbalance) {
+    if (!isFetching && getbalance && getbalance.balance?.toFixed(2) !== prevBalance.toFixed(2)) {
+      console.log("📥 [BalanceDetails] API balance recibido:", getbalance);
       dispatch(setBalance(formatNumber(getbalance.balance?.toFixed(2))));
+      setPrevBalance(getbalance.balance);
     }
   }, [getbalance, isFetching]);
 
   useFocusEffect(
     useCallback(() => {
-      if (currentSim) {
-        console.log("🔄 Refetching balance para SIM:", currentSim.idSim);
+      if (!currentSim) return;
+
+        console.log("🔄 [BalanceDetails] useFocusEffect refetch para SIM:", currentSim.idSim);
         refetch();
-      }
-    }, [refetch, currentSim])
+    }, [currentSim?.idSim])
   );
   
 
@@ -308,7 +311,7 @@ const BalanceDetails = ({ data }: any) => {
       />
     </View>
   );
-};
+});
 
 export default BalanceDetails;
 

@@ -96,7 +96,6 @@ const formik = useFormik({
   onSubmit: handleSubmit,
 });
 
-// Efectos de ciclo de vida
 useFocusEffect(
   useCallback(() => {
     setTypeOfProcess("newsim");
@@ -105,7 +104,6 @@ useFocusEffect(
 );
 
 useEffect(() => {
-  // Persistir o leer estado si es necesario
   const fetchPersistedState = async () => {
     try {
       const persisted = await AsyncStorage.getItem("root");
@@ -118,18 +116,17 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  // Actualizar el contexto con el ICCID actual
-  setCurrentIdSim(formik.values.simNumber);
-  // Determinar tipo de SIM
-  setType(determineType(formik.values.simNumber));
+  const sim = formik.values.simNumber;
+  const resolvedType = determineType(sim);
+  console.log("🔍 [new-sim] SIM cambiada:", sim, "| Tipo detectado:", resolvedType);
+  setCurrentIdSim(sim);
+  setType(resolvedType);
 }, [formik.values.simNumber]);
 
 useEffect(() => {
-  // Mostrar/ocultar botón de alerta según mensaje
   setShowAlertButton(!!alertMessage);
 }, [alertMessage]);
 
-// Handlers de negocio
 function handleSubmit(values) {
   if (Object.keys(formik.errors).length) {
     setRequestCodeModal(false);
@@ -140,8 +137,11 @@ function handleSubmit(values) {
 
 async function handleRequestCode() {
   if (!type) return;
+  console.log("⚠️ [new-sim] Tipo de SIM no definido, saliendo...");
+
   try {
     const isSim19Digits = formik.values.simNumber.length === 19;
+    console.log("🔢 [new-sim] SIM:", formik.values.simNumber, "| Tipo:", isSim19Digits ? "telco-vision" : "tottoli");
 
     const subscriberData = {
       iccid: formik.values.simNumber,
@@ -149,10 +149,14 @@ async function handleRequestCode() {
       name: isSim19Digits ? "Sim" : "Sim",
       uuid: await getDeviceUUID(),
     };
+    console.log("📦 [new-sim] Datos a enviar:", subscriberData);
 
     const result = await createSubscriber(subscriberData);
+    console.log("✅ [new-sim] Resultado API:", result);
 
     if (result.code === "duplicate_iccid" || result.id) {
+      console.log("🎉 [new-sim] SIM creada o duplicada, mostrando modal de éxito");
+
       showModal?.(); 
       setModalSuccessVisible(true); 
       dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
@@ -161,13 +165,13 @@ async function handleRequestCode() {
         params: {
           simId: formik.values.simNumber, 
           refetchSims: "true"
-        }
+        },
       });
     } else {
       throw new Error("Failed to create");
     }
   } catch (err) {
-    console.error("Error al crear la SIM:", err);
+    console.error("[new-sim] Error al crear la SIM:", err);
     showModal?.(); 
   }
 }

@@ -24,46 +24,68 @@ export const simSlice = createSlice({
   initialState,
   reducers: {
     addSim: (state, action: PayloadAction<Sim>) => {
+      console.log("🟢 [addSim] Recibido:", action.payload);
       if (!state.sims.find((item) => item.idSim === action.payload.idSim)) {
         state.sims.push(action.payload);
+        console.log("✅ [addSim] SIM agregada:", action.payload.idSim);
+      } else {
+        console.log("⚠️ [addSim] SIM ya existe, no se agregó:", action.payload.idSim);
       }
     },
     updateCurrentSim: (state, action: PayloadAction<string>) => {
+      console.log("🔄 [updateCurrentSim] Buscando SIM con idSim:", action.payload);
       const sim = state.sims.find((item) => item.idSim === action.payload);
       if (sim) {
         state.currentSim = sim;
+        console.log("✅ [updateCurrentSim] SIM actualizada:", sim);
+      } else {
+        console.warn("❌ [updateCurrentSim] SIM no encontrada:", action.payload);
       }
     },
     updateSimName: (state, action: PayloadAction<{ idSim: string; newName: string }>) => {
       const { idSim, newName } = action.payload;
       const sim = state.sims.find((s) => s.idSim === idSim);
       if (sim) {
+        console.log(`✏️ [updateSimName] Actualizando nombre de SIM ${idSim} a '${newName}'`);
         sim.simName = newName;
       }
       if (state.currentSim?.idSim === idSim) {
         state.currentSim.simName = newName;
+        console.log(`✏️ [updateSimName] También se actualizó el nombre de la SIM actual`);
       }
     },
     deleteSim: (state, action: PayloadAction<string>) => {
+      console.log("🗑️ [deleteSim] Eliminando SIM con idSim:", action.payload);
       state.sims = state.sims.filter((item) => item.idSim !== action.payload);
       if (state.currentSim?.idSim === action.payload) {
         state.currentSim = state.sims.length ? state.sims[0] : null;
+        console.log("⚠️ [deleteSim] SIM eliminada era la actual. Nueva actual:", state.currentSim);
       }
     },
     deleteAllSims: (state) => {
+      console.log("💣 [deleteAllSims] Todas las SIMs fueron eliminadas");
       state.sims = [];
       state.currentSim = null;
     },
     resetSimState: (state) => {
+      console.log("🔄 [resetSimState] Estado reseteado");
       state.sims = [];
       state.currentSim = null;
     },
     setSims: (state, action: PayloadAction<Sim[]>) => {
+      const prevCurrentId = state.currentSim?.idSim;
       state.sims = action.payload;
-      state.currentSim = action.payload.length ? action.payload[0] : null;
+    
+      const exists = state.sims.find((sim) => sim.idSim === prevCurrentId);
+      state.currentSim = exists ?? (state.sims.length ? state.sims[0] : null);
+    
+      console.log("📦 [setSims] Estableciendo SIMs:", state.sims);
+      console.log("📍 [setSims] currentSim seteado a:", state.currentSim);
     },
+    
   },
 });
+
 
 export const {
   addSim,

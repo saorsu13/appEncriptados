@@ -63,7 +63,7 @@ export function useAuth() {
 
 const storeUser = async (user: User, balance: string | null) => {
   try {
-    console.log("💾 Guardando user en AsyncStorage:", user);
+    console.log("💾 [storeUser] Guardando user en AsyncStorage:", user);
     await AsyncStorage.setItem("@user", JSON.stringify(user));
     await AsyncStorage.setItem("@balance", balance ?? "");
   } catch (e) {
@@ -73,6 +73,7 @@ const storeUser = async (user: User, balance: string | null) => {
 
 const deleteUser = async () => {
   try {
+    console.log("🧹 [deleteUser] Borrando datos del usuario de AsyncStorage");
     await AsyncStorage.removeItem("@user");
     await AsyncStorage.removeItem("@balance");
   } catch (e) {
@@ -87,19 +88,20 @@ export const loadUser = async (): Promise<{ user: User | null; balance: string |
 
     if (userString) {
       const user = JSON.parse(userString);
-      console.log("🔄 Restaurando sesión desde AsyncStorage:", user);
-      // if (user?.provider === "tottoli") {
-      //   console.warn("🟡 Usuario tottoli detectado. No se borra, pero se maneja aparte");
-      //   return { user, balance };
-      // }
+      console.log("🔄 [loadUser] Restaurando sesión desde AsyncStorage:", user);
+
+      if (user?.provider === "tottoli") {
+        console.warn("🟡 [loadUser] Usuario tottoli detectado (no se borra, se maneja aparte)");
+        return { user, balance };
+      }
 
     }
-
+    console.log("📡 [loadUser] Intentando restaurar usuario desde backend...");
     const uuid = await getDeviceUUID();
     const sims = await listSubscriber(uuid);
 
     if (!Array.isArray(sims) || sims.length === 0 || sims?.code === "not_found") {
-      console.warn("📭 No hay SIMs asociadas al UUID. Borrando sesión.");
+      console.warn("📭 [loadUser] No hay SIMs asociadas al UUID. Borrando sesión.");
       return { user: null, balance: null };
     }
 
@@ -110,10 +112,10 @@ export const loadUser = async (): Promise<{ user: User | null; balance: string |
       provider: sims[0].provider,
     };
 
-    console.log("♻️ Restaurando sesión fallback:", restoredUser);
+    console.log("♻️ [loadUser] Restaurando sesión fallback con SIM:", restoredUser);
     return { user: restoredUser, balance: "" };
   } catch (e) {
-    console.error("❌ Error al restaurar sesión:", e);
+    console.error("❌ [loadUser] Error al restaurar sesión:", e);
     return { user: null, balance: null };
   }
 };
@@ -145,12 +147,15 @@ export function AuthProvider({
       if (user && user.idSim) {
         setUser(user);
         setBalance(balance);
+        console.log("📲 [AuthProvider] Agregando SIM al store:", user);
         dispatch(addSim(user));
-        dispatch(updateCurrentSim(user.idSim));
+        // dispatch(updateCurrentSim(user.idSim));
         if (!modalRequiredPassword) {
+          console.log("🔓 [AuthProvider] Usuario autenticado sin requerir contraseña");
           setIsLoggedIn(true);
         }
       } else {
+        console.warn("🚫 [AuthProvider] Usuario no válido. Reiniciando estado.");
         setUser(null);
         setBalance(null);
         setIsLoggedIn(false);
@@ -169,16 +174,18 @@ export function AuthProvider({
           newProviders: ProviderType[] = [],
           userBalance?: string
         ) => {
+          console.log("🔐 [signIn] Usuario iniciando sesión:", user);
           setBalance(userBalance ?? null);
           setUser(user);
           setProviders(newProviders);
           dispatch(addSim(user));
-          dispatch(updateCurrentSim(user.idSim));
+          // dispatch(updateCurrentSim(user.idSim));
           storeUser(user, userBalance);
           setIsLoggedIn(true);
         },
 
         signOut: () => {
+          console.log("🚪 [signOut] Cierre de sesión ejecutado");
           setUser(null);
           setIsLoggedIn(false);
           setProviders([]);
