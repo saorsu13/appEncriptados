@@ -11,6 +11,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -168,15 +169,19 @@ const SignIn = () => {
 
               <Button
                 onClick={() => {
-                  inputRef.current?.focus(); // evita que se bluree el input (y se cierre el teclado)
+                  inputRef.current?.focus();
                   formik.handleSubmit();
                 }}
                 variant="primaryPress"
                 disabled={!formik.isValid || !formik.values.simNumber}
               >
-                <Text allowFontScaling={false} style={styles.loadingButton}>
-                  {formik.values.simNumber.length === 19 ? "Activar SIM" : "Solicitar código"}
-                </Text>
+                {localLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text allowFontScaling={false} style={styles.loadingButton}>
+                    {formik.values.simNumber.length === 19 ? "Activar SIM" : "Solicitar código"}
+                  </Text>
+                )}
               </Button>
 
               <StepList title={t(`${baseMsg}.form.stepsList.title`)} items={[t(`${baseMsg}.form.stepsList.step1`), t(`${baseMsg}.form.stepsList.step2`), t(`${baseMsg}.form.stepsList.step3`)]} />

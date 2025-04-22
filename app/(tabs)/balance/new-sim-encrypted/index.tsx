@@ -8,6 +8,9 @@ import {
   ScrollView,
   Text,
   ImageBackground,
+  ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useFormik } from "formik";
 import InputField from "@/components/molecules/InputField/InputFIeld";
@@ -56,14 +59,11 @@ const Login = () => {
 
   const [newSimProvider, setNewSimProvider] = useState<string | null>(null);
 
-
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
       .required(t("validators.required"))
-      .matches(/^(\d{6}|\d{19})$/, t("validators.invalidSim"))
+      .matches(/^(\d{6}|\d{19})$/, t("validators.invalidSim")),
   });
-  
-  
 
   const handleSubmit = async (values) => {
     if (Object.keys(formik.errors).length > 0) return;
@@ -73,28 +73,29 @@ const Login = () => {
     }
     try {
       setIsLoading(true);
-      const subscriberData = values.simNumber.length === 6
-        ? {
+      const subscriberData =
+        values.simNumber.length === 6
+          ? {
             iccid: values.simNumber,
             provider: "tottoli",
             name: "Sim",
             uuid: deviceUUID,
           }
-        : {
+          : {
             iccid: values.simNumber,
             provider: "telco-vision",
             name: "Sim",
             uuid: deviceUUID,
           };
-  
+
       console.log("🆕 Creando SIM con provider:", subscriberData.provider);
-  
+
       const result = await createSubscriber(subscriberData);
       setNewSimProvider(subscriberData.provider);
-  
+
       console.log("📦 SIM creada. Guardando ICCID:", values.simNumber);
       await AsyncStorage.setItem("currentICCID", values.simNumber);
-  
+
       setModalSuccessVisible(true);
     } catch (error) {
       console.error("❌ Error al crear la SIM:", error);
@@ -104,23 +105,22 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-  
+
   const handleSuccessModalClose = async () => {
     setModalSuccessVisible(false);
     await AsyncStorage.setItem("currentICCID", formik.values.simNumber);
-  
+
     console.log("📲 Cerrando modal de éxito");
     console.log("✅ Provider guardado:", newSimProvider);
     console.log("➡️ Redirigiendo a:", newSimProvider === "tottoli" ? "/home" : "/balance");
-  
+
     if (newSimProvider === "tottoli") {
       router.replace("/home");
     } else {
       router.replace("/balance");
     }
   };
-  
-  
+
   useEffect(() => {
     const fetchPersistedState = async () => {
       try {
@@ -173,100 +173,115 @@ const Login = () => {
   );
 
   return (
-    <ScrollView>
-      <HeaderEncrypted owner="encriptados"  iconBack="/balance" />
-      <View
-        style={[
-          styles.container,
-          {
-            backgroundColor:
-              themeMode === "dark" ? "#000" : theme.lightMode.colors.white,
-          },
-        ]}
-      >
-        <View style={styles.containerHeader}>
-          <ImageBackground
-            source={LoginHeaderImage}
-            resizeMode="cover"
-            imageStyle={styles.background}
-          >
-            <View style={styles.containerHeaderImage}>
-              <Text
-                allowFontScaling={false}
-                style={styles.containerHeaderTitle}
-              >
-                {t(`pages.newSim.title`)}
-              </Text>
-            </View>
-          </ImageBackground>
-        </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <HeaderEncrypted owner="encriptados" iconBack="/balance" />
+        <View
+          style={[
+            styles.container,
+            {
+              backgroundColor:
+                themeMode === "dark" ? "#000" : theme.lightMode.colors.white,
+            },
+          ]}
+        >
+          <View style={styles.containerHeader}>
+            <ImageBackground
+              source={LoginHeaderImage}
+              resizeMode="cover"
+              imageStyle={styles.background}
+            >
+              <View style={styles.containerHeaderImage}>
+                <Text
+                  allowFontScaling={false}
+                  style={styles.containerHeaderTitle}
+                >
+                  {t(`pages.newSim.title`)}
+                </Text>
+              </View>
+            </ImageBackground>
+          </View>
 
-        <View style={styles.containerForm}>
-          <View style={styles.containerTitleForm}>
-          </View>
-          <View style={styles.containerFormFields}>
-            <InputField
-              label={t(`${baseMsg}.fields.sim.label`)}
-              onChangeText={formik.handleChange("simNumber")}
-              handleBlur={formik.handleBlur("simNumber")}
-              value={formik.values.simNumber}
-              error={formik.touched.simNumber ? formik.errors.simNumber : null}
-              required={true}
-              placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
-              suffixIcon={
-                <IconSvg
-                  width={25}
-                  height={25}
-                  type="info"
-                  color={theme.colors.contrast}
-                />
-              }
-              inputMode="numeric"
-              maxLength={19}
-              status={
-                type
-                  ? "success"
-                  : formik.values.simNumber.length === 19
-                  ? "info"
-                  : null
-              }
-              statusMessage={
-                !type
-                  ? t(`${baseMsg}.fields.sim.invalidSim`)
-                  : t(`${baseMsg}.fields.sim.${type}Sim`)
-              }
-              onPressIcon={handleInfoModal}
-            />
-          </View>
-          {showAlertButton && (
-            <AlertButton
-              onPress={() => {
-                if (alertType === "success") {
-                  setAlertMessage("");
-                  router.replace("/balance");
+          <View style={styles.containerForm}>
+            <View style={styles.containerTitleForm}></View>
+            <View style={styles.containerFormFields}>
+              <InputField
+                label={t(`${baseMsg}.fields.sim.label`)}
+                onChangeText={formik.handleChange("simNumber")}
+                handleBlur={formik.handleBlur("simNumber")}
+                value={formik.values.simNumber}
+                error={formik.touched.simNumber ? formik.errors.simNumber : null}
+                required={true}
+                placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
+                suffixIcon={
+                  <IconSvg
+                    width={25}
+                    height={25}
+                    type="info"
+                    color={theme.colors.contrast}
+                  />
                 }
-              }}
-              message={alertMessage}
-              type={alertType as any}
-            />
-          )}
-          <Text style={{ marginTop: 100, alignSelf: "center", color: "#9A9A9A" }}>
-            {t("pages.home.useFive")}
-          </Text>
-          
-          <View style={styles.bottomButtonContainer}>
-            <Button onClick={formik.handleSubmit} variant="primaryPress" disabled={!formik.isValid || !formik.values.simNumber}>
-              <Text style={styles.buttonText}>{t(`${baseMsg}.actions.active`)}</Text>
-            </Button>
+                inputMode="numeric"
+                maxLength={19}
+                status={
+                  type
+                    ? "success"
+                    : formik.values.simNumber.length === 19
+                      ? "info"
+                      : null
+                }
+                statusMessage={
+                  !type
+                    ? t(`${baseMsg}.fields.sim.invalidSim`)
+                    : t(`${baseMsg}.fields.sim.${type}Sim`)
+                }
+                onPressIcon={handleInfoModal}
+              />
+            </View>
+
+            <Text style={{ marginTop: 10, alignSelf: "center", color: "#9A9A9A" }}>
+              {t("pages.home.useFive")}
+            </Text>
+
+            {showAlertButton && (
+              <AlertButton
+                onPress={() => {
+                  if (alertType === "success") {
+                    setAlertMessage("");
+                    router.replace("/balance");
+                  }
+                }}
+                message={alertMessage}
+                type={alertType as any}
+              />
+            )}
+
+            <View style={styles.bottomButtonContainer}>
+
+              <Button
+                onClick={formik.handleSubmit}
+                variant="primaryPress"
+                disabled={!formik.isValid || !formik.values.simNumber}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#ffff" />
+                ) : (
+                  <Text style={styles.buttonText}>
+                    {t(`${baseMsg}.actions.active`)}
+                  </Text>
+                )}
+              </Button>
+
+            </View>
           </View>
         </View>
-      </View>
-      <SuccessModal
-        visible={modalSuccessVisible}
-        simNumber={formik.values.simNumber}
-        onClose={handleSuccessModalClose}
-      />
-    </ScrollView>
+        <SuccessModal
+          visible={modalSuccessVisible}
+          simNumber={formik.values.simNumber}
+          onClose={handleSuccessModalClose}
+        />
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -334,8 +349,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   bottomButtonContainer: {
-    marginTop: 100,
-    marginBottom: 40,
+    marginTop: 10,
     alignItems: "center",
-  },  
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });

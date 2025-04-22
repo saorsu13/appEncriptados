@@ -15,6 +15,9 @@ import {
   Text,
   ImageBackground,
   Pressable,
+  ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 
 // Theming y estilos
@@ -45,322 +48,325 @@ import InputField from "@/components/molecules/InputField/InputFIeld";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import Button from "@/components/atoms/Button/Button";
 import StepList from "@/components/molecules/StepList/StepList";
-import VerificationSim from "@/components/organisms/VerificationSim/VerificationSim";
 import ModalInfo from "@/components/molecules/ModalInfo";
 import Alert from "@/components/molecules/Alert";
 import AlertButton from "@/components/molecules/AlertButton/AlertButton";
-import SuccessModal from "@/components/molecules/SuccessModal/SuccessModal";
-import InsertSimCardModal from "@/components/molecules/InsertSimCardModal/InsertSimCardModal";
 
 const Login = () => {
   // Constantes
-const LoginHeaderImage = require("@/assets/images/new-sim-hero.png");
-const baseMsg = "pages.login";
+  const LoginHeaderImage = require("@/assets/images/new-sim-hero.png");
+  const baseMsg = "pages.login";
 
-// Contextos y dispatch
-const { setTypeOfProcess, showModal, setCurrentIdSim, typeOfProcess } = useModalActivateSim();
-const { isModalVisible } = useModalPassword();
-const dispatch = useDispatch();
-const auth = useAuth();
-const loginQuery = useLogin();
-const { t } = useTranslation();
-const { themeMode } = useDarkModeTheme();
-const { colors } = useTheme<ThemeCustom>();
+  // Contextos y dispatch
+  const { setTypeOfProcess, showModal, setCurrentIdSim, typeOfProcess } = useModalActivateSim();
+  const { isModalVisible } = useModalPassword();
+  const dispatch = useDispatch();
+  const auth = useAuth();
+  const loginQuery = useLogin();
+  const { t } = useTranslation();
+  const { themeMode } = useDarkModeTheme();
+  const { colors } = useTheme<ThemeCustom>();
 
-// Estados locales
-const [modalSuccessVisible, setModalSuccessVisible] = useState(false);
-const [requestCodeModal, setRequestCodeModal] = useState(false);
-const [modalVisible, setModalVisible] = useState(false);
-const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
+  // Estados locales
+  const [modalSuccessVisible, setModalSuccessVisible] = useState(false);
+  const [requestCodeModal, setRequestCodeModal] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
+  const [isRequestingCode, setIsRequestingCode] = useState(false);
 
-const [alertMessage, setAlertMessage] = useState("");
-const [alertType, setAlertType] = useState("");
-const [showAlertButton, setShowAlertButton] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
+  const [showAlertButton, setShowAlertButton] = useState(false);
 
-const [isLoading, setIsLoading] = useState(false);
-const [type, setType] = useState<any>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [type, setType] = useState<any>(false);
 
-// Validación con Yup
-const validationSchema = Yup.object().shape({
-  simNumber: Yup.string()
-    .required(t("validators.required"))
-    .test("len", t("validators.invalidSim"), (val) => 
-      val.length === 6 || val.length === 19
-  ),
-});
+  // Validación con Yup
+  const validationSchema = Yup.object().shape({
+    simNumber: Yup.string()
+      .required(t("validators.required"))
+      .test("len", t("validators.invalidSim"), (val) =>
+        val.length === 6 || val.length === 19
+      ),
+  });
 
-// Formik
-const formik = useFormik({
-  initialValues: { simNumber: "" },
-  validationSchema,
-  onSubmit: handleSubmit,
-});
+  // Formik
+  const formik = useFormik({
+    initialValues: { simNumber: "" },
+    validationSchema,
+    onSubmit: handleSubmit,
+  });
 
-// Efectos de ciclo de vida
-useFocusEffect(
-  useCallback(() => {
-    setTypeOfProcess("newsim");
-    formik.resetForm();
-  }, [])
-);
-
-useEffect(() => {
-  // Persistir o leer estado si es necesario
-  const fetchPersistedState = async () => {
-    try {
-      const persisted = await AsyncStorage.getItem("root");
-      if (persisted) JSON.parse(persisted);
-    } catch (err) {
-      console.error("Error al obtener el estado persistido:", err);
-    }
-  };
-  fetchPersistedState();
-}, []);
-
-useEffect(() => {
-  // Actualizar el contexto con el ICCID actual
-  setCurrentIdSim(formik.values.simNumber);
-  // Determinar tipo de SIM
-  setType(determineType(formik.values.simNumber));
-}, [formik.values.simNumber]);
-
-useEffect(() => {
-  // Mostrar/ocultar botón de alerta según mensaje
-  setShowAlertButton(!!alertMessage);
-}, [alertMessage]);
-
-// Handlers de negocio
-function handleSubmit(values) {
-  if (Object.keys(formik.errors).length) {
-    setRequestCodeModal(false);
-    return;
-  }
-  setRequestCodeModal(true);
-}
-
-async function handleRequestCode() {
-  if (!type) return;
-  try {
-    const isSim19Digits = formik.values.simNumber.length === 19;
-
-    const subscriberData = {
-      iccid: formik.values.simNumber,
-      provider: isSim19Digits ? "telco-vision" : "tottoli",
-      name: isSim19Digits ? "Sim" : "Sim",
-      uuid: await getDeviceUUID(),
-    };
-
-    const result = await createSubscriber(subscriberData);
-
-    if (result.code === "duplicate_iccid" || result.id) {
-      showModal?.(); 
-      setModalSuccessVisible(true); 
-      dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
-      router.replace({
-        pathname: "/home",
-        params: {
-          simId: formik.values.simNumber, 
-          refetchSims: "true"
-        }
-      });
-    } else {
-      throw new Error("Failed to create");
-    }
-  } catch (err) {
-    console.error("Error al crear la SIM:", err);
-    showModal?.(); 
-  }
-}
-
-async function validateCode(code) {
-  setIsLoading(true);
-  setAlertMessage("");
-  setAlertType("");
-  setShowAlertButton(false);
-
-  let message = "";
-  try {
-    const { error } = await loginQuery.loginRequest(
-      formik.values.simNumber,
-      code,
-      "SIM"
-    );
-    if (error) {
-      message = "SIM o Código no válido. Vuelve a intentarlo";
-      setAlertType("error");
-    } else {
-      message = "SIM activada. Undir aquí para acceder a la configuración.";
-      setAlertType("success");
+  // Efectos de ciclo de vida
+  useFocusEffect(
+    useCallback(() => {
+      setTypeOfProcess("newsim");
       formik.resetForm();
+    }, [])
+  );
+
+  useEffect(() => {
+    // Persistir o leer estado si es necesario
+    const fetchPersistedState = async () => {
+      try {
+        const persisted = await AsyncStorage.getItem("root");
+        if (persisted) JSON.parse(persisted);
+      } catch (err) {
+        console.error("Error al obtener el estado persistido:", err);
+      }
+    };
+    fetchPersistedState();
+  }, []);
+
+  useEffect(() => {
+    // Actualizar el contexto con el ICCID actual
+    setCurrentIdSim(formik.values.simNumber);
+    // Determinar tipo de SIM
+    setType(determineType(formik.values.simNumber));
+  }, [formik.values.simNumber]);
+
+  useEffect(() => {
+    // Mostrar/ocultar botón de alerta según mensaje
+    setShowAlertButton(!!alertMessage);
+  }, [alertMessage]);
+
+  // Handlers de negocio
+  function handleSubmit(values) {
+    if (Object.keys(formik.errors).length) {
+      setRequestCodeModal(false);
+      return;
     }
-  } catch {
-    message = "Ocurrió un error al realizar la petición";
-    setAlertType("error");
+    setRequestCodeModal(true);
   }
 
-  setAlertMessage(message);
-  setIsLoading(false);
-  setRequestCodeModal(false);
-  setShowAlertButton(true);
-  return message;
-}
+  async function handleRequestCode() {
+    if (!type) return;
+    try {
+      setIsRequestingCode(true)
 
-// Helpers de UI
-const handleInfoModal = () => setModalVisible((v) => !v);
-const handleInfoHowToWorkModal = () => setModalHowToWorkVisible((v) => !v);
+      const isSim19Digits = formik.values.simNumber.length === 19;
+
+      const subscriberData = {
+        iccid: formik.values.simNumber,
+        provider: isSim19Digits ? "telco-vision" : "tottoli",
+        name: isSim19Digits ? "Sim" : "Sim",
+        uuid: await getDeviceUUID(),
+      };
+
+      const result = await createSubscriber(subscriberData);
+
+      if (result.code === "duplicate_iccid" || result.id) {
+        showModal?.();
+        setModalSuccessVisible(true);
+        dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
+        router.replace({
+          pathname: "/home",
+          params: {
+            simId: formik.values.simNumber,
+            refetchSims: "true"
+          }
+        });
+      } else {
+        throw new Error("Failed to create");
+      }
+    } catch (err) {
+      console.error("Error al crear la SIM:", err);
+      showModal?.();
+    } finally {
+      setIsRequestingCode(false);
+    }
+  }
+
+  async function validateCode(code) {
+    setIsLoading(true);
+    setAlertMessage("");
+    setAlertType("");
+    setShowAlertButton(false);
+
+    let message = "";
+    try {
+      const { error } = await loginQuery.loginRequest(
+        formik.values.simNumber,
+        code,
+        "SIM"
+      );
+      if (error) {
+        message = "SIM o Código no válido. Vuelve a intentarlo";
+        setAlertType("error");
+      } else {
+        message = "SIM activada. Undir aquí para acceder a la configuración.";
+        setAlertType("success");
+        formik.resetForm();
+      }
+    } catch {
+      message = "Ocurrió un error al realizar la petición";
+      setAlertType("error");
+    }
+
+    setAlertMessage(message);
+    setIsLoading(false);
+    setRequestCodeModal(false);
+    setShowAlertButton(true);
+    return message;
+  }
+
+  // Helpers de UI
+  const handleInfoModal = () => setModalVisible((v) => !v);
+  const handleInfoHowToWorkModal = () => setModalHowToWorkVisible((v) => !v);
 
 
   return (
-    <ScrollView>
-      {/* Header */}
-      <HeaderEncrypted
-        title={t(`pages.newSim.pageTitle`)}
-        iconBack="/home"
-      />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        {/* Header */}
+        <HeaderEncrypted
+          title={t(`pages.newSim.pageTitle`)}
+          iconBack="/home"
+        />
 
-      {/* Contenedor principal */}
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: themeMode === "dark" ? "#000" : theme.lightMode.colors.white },
-        ]}
-      >
-        {/* Sección Hero */}
-        <View style={styles.containerHeader}>
-          <ImageBackground
-            source={LoginHeaderImage}
-            resizeMode="cover"
-            imageStyle={styles.background}
-          >
-            <View style={styles.containerHeaderImage}>
-              <Text allowFontScaling={false} style={styles.containerHeaderTitle}>
-                {t(`pages.newSim.title`)}
-              </Text>
-            </View>
-          </ImageBackground>
-        </View>
-
-        {/* Formulario de SIM */}
-        <View style={styles.containerForm}>
-          {/* Título y enlace de ayuda */}
-          <View style={styles.containerTitleForm}>
-            <Text
-              allowFontScaling={false}
-              style={[
-                styles.titleForm,
-                { color: themeMode === "dark" ? theme.colors.textContrast : "#454545" },
-              ]}
+        {/* Contenedor principal */}
+        <View
+          style={[
+            styles.container,
+            { backgroundColor: themeMode === "dark" ? "#000" : theme.lightMode.colors.white },
+          ]}
+        >
+          {/* Sección Hero */}
+          <View style={styles.containerHeader}>
+            <ImageBackground
+              source={LoginHeaderImage}
+              resizeMode="cover"
+              imageStyle={styles.background}
             >
-              {t(`${baseMsg}.form.title`)}
-            </Text>
-            <Pressable onPress={handleInfoHowToWorkModal}>
+              <View style={styles.containerHeaderImage}>
+                <Text allowFontScaling={false} style={styles.containerHeaderTitle}>
+                  {t(`pages.newSim.title`)}
+                </Text>
+              </View>
+            </ImageBackground>
+          </View>
+
+          {/* Formulario de SIM */}
+          <View style={styles.containerForm}>
+            {/* Título y enlace de ayuda */}
+            <View style={styles.containerTitleForm}>
               <Text
                 allowFontScaling={false}
                 style={[
-                  styles.titleLink,
+                  styles.titleForm,
                   { color: themeMode === "dark" ? theme.colors.textContrast : "#454545" },
                 ]}
               >
-                {t(`${baseMsg}.form.link`)}
+                {t(`${baseMsg}.form.title`)}
               </Text>
-            </Pressable>
-          </View>
+              <Pressable onPress={handleInfoHowToWorkModal}>
+                <Text
+                  allowFontScaling={false}
+                  style={[
+                    styles.titleLink,
+                    { color: themeMode === "dark" ? theme.colors.textContrast : "#454545" },
+                  ]}
+                >
+                  {t(`${baseMsg}.form.link`)}
+                </Text>
+              </Pressable>
+            </View>
 
-          {/* Campo de entrada */}
-          <View style={styles.containerFormFields}>
-            <InputField
-              label={t(`${baseMsg}.fields.sim.label`)}
-              placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
-              onChangeText={formik.handleChange("simNumber")}
-              handleBlur={formik.handleBlur("simNumber")}
-              value={formik.values.simNumber}
-              error={formik.touched.simNumber ? formik.errors.simNumber : null}
-              required
-              inputMode="numeric"
-              maxLength={19}
-              suffixIcon={
-                <IconSvg width={25} height={25} type="info" color={theme.colors.contrast} />
-              }
-              status={
-                type
-                  ? "success"
-                  : formik.values.simNumber.length === 6
-                  ? "info"
-                  : null
-              }
-              statusMessage={
-                !type
-                  ? t(`${baseMsg}.fields.sim.invalidSim`)
-                  : t(`${baseMsg}.fields.sim.${type}Sim`)
-              }
-              onPressIcon={handleInfoModal}
-            />
-          </View>
-
-          {/* Alerta con botón */}
-          {showAlertButton && (
-            <AlertButton
-              message={alertMessage}
-              type={alertType as any}
-              onPress={() => {
-                if (alertType === "success") {
-                  setAlertMessage("");
-                  router.replace("/home");
+            {/* Campo de entrada */}
+            <View style={styles.containerFormFields}>
+              <InputField
+                label={t(`${baseMsg}.fields.sim.label`)}
+                placeholder={t(`${baseMsg}.fields.sim.placeholder`)}
+                onChangeText={formik.handleChange("simNumber")}
+                handleBlur={formik.handleBlur("simNumber")}
+                value={formik.values.simNumber}
+                error={formik.touched.simNumber ? formik.errors.simNumber : null}
+                required
+                inputMode="numeric"
+                maxLength={19}
+                suffixIcon={
+                  <IconSvg width={25} height={25} type="info" color={theme.colors.contrast} />
                 }
-              }}
+                status={
+                  type
+                    ? "success"
+                    : formik.values.simNumber.length === 6
+                      ? "info"
+                      : null
+                }
+                statusMessage={
+                  !type
+                    ? t(`${baseMsg}.fields.sim.invalidSim`)
+                    : t(`${baseMsg}.fields.sim.${type}Sim`)
+                }
+                onPressIcon={handleInfoModal}
+              />
+            </View>
+
+            {/* Alerta con botón */}
+            {showAlertButton && (
+              <AlertButton
+                message={alertMessage}
+                type={alertType as any}
+                onPress={() => {
+                  if (alertType === "success") {
+                    setAlertMessage("");
+                    router.replace("/home");
+                  }
+                }}
+              />
+            )}
+
+            {/* Botón de solicitud de código */}
+
+            <View style={{ alignItems: "center", marginTop: 10 }}>
+
+              <Button
+                onClick={handleRequestCode}
+                variant="primaryPress"
+                disabled={!type}
+              >
+                {isRequestingCode ? (
+                  <ActivityIndicator size="small" color="#ffff" />
+                ) : (
+                  <Text allowFontScaling={false} style={styles.loadingButton}>
+                    {t(`${baseMsg}.actions.requestCode`)}
+                  </Text>
+                )}
+              </Button>
+
+            </View>
+
+            {/* Pasos informativos */}
+            <StepList
+              title={t(`${baseMsg}.form.stepsList.title`)}
+              items={[
+                t(`${baseMsg}.form.stepsList.step1`),
+                t(`${baseMsg}.form.stepsList.step2`),
+                t(`${baseMsg}.form.stepsList.step3`),
+              ]}
             />
-          )}
 
-          {/* Botón de solicitud de código */}
-          <Button
-            onClick={handleRequestCode}
-            variant="primaryPress"
-            disabled={!type}
-          >
-            <Text allowFontScaling={false} style={styles.loadingButton}>
-              {t(`${baseMsg}.actions.requestCode`)}
-            </Text>
-          </Button>
-
-          {/* Pasos informativos */}
-          <StepList
-            title={t(`${baseMsg}.form.stepsList.title`)}
-            items={[
-              t(`${baseMsg}.form.stepsList.step1`),
-              t(`${baseMsg}.form.stepsList.step2`),
-              t(`${baseMsg}.form.stepsList.step3`),
-            ]}
-          />
-
-          {/* Mensaje de advertencia */}
-          <Alert
-            description={t("pages.home.useFive")}
-            message=""
-            showIcon
-            type="warning"
-          />
+            {/* Mensaje de advertencia */}
+            <Alert
+              description={t("pages.home.useFive")}
+              message=""
+              showIcon
+              type="warning"
+            />
+          </View>
         </View>
-      </View>
 
-      {/* Modales */}
-      <ModalInfo
-        visible={modalHowToWorkVisible}
-        onClose={handleInfoHowToWorkModal}
-        title={t(`${baseMsg}.helpMessages.howToWorkHelpTittle`)}
-        description={t(`${baseMsg}.helpMessages.howToWorkHelpMessage`)}
-        buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)}
-      />
-
-      {/* 
-      <VerificationSim
-        showModal={requestCodeModal}
-        validateCode={validateCode}
-        resetModal={() => setRequestCodeModal(false)}
-        isLoading={isLoading}
-        addNewSimDisabled
-      /> 
-      */}
-    </ScrollView>
+        {/* Modales */}
+        <ModalInfo
+          visible={modalHowToWorkVisible}
+          onClose={handleInfoHowToWorkModal}
+          title={t(`${baseMsg}.helpMessages.howToWorkHelpTittle`)}
+          description={t(`${baseMsg}.helpMessages.howToWorkHelpMessage`)}
+          buttonText={t(`${baseMsg}.helpMessages.closeBtnText`)}
+        />
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 export default Login;

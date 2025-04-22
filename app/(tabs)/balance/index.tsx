@@ -51,6 +51,7 @@ const BalanceScreen = () => {
   const [loading, setLoading] = useState(false);
   const [showRedirectModal, setShowRedirectModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [deviceUUID, setDeviceUUID] = useState<string | null>(null);
   const hasRestoredSimRef = useRef(false);
@@ -349,7 +350,9 @@ const BalanceScreen = () => {
         onClose={() => setShowDeleteModal(false)}
         onDelete={async () => {
           if (selectedSimId) {
+            setIsDeleting(true);
             await handleDeleteSim(selectedSimId);
+            setIsDeleting(false);
             setShowDeleteModal(false);
           }
         }}
@@ -357,7 +360,9 @@ const BalanceScreen = () => {
         isDarkMode={isDarkMode}
         t={t}
         baseMsg={baseMsg}
+        isDeleting={isDeleting}
       />
+
     </>
   );
 };

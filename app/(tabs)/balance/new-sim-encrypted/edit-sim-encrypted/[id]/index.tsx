@@ -7,6 +7,9 @@ import {
   ScrollView,
   Text,
   ImageBackground,
+  ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useFormik } from "formik";
 import InputField from "@/components/molecules/InputField/InputFIeld";
@@ -26,12 +29,12 @@ import { useModalAdminSims } from "@/context/modaladminsims";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { updateSimName } from "@/features/sims/simSlice";
-import { updateSubscriber } from "@/api/subscriberApi"; 
+import { updateSubscriber } from "@/api/subscriberApi";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
-  MyRoute: { id: string }; 
+  MyRoute: { id: string };
 };
 
 type MyRouteProp = RouteProp<RootStackParamList, "MyRoute">;
@@ -44,6 +47,7 @@ const Login = () => {
   const { showModal } = useModalAll();
   const dispatch = useDispatch();
   const deviceUUID = useDeviceUUID();
+  const [isLoading, setIsLoading] = useState(false);
 
 
   const validationSchema = Yup.object().shape({
@@ -54,39 +58,38 @@ const Login = () => {
 
   const handleSubmit = async (values) => {
     try {
+      setIsLoading(true);
       if (!deviceUUID) {
         console.warn("❌ UUID no disponible para actualizar SIM");
         return;
       }
-      
+
       await updateSubscriber(params.id, deviceUUID, {
         provider: "telco-vision",
         name: values.simName,
       });
-      
-      
 
-    showModal({
-      type: "confirm",
-      buttonColorConfirm: colors.primaryColor,
-      oneButton: true,
-      buttonColorCancel: colors.danger,
-      textConfirm: t("modalSimActivate.goToPanel"),
-      title: t("modalSimActivate.changeNameSimTitle"),
-      onConfirm: async () => {
-        await AsyncStorage.setItem("currentICCID", params.id);
-        router.replace("/balance");
+      showModal({
+        type: "confirm",
+        buttonColorConfirm: colors.primaryColor,
+        oneButton: true,
+        buttonColorCancel: colors.danger,
+        textConfirm: t("modalSimActivate.goToPanel"),
+        title: t("modalSimActivate.changeNameSimTitle"),
+        onConfirm: async () => {
+          await AsyncStorage.setItem("currentICCID", params.id);
+          router.replace("/balance");
+          formik.resetForm();
+        },
+      });
 
-        formik.resetForm();
-      },
-      
-    });
-    dispatch(
-      updateSimName({ idSim: params.id, newName: formik.values.simName }));
-  }catch (error) {
-    console.error("🚨 Error al actualizar el subscriber:", error);
-      }
-    };
+      dispatch(updateSimName({ idSim: params.id, newName: formik.values.simName }));
+    } catch (error) {
+      console.error("🚨 Error al actualizar el subscriber:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -105,95 +108,95 @@ const Login = () => {
   );
 
   return (
-    <ScrollView>
-      <HeaderEncrypted owner="encriptados" iconBack="/balance" />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <HeaderEncrypted owner="encriptados" iconBack="/balance" />
 
-      <View
-        style={[
-          
-          styles.container,
-          {
-            backgroundColor:
-              themeMode === "dark" ? "#000" : theme.lightMode.colors.white,
-          },
-        ]}
-      >
-        <View style={styles.containerHeader}>
-        <ImageBackground
-  source={LoginHeaderImage}
-  resizeMode="cover"
-  imageStyle={styles.background}
-  style={styles.imageBackground}
->
-  <View style={styles.containerHeaderImage}>
-    <Text
-      allowFontScaling={false}
-      style={styles.containerHeaderTitle}
-    >
-      {t("pages.login.header.changeNameSimBanner")}
-    </Text>
-  </View>
-</ImageBackground>
+        <View
+          style={[
 
-        </View>
+            styles.container,
+            {
+              backgroundColor:
+                themeMode === "dark" ? "#000" : theme.lightMode.colors.white,
+            },
+          ]}
+        >
+          <View style={styles.containerHeader}>
+            <ImageBackground
+              source={LoginHeaderImage}
+              resizeMode="cover"
+              imageStyle={styles.background}
+              style={styles.imageBackground}
+            >
+              <View style={styles.containerHeaderImage}>
+                <Text
+                  allowFontScaling={false}
+                  style={styles.containerHeaderTitle}
+                >
+                  {t("pages.login.header.changeNameSimBanner")}
+                </Text>
+              </View>
+            </ImageBackground>
 
-        <View style={styles.containerForm}>
-          <View style={styles.containerFormFields}>
-            <InputField
-              label={t(`pages.login.header.newNameOfYourSim`)}
-              onChangeText={formik.handleChange("simName")}
-              value={formik.values.simName}
-              required={true}
-              placeholder={t(`pages.login.header.placeholderSim`)}
-              inputMode="text"
-              maxLength={12}
-              status={
-                type
-                  ? "success"
-                  : formik.values.simName.length === 12
-                  ? "info"
-                  : null
-              }
-              statusMessage={
-                !type
-                  ? t(`pages.login.header.numberOfCharacters`)
-                  : t(`${baseMsg}.fields.sim.${type}Sim`)
-              }
-              suffixIcon={
-                formik.values.simName.length ? (
-                  <IconSvg width={20} height={20} type="confirmgreen" />
-                ) : null
-              }
-            />
+          </View>
+
+          <View style={styles.containerForm}>
+            <View style={styles.containerFormFields}>
+              <InputField
+                label={t(`pages.login.header.newNameOfYourSim`)}
+                onChangeText={formik.handleChange("simName")}
+                value={formik.values.simName}
+                required={true}
+                placeholder={t(`pages.login.header.placeholderSim`)}
+                inputMode="text"
+                maxLength={12}
+                status={
+                  type
+                    ? "success"
+                    : formik.values.simName.length === 12
+                      ? "info"
+                      : null
+                }
+                statusMessage={
+                  !type
+                    ? t(`pages.login.header.numberOfCharacters`)
+                    : t(`${baseMsg}.fields.sim.${type}Sim`)
+                }
+                suffixIcon={
+                  formik.values.simName.length ? (
+                    <IconSvg width={20} height={20} type="confirmgreen" />
+                  ) : null
+                }
+              />
+            </View>
           </View>
         </View>
-      </View>
 
-      <View
-        style={{
-          justifyContent: "center",
-          alignContent: "center",
-          alignItems: "center",
-          display: "flex",
-        }}
-      >
-        <Text allowFontScaling={false} style={{ marginTop: 100, alignSelf: "center", color: "#5c5c5c" }}>
-          {t(`pages.login.header.nameOfSimMax`)}
-        </Text>
-      </View>
-      <View style={styles.bottomButtonContainer}>
-        <Button
-          disabled={!formik.values.simName.length ? true : false}
-          onClick={formik.handleSubmit}
-          variant="primaryPress"
-        >
-          <Text allowFontScaling={false} style={styles.loadingButton}>
-            {t("pages.home.confirm")}
+        <View>
+          <Text allowFontScaling={false} style={{ marginTop: 8, alignSelf: "center", color: "#5c5c5c" }}>
+            {t(`pages.login.header.nameOfSimMax`)}
           </Text>
-        </Button>
-      </View>
-      
-    </ScrollView>
+
+        </View>
+        <View style={styles.bottomButtonContainer}>
+
+          <Button
+            disabled={!formik.values.simName.length}
+            onClick={formik.handleSubmit}
+            variant="primaryPress"
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#ffff" />
+            ) : (
+              <Text allowFontScaling={false} style={styles.loadingButton}>
+                {t("pages.home.confirm")}
+              </Text>
+            )}
+          </Button>
+        </View>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -257,7 +260,7 @@ const styles = StyleSheet.create({
     height: 158,
     width: "100%",
   },
-  
+
   containerHeaderTitle: {
     color: theme.colors.contrast,
     fontFamily: theme.textVariants.input,
@@ -271,10 +274,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   bottomButtonContainer: {
-    marginTop: 150,
+    marginTop: 20,
     marginBottom: 40,
     alignItems: "center",
-  },  
+    paddingHorizontal: 20,
+  },
   imageBackground: {
     width: "100%",
     height: 158,
@@ -283,5 +287,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  
 });
