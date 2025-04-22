@@ -1,11 +1,10 @@
 import Button from "@/components/atoms/Button/Button";
 import Label from "@/components/atoms/Label/Label";
-import React from "react";
-import { Modal, View, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { Modal, View, StyleSheet, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import theme from "@/config/theme";
-import { useDispatch, useSelector } from "react-redux";
-import { updateCurrentSim } from "@/features/sims/simSlice";
+import { useSelector } from "react-redux";
 import { router } from "expo-router";
 
 import IconSvg from "../IconSvg/IconSvg";
@@ -20,10 +19,20 @@ const DeleteSimModal = ({ modalVisible, closeModal, deleteSim }: props) => {
   const { t } = useTranslation();
   const baseMsg = "pages.deleteSimModal";
   const currentSim = useSelector((state: any) => state.sims.currentSim);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = () => {
-    deleteSim();
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteSim();
+      closeModal();
+    } catch (err) {
+      console.error("❌ Error al eliminar la SIM:", err);
+    } finally {
+      setIsDeleting(false);
+    }
   };
+  
 
   const handleCancel = () => {
     closeModal();
@@ -56,6 +65,9 @@ const DeleteSimModal = ({ modalVisible, closeModal, deleteSim }: props) => {
                   />
                 </View>
                 <View style={styles.container}>
+                  {isDeleting ? (
+                              <ActivityIndicator size="small" color="#D32F2F" style={{ marginTop: 10 }} />
+                            ) : (
                   <Button
                     onClick={handleDelete}
                     customStyles={[styles.buttonPrimary]}
@@ -63,6 +75,7 @@ const DeleteSimModal = ({ modalVisible, closeModal, deleteSim }: props) => {
                   >
                     {t(`${baseMsg}.deleteSim`)}
                   </Button>
+                  )}
                   <Button
                     onClick={handleCancel}
                     customStyles={[styles.buttonPrimary]}

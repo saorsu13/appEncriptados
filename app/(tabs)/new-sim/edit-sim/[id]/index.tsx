@@ -7,20 +7,16 @@ import {
   ScrollView,
   Text,
   ImageBackground,
-  Pressable,
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useFormik } from "formik";
 import InputField from "@/components/molecules/InputField/InputFIeld";
 import Button from "@/components/atoms/Button/Button";
 import theme from "@/config/theme";
-import StepList from "@/components/molecules/StepList/StepList";
-import VerificationSim from "@/components/organisms/VerificationSim/VerificationSim";
 import { useAuth } from "@/context/auth";
 import { useLogin } from "@/features/sign-in/useLogin";
-import { determineType } from "@/utils/utils";
-import ModalInfo from "@/components/molecules/ModalInfo";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Alert from "@/components/molecules/Alert";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -31,7 +27,6 @@ import { updateSubscriber } from "@/api/subscriberApi";
 import { getDeviceUUID } from "@/utils/getUUID";
 
 import { useModalPassword } from "@/context/modalpasswordprovider";
-import AlertButton from "@/components/molecules/AlertButton/AlertButton";
 import { router, useFocusEffect } from "expo-router";
 import useModalAll from "@/hooks/useModalAll";
 import { useModalAdminSims } from "@/context/modaladminsims";
@@ -78,6 +73,7 @@ const Login = () => {
 
   const handleSubmit = async (values) => {
     try {
+      setIsLoading(true);
       const uuid = await getDeviceUUID();
       console.log("📦 [edit-sim] Enviando actualización:", {
         id: params.id,
@@ -125,9 +121,11 @@ const Login = () => {
         buttonColorConfirm: colors.danger,
         textConfirm: "Aceptar",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
-  
+
 
   const formik = useFormik({
     initialValues: {
@@ -146,7 +144,8 @@ const Login = () => {
   );
 
   return (
-    <ScrollView>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <ScrollView keyboardShouldPersistTaps="handled">
       <HeaderEncrypted title={t(`${baseMsg}.header.editSim`)} iconBack="/home" />
 
       <View
@@ -195,8 +194,8 @@ const Login = () => {
                 type
                   ? "success"
                   : formik.values.simName.length === 9
-                  ? "info"
-                  : null
+                    ? "info"
+                    : null
               }
               statusMessage={
                 !type
@@ -216,9 +215,13 @@ const Login = () => {
             onClick={formik.handleSubmit}
             variant="primaryPress"
           >
-            <Text allowFontScaling={false} style={styles.loadingButton}>
-              {t("pages.home.confirm")}
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text allowFontScaling={false} style={styles.loadingButton}>
+                {t("pages.home.confirm")}
+              </Text>
+            )}
           </Button>
         </View>
       </View>
@@ -235,8 +238,9 @@ const Login = () => {
           {t(`pages.login.header.nameOfSimMax`)}
         </Text>
       </View>
-    </ScrollView>
-  );
+      </ScrollView>
+  </TouchableWithoutFeedback>
+);
 };
 
 export default Login;
