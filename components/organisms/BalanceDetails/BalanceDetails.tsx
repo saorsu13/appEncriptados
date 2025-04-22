@@ -68,6 +68,10 @@ const BalanceDetails = React.memo(({ data }: any) => {
   // ============ UTIL ============
   const simType = useMemo(() => determineType(currentSim?.idSim), [currentSim?.idSim]);
 
+  const safeToFixed = (value: number | null | undefined, decimals = 2) => {
+    return typeof value === "number" ? value.toFixed(decimals) : undefined;
+  };
+  
   // ============ API QUERY ============
   const { data: getbalance, isFetching, refetch } = useQuery<BalanceResponse>({
     gcTime: 0,
@@ -82,10 +86,11 @@ const BalanceDetails = React.memo(({ data }: any) => {
 
   // ============ EFFECTS ============
   useEffect(() => {
-    if (!isFetching && getbalance && getbalance.balance?.toFixed(2) !== prevBalance.toFixed(2)) {
+    const safeBalance = safeToFixed(getbalance?.balance);
+    if (!isFetching && getbalance && safeBalance !== prevBalance.toFixed(2)) {
       console.log("📥 [BalanceDetails] API balance recibido:", getbalance);
-      dispatch(setBalance(formatNumber(getbalance.balance?.toFixed(2))));
-      setPrevBalance(getbalance.balance);
+      dispatch(setBalance(formatNumber(safeBalance)));
+      setPrevBalance(getbalance.balance ?? 0);
     }
   }, [getbalance, isFetching]);
 
@@ -174,10 +179,8 @@ const BalanceDetails = React.memo(({ data }: any) => {
                           },
                     ]}
                   >
-                    {getbalance
-                      ? `${formatNumber(getbalance?.balance?.toFixed(2))} ${
-                          getbalance?.currency_code
-                        }`
+                    {getbalance?.balance != null
+                      ? `${formatNumber(safeToFixed(getbalance.balance))} ${getbalance?.currency_code}`
                       : "~"}
                   </Text>
                 </View>
@@ -221,10 +224,8 @@ const BalanceDetails = React.memo(({ data }: any) => {
             }
             message={t("organism.balanceDetails.mobileData")}
             caption={
-              getbalance && getbalance?.currency_code
-                ? `${formatNumber(getbalance?.balance_internet?.toFixed(0))} ${
-                    getbalance?.currency_code
-                  }`
+              getbalance?.balance_internet != null && getbalance?.currency_code
+                ? `${formatNumber(safeToFixed(getbalance.balance_internet, 0))} ${getbalance.currency_code}`
                 : "~"
             }
             style={{
@@ -255,12 +256,11 @@ const BalanceDetails = React.memo(({ data }: any) => {
             }
             message={t("organism.balanceDetails.minutes")}
             caption={
-              getbalance && getbalance?.currency_code
-                ? `${formatNumber(getbalance?.balance_minutes?.toFixed(0))} ${
-                    getbalance?.currency_code
-                  }`
+              getbalance?.balance_minutes != null && getbalance?.currency_code
+                ? `${formatNumber(safeToFixed(getbalance.balance_minutes, 0))} ${getbalance.currency_code}`
                 : "~"
             }
+            
             style={{
               width: simType === "physical" ? "33%" : "50%",
             }}
@@ -290,12 +290,11 @@ const BalanceDetails = React.memo(({ data }: any) => {
               }
               message={t("organism.balanceDetails.imsi")}
               caption={
-                getbalance && getbalance?.currency_code
-                  ? `${formatNumber(getbalance?.balance_imsi_changes)} ${
-                      getbalance?.currency_code
-                    }`
+                getbalance?.balance_imsi_changes != null && getbalance?.currency_code
+                  ? `${formatNumber(safeToFixed(getbalance.balance_imsi_changes, 0))} ${getbalance.currency_code}`
                   : "~"
               }
+              
               style={{ width: "33%" }}
               loading={loading}
             />

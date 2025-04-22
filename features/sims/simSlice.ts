@@ -73,14 +73,20 @@ export const simSlice = createSlice({
       state.currentSim = null;
     },
     setSims: (state, action: PayloadAction<Sim[]>) => {
+      console.log("📦 [setSims] Estableciendo SIMs:", action.payload);
+      const newSims = action.payload;
       const prevCurrentId = state.currentSim?.idSim;
-      state.sims = action.payload;
+
+      state.sims = newSims;
     
-      const exists = state.sims.find((sim) => sim.idSim === prevCurrentId);
-      state.currentSim = exists ?? (state.sims.length ? state.sims[0] : null);
-    
-      console.log("📦 [setSims] Estableciendo SIMs:", state.sims);
-      console.log("📍 [setSims] currentSim seteado a:", state.currentSim);
+      const stillExists = newSims.find((sim) => sim.idSim === prevCurrentId);
+      
+      if (!stillExists) {
+        state.currentSim = newSims.length ? newSims[0] : null;
+        console.log("📍 [setSims] currentSim no válido, se asignó nueva SIM:", state.currentSim);
+      } else {
+        console.log("🔒 [setSims] currentSim conservado:", state.currentSim);
+      }
     },
     
   },

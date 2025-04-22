@@ -58,8 +58,10 @@ const Home = () => {
   const [versionFetched, setVersionFetched] = useState("");
   const [refreshing, setRefreshing] = useState(false);
  
-  const [isAppReady, setIsAppReady] = useState(false);
+  const [isSimsReady, setIsSimsReady] = useState(false);
 
+
+  
   useEffect(() => {
     const simId = Array.isArray(params?.simId) ? params.simId[0] : params?.simId;
     const refetchSims = Array.isArray(params?.refetchSims)
@@ -82,18 +84,25 @@ const Home = () => {
         dispatch(setSims(parsedSims));
       }
   
-      if (simId) {
-        console.log("📲 [Home] SIM pasada por params:", simId);
-        dispatch(updateCurrentSim(simId));
-        await AsyncStorage.setItem("currentICCID", simId);
+      if (simId && sims.length) {
+        const sim = sims.find((s) => s.iccid === simId);
+        if (sim) {
+          console.log("📲 [Home] SIM pasada por params:", simId);
+          dispatch(updateCurrentSim(simId));
+          await AsyncStorage.setItem("currentICCID", simId);
+        } else {
+          console.warn("🚫 [Home] SIM no encontrada en lista actual");
+        }
       }
     };
   
     syncSimData();
-  }, [params?.simId, params?.refetchSims]);
+  }, [params?.simId, params?.refetchSims, sims.length]);
+  
 
   useEffect(() => {
-    const fetchSimsOnly = async () => {
+    const fetchSims = async () => {
+      console.log("🔄 [Home] Forzando fetch de SIMs desde backend");
       const uuid = await getDeviceUUID();
       const simsRaw = await listSubscriber(uuid);
       const parsedSims = simsRaw.map((sim) => ({
@@ -103,56 +112,52 @@ const Home = () => {
         iccid: String(sim.iccid),
         code: sim.id ?? 0,
       }));
-    
-      const isDifferent = JSON.stringify(parsedSims) !== JSON.stringify(sims);
-      if (isDifferent) {
-        console.log("📦 setSims ejecutado (cambio detectado)");
-        dispatch(setSims(parsedSims));
-      } else {
-        console.log("🟡 SIMs no cambiaron, no se actualiza el store");
-      }
+  
+      console.log("📦 [Home] SIMs seteadas en Redux:", parsedSims.map(s => s.idSim));
+      dispatch(setSims(parsedSims));
+      setIsSimsReady(true);
     };
-    fetchSimsOnly();
+  
+    fetchSims();
   }, []);
     
   useEffect(() => {
     const restoreSimIfNeeded = async () => {
-      const storedId = await AsyncStorage.getItem("currentICCID");
-      const isValid = sims.some((s) => s.iccid === storedId);
+      if (currentSim?.idSim) {
+        console.log("✅ [Home] Ya hay una SIM activa, no se restaura desde AsyncStorage");
+        return;
+      }
   
-      if (!currentSim?.idSim && storedId && isValid) {
-        console.log("♻️ Restaurando SIM desde AsyncStorage:", storedId);
+      const storedId = await AsyncStorage.getItem("currentICCID");
+  
+      if (!storedId) {
+        console.log("🛑 [Home] No hay SIM guardada en AsyncStorage");
+        return;
+      }
+  
+      const simValida = sims.find((s) => s.iccid === storedId);
+
+      if (simValida?.provider === "tottoli") {
+        console.warn("🚫 [Home] SIM tipo 'tottoli' ignorada en restauración");
+        return;
+      }
+  
+      if (simValida) {
+        console.log("♻️ [Home] Restaurando SIM válida desde storage:", storedId);
         dispatch(updateCurrentSim(storedId));
-      } else if (!storedId && sims.length > 0 && !currentSim?.idSim) {
+        setSelectedSimIdVisual(storedId);
+      } else if (sims.length > 0) {
+        console.log("❓ [Home] SIM guardada no válida, usando fallback (primera SIM de la lista)");
         const fallback = sims[0];
         await AsyncStorage.setItem("currentICCID", fallback.iccid);
         dispatch(updateCurrentSim(fallback.idSim));
-        console.log("🆕 No había SIM, asignando por defecto:", fallback.idSim);
       }
     };
   
     if (sims.length && !currentSim?.idSim) {
       restoreSimIfNeeded();
     }
-  }, [sims.length, currentSim?.idSim]);
-   
-  
-  useEffect(() => {
-    if (!currentSim?.idSim) {
-      const restoreSim = async () => {
-        const storedSimId = await AsyncStorage.getItem("currentICCID");
-        console.log("📦 [Home] Verificando SIM en storage:", storedSimId);
-        const simValida = sims.find((s) => s.iccid === storedSimId);
-  
-        if (storedSimId && simValida) {
-          console.log("♻️ [Home] Restaurando SIM válida desde storage:", storedSimId);
-          dispatch(updateCurrentSim(storedSimId));
-        }
-      };
-  
-      restoreSim();
-    }
-  }, [currentSim?.idSim, sims]);
+  }, [sims, currentSim?.idSim]);
   
 
   const mutation = useMutation({
@@ -252,6 +257,15 @@ const versionQuery = useQuery({
     await AsyncStorage.setItem("currentICCID", newIdSim);
     setSelectedSimIdVisual(newIdSim);
   };  
+
+  if (!isSimsReady) {
+    console.log("⏳ [Home] Esperando carga de SIMs...");
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#00AEEF" />
+      </View>
+    );
+  }
 
   if (!isLoggedIn || !currentSim) {
     return <SignIn />;

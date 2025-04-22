@@ -134,18 +134,20 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                       console.log("🖱 [SimCurrencySelector] SIM seleccionada en modal:", item);
                       setSimModalVisible(false);
 
+                      if (item.provider === "tottoli") {
+                        console.log("🧭 [SimCurrencySelector] Navegando a /home por provider 'tottoli'");
+                        setSimModalVisible(false);
+                        await AsyncStorage.setItem("currentICCID", item.id);
+                        router.replace({ pathname: "/home", params: { simId: item.id, refetchSims: "true" } });
+                        return; // Evita seguir ejecutando cambios en Redux
+                      }
+                      
                       if (item.id !== selectedId) {
                         console.log("🔁 [SimCurrencySelector] Cambiando SIM a:", item.id);
                         await AsyncStorage.setItem("currentICCID", item.id);
                         console.log("💾 [SimCurrencySelector] Guardada en AsyncStorage");
-
                         onSelectSim?.(item.id);
-                      
-                        if (item.provider === "tottoli") {
-                          console.log("🧭 [SimCurrencySelector] Navegando a /home por provider 'tottoli'");
-                          router.replace({ pathname: "/home", params: { simId: item.id } });
-                        }
-                      } else {
+                      }else {
                         console.log("⏹ [SimCurrencySelector] SIM ya estaba seleccionada:", item.id);
                       }
                     }}
