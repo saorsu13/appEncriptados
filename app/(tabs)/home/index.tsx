@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Platform,
   Linking,
+  ActivityIndicator,
 } from "react-native";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -39,6 +40,7 @@ import { getDeviceUUID } from "@/utils/getUUID";
 import { setSims } from "@/features/sims/simSlice";
 import { useLocalSearchParams } from "expo-router";
 
+
 const Home = () => {
   console.log("🏠 [Home] Renderizando la vista home");
   const { isLoggedIn } = useAuth();
@@ -56,6 +58,8 @@ const Home = () => {
   const [versionFetched, setVersionFetched] = useState("");
   const [refreshing, setRefreshing] = useState(false);
  
+  const [isAppReady, setIsAppReady] = useState(false);
+
   useEffect(() => {
     const simId = Array.isArray(params?.simId) ? params.simId[0] : params?.simId;
     const refetchSims = Array.isArray(params?.refetchSims)
@@ -226,6 +230,22 @@ const versionQuery = useQuery({
     }
   }, [versionFetched, hasShownModal, areVersionsEqual]);
 
+  useEffect(() => {
+    if (currentSim?.idSim) {
+      const timeout = setTimeout(() => {
+        const payload: BalanceRequest = {
+          id: Number(currentSim.idSim),
+          country: "CA",
+          currencyCode: "CAD",
+        };
+        console.log("🚀 [Home] Ejecutando mutate con SIM actual (delay):", payload);
+        mutation.mutate(payload);
+      }, 100); 
+  
+      return () => clearTimeout(timeout);
+    }
+  }, [currentSim?.idSim]);
+  
   const onUserSelectSim = async (newIdSim: string) => {
     console.log("📲 [Home] Usuario seleccionó SIM:", newIdSim);
     dispatch(updateCurrentSim(newIdSim));
@@ -262,7 +282,7 @@ const versionQuery = useQuery({
     console.log("🔐 [Home] Usuario no autenticado o sin SIM, mostrando SignIn");
     return <SignIn />;
   }
-
+  
   ///////////////////////////////////////////////////////////////////////////
 
 
@@ -277,7 +297,7 @@ const versionQuery = useQuery({
             />
           }
         >
-      <HeaderEncrypted owner="encriptados" settingsLink="/settings-sign" />
+      <HeaderEncrypted owner="encriptados" settingsLink="home/settings/sim" />
 
       <View style={styles.container}>
 

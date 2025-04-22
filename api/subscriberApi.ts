@@ -155,7 +155,6 @@ export const deleteSubscriber = async (iccid: string, uuid: string) => {
  * Lista todos los subscribers.
  */
 export const listSubscriber = async (uuid: string) => {
-
   try {
     const response = await fetch(`${API_BASE_URL}/sims/uuid`, {
       method: "POST",
@@ -169,6 +168,11 @@ export const listSubscriber = async (uuid: string) => {
 
     const text = await response.text();
 
+    if (response.status === 204 || text === "") {
+      console.warn("⚠️ [listSubscriber] No hay SIMs asociadas al usuario.");
+      return [];
+    }
+
     if (!response.ok) {
       throw new Error(`❌ Error en el request: ${response.status}`);
     }
@@ -179,5 +183,6 @@ export const listSubscriber = async (uuid: string) => {
     throw error;
   }
 };
+
 
 

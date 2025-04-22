@@ -57,10 +57,11 @@ const Login = () => {
   });
 
   const handleSubmit = async (values) => {
+    console.log("✏️ [EditSim] Submitting update for SIM:", params.id);
     try {
       setIsLoading(true);
       if (!deviceUUID) {
-        console.warn("❌ UUID no disponible para actualizar SIM");
+        console.warn("❌ [EditSim] UUID no disponible para actualizar SIM");
         return;
       }
 
@@ -68,6 +69,8 @@ const Login = () => {
         provider: "telco-vision",
         name: values.simName,
       });
+
+      console.log("✅ [EditSim] SIM actualizada:", values.simName);
 
       showModal({
         type: "confirm",
@@ -77,6 +80,7 @@ const Login = () => {
         textConfirm: t("modalSimActivate.goToPanel"),
         title: t("modalSimActivate.changeNameSimTitle"),
         onConfirm: async () => {
+          console.log("📦 [EditSim] Guardando ICCID y redirigiendo");
           await AsyncStorage.setItem("currentICCID", params.id);
           router.replace("/balance");
           formik.resetForm();
@@ -85,7 +89,7 @@ const Login = () => {
 
       dispatch(updateSimName({ idSim: params.id, newName: formik.values.simName }));
     } catch (error) {
-      console.error("🚨 Error al actualizar el subscriber:", error);
+      console.error("🚨 [EditSim] Error al actualizar el subscriber:", error);
     } finally {
       setIsLoading(false);
     }
@@ -99,10 +103,19 @@ const Login = () => {
     onSubmit: handleSubmit,
   });
 
+  useEffect(() => {
+    console.log("🧭 [EditSim] params.id recibido:", params.id);
+  }, [params.id]);
+
+  useEffect(() => {
+    console.log("⌨️ [EditSim] Cambio en simName:", formik.values.simName);
+  }, [formik.values.simName]);
+
   const { colors } = useTheme<ThemeCustom>();
 
   useFocusEffect(
     useCallback(() => {
+      console.log("🔄 [EditSim] Reset form al enfocar la vista");
       formik.resetForm();
     }, [])
   );

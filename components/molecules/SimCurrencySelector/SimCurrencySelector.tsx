@@ -30,6 +30,8 @@ type Props = {
 
 
 const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim }) => {
+  console.log("🔄 [SimCurrencySelector] Renderizando componente");
+
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const styles = getStyles(isDarkMode);
@@ -40,24 +42,27 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
   const [simModalVisible, setSimModalVisible] = useState(false);
 
   const orderedSims = useMemo(() => {
-    return [...sims].sort((a, b) => {
+    const ordenadas = [...sims].sort((a, b) => {
       if (a.provider === "telco-vision" && b.provider === "tottoli") return -1;
       if (a.provider === "tottoli" && b.provider === "telco-vision") return 1;
       return 0;
     });
+    console.log("🔃 [SimCurrencySelector] SIMs ordenadas:", ordenadas.map((s) => s.id));
+    return ordenadas;
   }, [sims]);
   
+  const selectedSim = useMemo(() => {
+    const encontrada = orderedSims.find((sim) => sim.id === selectedId) || null;
+    console.log("🎯 [SimCurrencySelector] SIM seleccionada en useMemo:", encontrada);
+    return encontrada;
+  }, [orderedSims, selectedId]);
 
-  // const selectedSim = sims.find((sim) => sim.id === selectedId) || null;
 
-  const selectedSim = useMemo(
-    () => orderedSims.find((sim) => sim.id === selectedId) || null,
-    [orderedSims, selectedId]
-  );  
   useEffect(() => {
-    console.log("🧭 SIM seleccionada (selectedId):", selectedId);
-    console.log("🧭 SIMS disponibles:", sims.map((s) => s.id));
+    console.log("🧭 [SimCurrencySelector] selectedId actualizada:", selectedId);
+    console.log("📦 [SimCurrencySelector] Total SIMs recibidas:", sims.length);
   }, [selectedId, sims]);
+
   
   return (
     <View style={styles.container}>
@@ -66,7 +71,10 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
         </Text>
         <TouchableOpacity
           style={styles.selector}
-          onPress={() => setSimModalVisible(true)}
+          onPress={() =>{
+            console.log("📂 [SimCurrencySelector] Abriendo modal de SIMs");
+            setSimModalVisible(true);
+            }}
         >
           <View style={styles.selectorContent}>
             <View style={styles.simNameContainer}>
@@ -95,12 +103,18 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
         visible={simModalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setSimModalVisible(false)}
+        onRequestClose={() => {
+          console.log("❌ [SimCurrencySelector] Cerrando modal de SIMs");
+          setSimModalVisible(false);
+        }}
       >
         <TouchableOpacity
           style={styles.modalBackground}
           activeOpacity={1}
-          onPress={() => setSimModalVisible(false)}
+          onPress={() => {
+            console.log("❌ [SimCurrencySelector] Tocando fondo del modal para cerrar");
+            setSimModalVisible(false);
+          }}
         >
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>{t(`${baseMsg}.simList`)}</Text>
@@ -117,20 +131,23 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                   <TouchableOpacity
                     style={styles.simItem}
                     onPress={async () => {
-                      console.log("🖱 SIM seleccionada en modal:", item);
+                      console.log("🖱 [SimCurrencySelector] SIM seleccionada en modal:", item);
                       setSimModalVisible(false);
+
                       if (item.id !== selectedId) {
-                        console.log("🔁 Cambiando SIM actual a:", item.id);
+                        console.log("🔁 [SimCurrencySelector] Cambiando SIM a:", item.id);
                         await AsyncStorage.setItem("currentICCID", item.id);
-                        console.log("💾 SIM guardada en modal:", item.id);
+                        console.log("💾 [SimCurrencySelector] Guardada en AsyncStorage");
+
                         onSelectSim?.(item.id);
                       
                         if (item.provider === "tottoli") {
-                          console.log("🚀 SIM con provider 'tottoli', navegando a /home");
+                          console.log("🧭 [SimCurrencySelector] Navegando a /home por provider 'tottoli'");
                           router.replace({ pathname: "/home", params: { simId: item.id } });
                         }
+                      } else {
+                        console.log("⏹ [SimCurrencySelector] SIM ya estaba seleccionada:", item.id);
                       }
-                      
                     }}
                     
                   >
@@ -158,6 +175,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                     {!isSixDigitSim && (
                       <TouchableOpacity
                         onPress={() => {
+                          console.log("✏️ [SimCurrencySelector] Editar SIM:", item.id);
                           setSimModalVisible(false);
                           router.push(
                             `/balance/new-sim-encrypted/edit-sim-encrypted/${item.id}`
@@ -178,6 +196,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
             <TouchableOpacity
               style={styles.addSimButton}
               onPress={() => {
+                console.log("➕ [SimCurrencySelector] Navegar para añadir nueva SIM");
                 setSimModalVisible(false);
                 router.push("/(tabs)/balance/new-sim-encrypted");
               }}

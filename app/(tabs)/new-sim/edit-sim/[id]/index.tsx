@@ -22,6 +22,7 @@ import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { updateSubscriber } from "@/api/subscriberApi";
 import { getDeviceUUID } from "@/utils/getUUID";

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -34,6 +34,7 @@ import { getDeviceUUID } from "@/utils/getUUID";
 import { useAuth } from "@/context/auth";
 import { getHasRedirectedFromTottoli, setHasRedirectedFromTottoli } from "@/utils/redirectionControl";
 import { useTranslation } from "react-i18next";
+import SignIn from "@/components/organisms/SignIn/SignIn";
 
 
 const BalanceScreen = () => {
@@ -52,47 +53,43 @@ const BalanceScreen = () => {
   const [showRedirectModal, setShowRedirectModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
   const [deviceUUID, setDeviceUUID] = useState<string | null>(null);
+
   const hasRestoredSimRef = useRef(false);
   const lastFetchedSimId = useRef<string | null>(null);
   const isFetching = useRef(false);
-
-  const { signIn } = useAuth();
-
   const skipBalanceRef = useRef(false);
 
+  const { signIn, signOut, isLoggedIn } = useAuth();
 
-  const fetchSubscriberData = async (id: string, uuid: string) => {
+
+  const fetchSubscriberData = async (sim: any, uuid: string) => {
+    const id = sim.iccid;
+    console.log("🔄 [Balance] fetchSubscriberData llamada con:", { id, uuid });
+
     if (skipBalanceRef.current) {
-      console.log("⛔️ Saltando efecto por redirección a /home");
+      console.log("⛔️ [Balance] Efecto saltado por redirección");
       return;
     }
 
-    console.log("📦 Disparando balance para:", { id });
-
-    const sim = sims.find((sim) => sim.iccid === id);
-    // Dentro de fetchSubscriberData
     if (sim?.provider === "tottoli") {
-      console.warn("⛔️ [fetchSubscriberData] SIM 'tottoli' detectada ANTES de fetch. Redirigiendo...");
+      console.warn("🚫 [Balance] SIM tottoli detectada, redirigiendo a /home");
       skipBalanceRef.current = true;
       await AsyncStorage.removeItem("currentICCID");
       dispatch(resetSimState());
       setSelectedSimId(null);
       setHasRedirectedFromTottoli(true);
-      console.log("🚀 [fetchSubscriberData] Redirigiendo a /home...");
       router.replace("/home");
       return;
     }
 
-
     if (isFetching.current) {
-      console.log("⏳ Ya hay un fetch en curso");
+      console.log("⏳ [Balance] Fetch ya en curso, saliendo");
       return;
     }
 
     if (lastFetchedSimId.current === id) {
-      console.log("⚠️ Ya se hizo fetch de esta SIM, evitando duplicado:", id);
+      console.log("⚠️ [Balance] Ya se hizo fetch para esta SIM, evitando duplicado");
       return;
     }
 
@@ -102,94 +99,104 @@ const BalanceScreen = () => {
     try {
       setLoading(true);
       setSelectedSimId(id);
-      dispatch(updateCurrentSim(sim));
-      await AsyncStorage.setItem("currentICCID", id);
-      console.log("💾 SIM guardada en AsyncStorage:", id);
+      dispatch(updateCurrentSim(sim.iccid));
+      await AsyncStorage.setItem("currentICCID", sim.iccid);
+      console.log("💾 [Balance] SIM seteada y guardada:", id);
 
       const response = await getSubscriberData(id, uuid);
+      console.log("📥 [Balance] Datos de suscriptor recibidos:", response);
 
       if (!response || !response.providers || response.providers.length === 0) {
-        console.warn("⚠️ Respuesta vacía, la SIM puede no estar procesada aún.");
+        console.warn("⚠️ [Balance] Respuesta sin planes");
         setSimPlans([]);
         return;
       }
 
       const firstProvider = response.providers[0];
-      console.log("📡 Provider actual:", firstProvider.provider);
       setSimPlans(firstProvider?.plans || []);
-
-      if (firstProvider.provider === "tottoli") {
-        console.warn("🚨 Provider es tottoli, abortando carga antes de guardar nada");
-        if (!(await getHasRedirectedFromTottoli())) {
-          setHasRedirectedFromTottoli(true);
-          await AsyncStorage.removeItem("currentICCID");
-          setSelectedSimId(null);
-          dispatch(resetSimState());
-          router.replace("/home");
-        }
-        return;
-      }
     } catch (error) {
-      console.error("❌ Error al obtener los planes de la SIM:", error);
+      console.error("❌ [Balance] Error al obtener datos del suscriptor:", error);
       setSimPlans([]);
     } finally {
       isFetching.current = false;
       setLoading(false);
+      skipBalanceRef.current = false;
     }
   };
 
   useEffect(() => {
-    let isActive = true;
-
     const init = async () => {
-      console.log("🚀 Ejecutando init de BalanceScreen");
+      console.log("🚀 [Balance] init ejecutado");
 
       const uuid = await getDeviceUUID();
-      console.log("🔑 UUID cargado:", uuid);
+      console.log("🔑 [Balance] UUID del dispositivo:", uuid);
       setDeviceUUID(uuid);
 
       const simsList = await listSubscriber(uuid);
-      console.log("📱 SIMs disponibles:", simsList.map(s => s.iccid));
+      console.log("📋 [Balance] SIMs obtenidas:", simsList);
+
+      if (!Array.isArray(simsList) || simsList.length === 0) {
+        console.warn("🚫 [Balance] No hay SIMs asociadas, cerrando sesión...");
+        await AsyncStorage.removeItem("currentICCID");
+        dispatch(resetSimState());
+
+        await signOut();
+
+        router.replace("/home");
+        return;
+      }
+
       setSims(simsList);
 
       const storedICCID = await AsyncStorage.getItem("currentICCID");
-      console.log("💾 ICCID almacenado:", storedICCID);
+      console.log("💾 [Balance] ICCID almacenado:", storedICCID);
 
-      const sim = simsList.find(s => s.iccid === storedICCID);
+      let sim = simsList.find((s) => s.iccid === storedICCID);
 
-      if (sim?.provider === "tottoli") {
-        console.warn("🔁 SIM tottoli detectada, redirigiendo a /home");
-        skipBalanceRef.current = true;
-        setHasRedirectedFromTottoli(true);
-        await AsyncStorage.removeItem("currentICCID");
-        dispatch(resetSimState());
-        setSelectedSimId(null);
-        router.replace({ pathname: "/home" });
+      if (!sim) {
+        console.warn("⚠️ [Balance] SIM almacenada no encontrada, usando fallback");
+        sim = simsList[0];
+        if (sim) {
+          await AsyncStorage.setItem("currentICCID", sim.iccid);
+        }
+      }
+
+      if (!sim) {
+        console.warn("🚫 [Balance] No hay SIMs disponibles");
         return;
       }
 
       const alreadyRedirected = await getHasRedirectedFromTottoli();
+      
       if (alreadyRedirected) {
-        console.warn("🛑 Ya se redirigió por tottoli. No se restaura SIM.");
+        console.warn("🛑 [Balance] Redirección previa detectada");
+      
+        const simValida = simsList.find(
+          (s) => s.iccid === storedICCID && s.provider !== "tottoli"
+        );
+      
+        if (simValida) {
+          console.log("✅ [Balance] Redirigido previamente pero SIM actual es válida:", simValida.iccid);
+          setHasRedirectedFromTottoli(false);
+          hasRestoredSimRef.current = true;
+          await fetchSubscriberData(simValida, uuid);
+          return;
+        }
+      
         return;
       }
-
-      const defaultId = sim?.iccid || simsList[0]?.iccid;
-      if (defaultId && isActive) {
-        console.log("✅ [init] Restaurando SIM válida:", defaultId);
+      
+      
+      if (!hasRestoredSimRef.current && !skipBalanceRef.current && sim) {
+        console.log("✅ [Balance] Restaurando SIM directamente:", sim.iccid);
         hasRestoredSimRef.current = true;
-        await fetchSubscriberData(defaultId, uuid);
+        await fetchSubscriberData(sim, uuid);
       }
     };
-
 
     if (!hasRestoredSimRef.current && !skipBalanceRef.current) {
       init();
     }
-
-    return () => {
-      isActive = false;
-    };
   }, []);
 
 
@@ -223,12 +230,31 @@ const BalanceScreen = () => {
         return;
       }
 
-      await fetchSubscriberData(newSim.iccid, uuid);
+      await fetchSubscriberData(newSim, uuid);
     } catch (error) {
       console.error("🚨 Error eliminando la SIM:", error);
     }
   };
 
+  if (!isLoggedIn) {
+    console.log("🔐 [BalanceScreen] Usuario no autenticado, mostrando SignIn");
+    return <SignIn />;
+  }
+
+  const mappedSims = useMemo(() => {
+    const result = sims
+      .filter((sim) => sim != null)
+      .map((sim) => ({
+        id: sim.iccid,
+        name: sim.name,
+        logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
+        number: sim.iccid,
+        provider: sim.provider,
+      }));
+  
+    console.log("🧭 [Balance] Sims mapeadas para SimCurrencySelector:", result.map(r => r.id));
+    return result;
+  }, [sims]);
 
   const BackgroundWrapper = isDarkMode ? View : LinearGradient;
   const backgroundProps = isDarkMode
@@ -254,36 +280,26 @@ const BalanceScreen = () => {
       />
 
       <BackgroundWrapper {...backgroundProps}>
-        <HeaderEncrypted owner="encriptados" settingsLink="balance/settings/sim?from=balance" />
+
+      <HeaderEncrypted owner="encriptados" settingsLink="balance/settings/sim?from=balance" />
 
 
         <ScrollView contentContainerStyle={balanceStyles.content}>
+        {Array.isArray(sims) && (
           <SimCurrencySelector
-            sims={sims
-              .filter((sim) => sim != null)
-              .map((sim) => {
-                const mapped = {
-                  id: sim.iccid,
-                  name: sim.name,
-                  logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
-                  number: sim.iccid,
-                  provider: sim.provider,
-                };
-                return mapped;
-              })}
+            sims={mappedSims}
             selectedId={selectedSimId}
-            // Dentro de onSelectSim
             onSelectSim={async (id) => {
-              console.log("📤 onSelectSim invocado con id:", id);
+              console.log("📤 [Balance] onSelectSim invocado con id:", id);
               const uuid = await getDeviceUUID();
               const sim = sims.find(sim => sim.iccid === id);
 
               if (!sim) return;
 
-              console.log("🖱 SIM seleccionada en modal:", sim);
+              console.log("🖱 [Balance] SIM seleccionada en modal:", sim);
 
               if (sim.provider === "tottoli") {
-                console.warn("⛔️ SIM tottoli seleccionada en /balance. Redirigiendo...");
+                console.warn("⛔️ [Balance] SIM tottoli seleccionada en /balance. Redirigiendo...");
                 skipBalanceRef.current = true;
                 await AsyncStorage.removeItem("currentICCID");
                 dispatch(resetSimState());
@@ -301,10 +317,11 @@ const BalanceScreen = () => {
                 return;
               }
 
-              console.log("🔁 Cambiando SIM actual a:", sim.iccid);
-              await fetchSubscriberData(id, uuid);
+              console.log("🔁 [Balance] Cambiando SIM actual a:", sim.iccid);
+              await fetchSubscriberData(sim, uuid);
             }}
           />
+        )}
 
           <View style={balanceStyles.separator} />
 
@@ -316,6 +333,12 @@ const BalanceScreen = () => {
             simPlans.map((plan, index) => {
               const totalMB = Number(plan.pckdatabyte) || 0;
               const usedMB = Number(plan.useddatabyte) || 0;
+
+              if (isNaN(totalMB) || isNaN(usedMB)) {
+                console.warn("⚠️ [Balance] Plan inválido en índice", index, plan);
+                return null;
+              }
+
               const remainingMB = Math.max(totalMB - usedMB, 0);
               const remainingGB = (remainingMB / 1024).toFixed(2);
 

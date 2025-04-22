@@ -29,6 +29,8 @@ import { useModalPassword } from "@/context/modalpasswordprovider";
 import AlertButton from "@/components/molecules/AlertButton/AlertButton";
 import { router, useFocusEffect } from "expo-router";
 import { useModalActivateSim } from "@/context/modalactivatesim";
+import { updateCurrentSim } from "@/features/sims/simSlice";
+import { useDispatch } from "react-redux";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero.png");
 
@@ -40,6 +42,7 @@ const Login = () => {
 
   useFocusEffect(
     useCallback(() => {
+      console.log("📲 [new-sim-tim] Entrando a la vista new-sim-tim");
       setTypeOfProcess("newsim");
     }, [])
   );
@@ -59,6 +62,9 @@ const Login = () => {
 
   const [newSimProvider, setNewSimProvider] = useState<string | null>(null);
 
+  const dispatch = useDispatch();
+  const [createdSim, setCreatedSim] = useState<any>(null);
+
   const validationSchema = Yup.object().shape({
     simNumber: Yup.string()
       .required(t("validators.required"))
@@ -66,9 +72,10 @@ const Login = () => {
   });
 
   const handleSubmit = async (values) => {
+    console.log("📝 [new-sim-tim] Enviando formulario con SIM:", values.simNumber);
     if (Object.keys(formik.errors).length > 0) return;
     if (!deviceUUID) {
-      console.warn("UUID no disponible, espere a que se obtenga el UUID.");
+      console.warn("⚠️ [new-sim-tim] UUID no disponible");
       return;
     }
     try {
@@ -88,17 +95,16 @@ const Login = () => {
             uuid: deviceUUID,
           };
 
-      console.log("🆕 Creando SIM con provider:", subscriberData.provider);
-
+      console.log("🆕 [new-sim-tim] Creando SIM con provider:", subscriberData.provider);
       const result = await createSubscriber(subscriberData);
+      setCreatedSim(result);
       setNewSimProvider(subscriberData.provider);
-
-      console.log("📦 SIM creada. Guardando ICCID:", values.simNumber);
+      console.log("📦 [new-sim-tim] SIM creada correctamente:", result);
       await AsyncStorage.setItem("currentICCID", values.simNumber);
 
       setModalSuccessVisible(true);
     } catch (error) {
-      console.error("❌ Error al crear la SIM:", error);
+      console.error("❌ [new-sim-tim] Error al crear SIM:", error);
       setAlertMessage("Error al agregar la SIM");
       setAlertType("error");
     } finally {
@@ -108,15 +114,24 @@ const Login = () => {
 
   const handleSuccessModalClose = async () => {
     setModalSuccessVisible(false);
-    await AsyncStorage.setItem("currentICCID", formik.values.simNumber);
 
-    console.log("📲 Cerrando modal de éxito");
-    console.log("✅ Provider guardado:", newSimProvider);
-    console.log("➡️ Redirigiendo a:", newSimProvider === "tottoli" ? "/home" : "/balance");
+    const sim = {
+      code: createdSim?.id ?? "", 
+      idSim: formik.values.simNumber,
+      provider: newSimProvider,
+      simName: "Sim",
+      iccid: formik.values.simNumber,
+    };
+
+    await AsyncStorage.setItem("currentICCID", formik.values.simNumber);
+    dispatch(updateCurrentSim(formik.values.simNumber)); 
+    console.log("✅ [new-sim-tim] Modal de éxito cerrado. Provider:", newSimProvider);
 
     if (newSimProvider === "tottoli") {
+      console.log("➡️ [new-sim-tim] Redirigiendo a /home");
       router.replace("/home");
     } else {
+      console.log("➡️ [new-sim-tim] Redirigiendo a /balance");
       router.replace("/balance");
     }
   };
@@ -126,10 +141,10 @@ const Login = () => {
       try {
         const persistedState = await AsyncStorage.getItem("root");
         if (persistedState !== null) {
-          const state = JSON.parse(persistedState);
+          console.log("📦 [new-sim-tim] Estado persistido recuperado");
         }
       } catch (error) {
-        console.error("Error al obtener el estado persistido:", error);
+        console.error("❌ [new-sim-tim] Error obteniendo estado persistido:", error);
       }
     };
 
@@ -137,30 +152,29 @@ const Login = () => {
   }, []);
 
   const formik = useFormik({
-    initialValues: {
-      simNumber: "",
-    },
-    validationSchema: validationSchema,
+    initialValues: { simNumber: "" },
+    validationSchema,
     onSubmit: handleSubmit,
   });
 
   useEffect(() => {
+    console.log("🔢 [new-sim-tim] SIM actual ingresada:", formik.values.simNumber);
     setCurrentIdSim(formik.values.simNumber);
   }, [formik.values.simNumber]);
 
   useEffect(() => {
-    setType(determineType(formik.values.simNumber));
+    const detectedType = determineType(formik.values.simNumber);
+    setType(detectedType);
+    console.log("🧠 [new-sim-tim] Tipo de SIM detectado:", detectedType);
   }, [formik.values.simNumber]);
 
   useEffect(() => {
-    if (alertMessage) {
-      setShowAlertButton(true);
-    } else {
-      setShowAlertButton(false);
-    }
+    console.log("⚠️ [new-sim-tim] Mensaje de alerta:", alertMessage);
+    setShowAlertButton(!!alertMessage);
   }, [alertMessage]);
 
   const handleInfoModal = () => {
+    console.log("ℹ️ [new-sim-tim] Abriendo modal informativo");
     setModalVisible(!modalVisible);
   };
 
@@ -168,6 +182,7 @@ const Login = () => {
 
   useFocusEffect(
     useCallback(() => {
+      console.log("♻️ [new-sim-tim] Reset de formulario");
       formik.resetForm();
     }, [])
   );
