@@ -14,6 +14,7 @@ const initialState: SimState = {
 export interface Sim {
   idSim: string ;
   simName: string;
+  name?: string;
   provider: string;
   iccid: string;
   code?: string;
