@@ -27,15 +27,9 @@ const HeaderEncrypted = ({
   const currentSim = useAppSelector((state) => state.sims.currentSim);
   const { simId } = useLocalSearchParams<{ simId?: string }>();
   const simToUse = simId || currentSim;
+  const resolvedSimId = simId ?? (typeof currentSim === "object" ? currentSim?.iccid : currentSim);
 
-  const resolvedSimId =
-  simId ?? (typeof currentSim === "object" ? currentSim?.iccid : currentSim);
-
-  if (!simId && !currentSim) {
-    return null;
-  }
-  
-
+  if (!simId && !currentSim) return null;
   
   const resolvedOwner = owner ?? Constants.expoConfig.owner;
 
@@ -72,27 +66,31 @@ const HeaderEncrypted = ({
     return null;
   };
 
+  const handleBack = () => {
+       if (iconBack && iconBack !== "none") {
+         console.log("🔙 HeaderEncrypted custom back to:", iconBack);
+         router.replace(iconBack as any);  
+         return;
+       }
+    
+       if (currentSim?.provider === "telco-vision" && resolvedSimId) {
+         console.log("🔙 Regresando a /balance para provider telco-vision, simId:", resolvedSimId);
+         router.replace({ pathname: "/balance", params: { simId: resolvedSimId } });
+       } else {
+         console.log("🔙 Navegando a /home");
+         router.replace("/home");
+       }
+     };
+
+
   return (
     <View style={styles.containerHeader}>
       <View>
         {iconBack && iconBack !== "none" ? (
-          <TouchableOpacity
-            style={{
-              ...styles.iconButton,
-              backgroundColor: colors.backgroundAlternate,
-            }}
-            onPress={() => {
-              if (resolvedSimId) {
-                console.log("🔙 Regresando con simId a /balance", resolvedSimId);
-                router.replace({ pathname: "/balance", params: { simId: resolvedSimId } });
-              } else {
-                console.log("🔙 No hay simId, navegando a /home");
-                router.replace("/home");
-              }
-
-            }}
-            
-          >
+           <TouchableOpacity
+           style={[styles.iconButton, { backgroundColor: colors.backgroundAlternate }]}
+           onPress={handleBack}
+         >
             <IconSvg height={20} width={20} color={colors.white} type="arrowback" />
           </TouchableOpacity>
         ) : iconBack === "" ? (
