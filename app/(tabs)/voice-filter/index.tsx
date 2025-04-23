@@ -18,6 +18,7 @@ import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeMode } from "@/context/theme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
+
 import { useFocusEffect } from "expo-router";
 
 const VoiceFilter = () => {
@@ -112,7 +113,7 @@ const VoiceFilter = () => {
           : { backgroundColor: theme.lightMode.colors.white }
       }
     >
-      <HeaderEncrypted iconBack="/home" />
+      <HeaderEncrypted owner="encriptados" iconBack="/home" />
       <View
         style={[
           themeMode === ThemeMode.Dark
