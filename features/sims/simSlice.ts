@@ -34,13 +34,16 @@ export const simSlice = createSlice({
       }
     },
     updateCurrentSim: (state, action: PayloadAction<string>) => {
-      console.log("🔄 [updateCurrentSim] Buscando SIM con idSim:", action.payload);
-      const sim = state.sims.find((item) => item.idSim === action.payload);
+      const id = action.payload;
+      console.log("🔄 [updateCurrentSim] Buscando SIM con idSim o iccid:", id);
+      const sim = state.sims.find((item) =>
+        String(item.idSim) === id || String(item.iccid) === id
+      );
       if (sim) {
         state.currentSim = sim;
         console.log("✅ [updateCurrentSim] SIM actualizada:", sim);
       } else {
-        console.warn("❌ [updateCurrentSim] SIM no encontrada:", action.payload);
+        console.warn("❌ [updateCurrentSim] SIM no encontrada:", id);
       }
     },
     updateSimName: (state, action: PayloadAction<{ idSim: string; newName: string }>) => {

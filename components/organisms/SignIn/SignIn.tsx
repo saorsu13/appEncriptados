@@ -94,13 +94,12 @@ const SignIn = () => {
           setRequestCodeModal(true);
           return;
         }
-
         InteractionManager.runAfterInteractions(() => {
+          console.log("🔁 [SignIn] Redirigiendo a Home. La lógica decidirá si ir a /balance.");
           setHasRedirectedFromTottoli(false);
           setHasAlreadyRedirected(true);
-          if (provider === "telco-vision") router.replace("/balance");
-          else if (provider === "tottoli") router.replace("/home");
-        });
+          router.replace("/home");
+        });        
       } catch (error) {
         console.error("🔥 Error general en onSubmit:", error);
       } finally {
