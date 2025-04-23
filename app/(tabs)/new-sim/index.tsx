@@ -141,6 +141,8 @@ async function handleRequestCode() {
   console.log("⚠️ [new-sim] Tipo de SIM no definido, saliendo...");
 
   try {
+    setIsRequestingCode(true);
+
     const isSim19Digits = formik.values.simNumber.length === 19;
     console.log("🔢 [new-sim] SIM:", formik.values.simNumber, "| Tipo:", isSim19Digits ? "telco-vision" : "tottoli");
 
@@ -173,7 +175,9 @@ async function handleRequestCode() {
     }
   } catch (err) {
     console.error("[new-sim] Error al crear la SIM:", err);
-    showModal?.(); 
+    showModal?.();
+  } finally {
+    setIsRequestingCode(false);
   }
 }
 

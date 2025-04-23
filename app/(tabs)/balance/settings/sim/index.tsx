@@ -6,10 +6,8 @@ import theme from "@/config/theme";
 import { ThemeMode } from "@/context/theme";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
-import { backgroundColor } from "@shopify/restyle";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { useSelector } from "react-redux";
 
 const baseMsg = "pages.settings";
 

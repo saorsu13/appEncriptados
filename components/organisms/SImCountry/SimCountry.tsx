@@ -127,9 +127,14 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
         <TouchableHighlight
           underlayColor="transparent"
           onPress={() => {
-            const safeSims = sims.filter(
-              (sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string"
-            );
+            const safeSims = sims
+              .filter((sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string")
+              .sort((a, b) => {
+                const orderA = a.provider === "tottoli" ? 0 : 1;
+                const orderB = b.provider === "tottoli" ? 0 : 1;
+                return orderA - orderB;
+              });
+
             openModal(safeSims, (pickedSim) => {
               onSelectSim(pickedSim.idSim);
             });

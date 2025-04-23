@@ -9,8 +9,6 @@ import {
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import { ThemeCustom } from "@/config/theme2";
 import { useTheme } from "@shopify/restyle";
-import PinInputScreen from "@/components/molecules/PinInputScreen/PinInputScreen";
-import { router } from "expo-router";
 
 const ChangeIcon = () => {
   const { colors } = useTheme<ThemeCustom>();

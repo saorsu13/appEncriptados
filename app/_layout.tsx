@@ -11,16 +11,14 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, Slot  } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
   StyleSheet,
   AppState,
   AppStateStatus,
   Platform,
-  BackHandler,
 } from "react-native";
 import {
   BottomSheetModal,
@@ -41,8 +39,9 @@ import { MenuProvider } from "@/context/menuprovider";
 import RequestPasswordComponent from "@/context/requestpasswordprovider";
 import { ModalPasswordProvider } from "@/context/modalpasswordprovider";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useRestoreSession } from "@/hooks/useRestoreSession";
 import RestoreSessionWrapper from "@/components/organisms/RestoreSession/RestoreSessionWrapper";
+import { isFirstLaunch } from "@/utils/firstInstallCheck";
+import { getDeviceUUID } from "@/utils/getUUID";
 
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
@@ -103,6 +102,24 @@ export default function RootLayout() {
   }, [appIsReady]);
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  useEffect(() => {
+    const checkInstall = async () => {
+      const firstTime = await isFirstLaunch();
+      if (firstTime) {
+        console.log("🚀 Primera vez que se lanza la app (instalación nueva)");
+        // Aquí puedes hacer limpieza, redirección, etc.
+      } else {
+        console.log("✅ App ya se había abierto antes.");
+      }
+      // 👇 Agrega esto para ver el UUID que se está usando
+    const uuid = await getDeviceUUID();
+    console.log("🆔 [RootLayout] UUID actual del dispositivo:", uuid);
+    };
+  
+    checkInstall();
+  }, []);
+  
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>

@@ -41,12 +41,6 @@ type RootStackParamList = {
 
 type MyRouteProp = RouteProp<RootStackParamList, "MyRoute">;
 const Login = () => {
-  const { isModalVisible } = useModalPassword();
-
-  const [requestCodeModal, setRequestCodeModal] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
-  const [showAlertButton, setShowAlertButton] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [type, setType] = useState<any>(false);
@@ -54,8 +48,6 @@ const Login = () => {
   const baseMsg = "pages.login";
   const loginQuery = useLogin();
   const auth = useAuth();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalHowToWorkVisible, setModalHowToWorkVisible] = useState(false);
   const { themeMode } = useDarkModeTheme();
 
   const { params } = useRoute<MyRouteProp>();
