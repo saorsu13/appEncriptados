@@ -32,6 +32,9 @@ import { updateSimName } from "@/features/sims/simSlice";
 import { updateSubscriber } from "@/api/subscriberApi";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
 
+import { listSubscriber } from "@/api/subscriberApi";
+import { setSims, updateCurrentSim } from "@/features/sims/simSlice";
+
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
   MyRoute: { id: string };
@@ -79,9 +82,20 @@ const Login = () => {
         buttonColorCancel: colors.danger,
         textConfirm: t("modalSimActivate.goToPanel"),
         title: t("modalSimActivate.changeNameSimTitle"),
+
         onConfirm: async () => {
           console.log("📦 [EditSim] Guardando ICCID y redirigiendo");
           await AsyncStorage.setItem("currentICCID", params.id);
+
+          const updatedSims = await listSubscriber(deviceUUID);
+          const uniqueSims = Array.isArray(updatedSims)
+            ? Array.from(new Map(updatedSims.map((sim: any) => [sim.iccid, sim])).values())
+            : [];
+
+          dispatch(setSims(uniqueSims));
+
+          dispatch(updateCurrentSim(params.id));
+
           router.replace("/balance");
           formik.resetForm();
         },

@@ -31,6 +31,9 @@ import { router, useFocusEffect } from "expo-router";
 import { useModalActivateSim } from "@/context/modalactivatesim";
 import { updateCurrentSim } from "@/features/sims/simSlice";
 import { useDispatch } from "react-redux";
+import { listSubscriber } from "@/api/subscriberApi";
+import { setSims } from "@/features/sims/simSlice";
+
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero.png");
 
@@ -101,7 +104,6 @@ const Login = () => {
       setNewSimProvider(subscriberData.provider);
       console.log("📦 [new-sim-tim] SIM creada correctamente:", result);
       await AsyncStorage.setItem("currentICCID", values.simNumber);
-
       setModalSuccessVisible(true);
     } catch (error) {
       console.error("❌ [new-sim-tim] Error al crear SIM:", error);
@@ -115,17 +117,40 @@ const Login = () => {
   const handleSuccessModalClose = async () => {
     setModalSuccessVisible(false);
 
+    const iccid = formik.values.simNumber;
     const sim = {
       code: createdSim?.id ?? "", 
-      idSim: formik.values.simNumber,
+      idSim: iccid,
       provider: newSimProvider,
       simName: "Sim",
-      iccid: formik.values.simNumber,
+      iccid,
     };
 
-    await AsyncStorage.setItem("currentICCID", formik.values.simNumber);
-    dispatch(updateCurrentSim(formik.values.simNumber)); 
+    await AsyncStorage.setItem("currentICCID", iccid);
     console.log("✅ [new-sim-tim] Modal de éxito cerrado. Provider:", newSimProvider);
+
+    try {
+      const uuid = deviceUUID;
+      if (!uuid) {
+        console.warn("❌ UUID no disponible al cerrar modal de éxito");
+        return;
+      }
+  
+      const freshSims = await listSubscriber(uuid);
+      const normalized = freshSims.map((s: any) => ({
+        ...s,
+        idSim: s.idSim || s.iccid,
+        simName: s.simName || s.name || "Sim",
+      }));
+  
+      dispatch(setSims(normalized));
+      dispatch(updateCurrentSim(iccid));
+    } catch (e) {
+      console.error("❌ Error al actualizar SIMs luego de creación:", e);
+    }
+  
+    console.log("✅ [new-sim-tim] Modal de éxito cerrado. Provider:", newSimProvider);
+  
 
     if (newSimProvider === "tottoli") {
       console.log("➡️ [new-sim-tim] Redirigiendo a /home");

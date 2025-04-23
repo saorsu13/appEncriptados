@@ -36,10 +36,10 @@ export function useRestoreSession(deviceUUID: string | null) {
         }
 
         const parsedSims = listResponse.map((sim) => ({
-          idSim: sim.iccid,
-          simName: sim.name,
+          idSim: String(sim.iccid),
+          simName: sim.name || "Sim",
           provider: sim.provider,
-          iccid: sim.iccid,
+          iccid: String(sim.iccid),
           code: sim.code ?? "",
         }));
         console.log("🧾 [useRestoreSession] SIMs parseadas:", parsedSims);

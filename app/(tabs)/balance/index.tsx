@@ -31,12 +31,10 @@ const BalanceScreen = () => {
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
   const { isLoggedIn } = useAuth();
-
   const dispatch = useDispatch();
-
   const router = useRouter();
-  const currentSim = useAppSelector((state) => state.sims.currentSim);
 
+  const currentSim = useAppSelector((state) => state.sims.currentSim);
   const allSims = useAppSelector((state) => state.sims.sims);
 
   const [selectedSimId, setSelectedSimId] = useState<string | null>(null);
@@ -45,10 +43,17 @@ const BalanceScreen = () => {
   const lastFetchedSimId = useRef<string | null>(null);
   const isFetching = useRef(false);
   const [loading, setLoading] = useState(false);
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+
+  
+  useEffect(() => {
+    if (currentSim?.provider === "tottoli") {
+      console.log("👁 1️⃣ useEffect [currentSim] iniciado →", currentSim);
+      router.replace('/home');
+    }
+  }, [currentSim]);
 
   const BackgroundWrapper = isDarkMode ? View : require("expo-linear-gradient").LinearGradient;
   const backgroundProps = isDarkMode
@@ -61,30 +66,41 @@ const BalanceScreen = () => {
       };
 
     const mappedSims = useMemo(() => {
-      console.log("🔄 [Balance] Generando mappedSims con allSims:", allSims);
+      console.log("👁 2️⃣ Generando mappedSims con allSims:", allSims);
       const filtered = allSims
         .filter(sim => {
-          const isValid = sim && sim.iccid;
+          const isValid = sim && (sim.iccid || sim.idSim);
           if (!isValid) console.warn("⚠️ [Balance] SIM inválida en mappedSims:", sim);
           return isValid;
         })
-        .map(sim => ({
-          id: sim.iccid,
+        .map(sim => {
+          const id = sim.idSim || sim.iccid;
+          if (!id) {
+            console.warn("❌ [Balance] SIM sin ID usable:", sim);
+            return null;
+          }
+          return {
+          id,
           name: sim.simName || sim.name || "SIM sin nombre",
           logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
-          number: sim.iccid,
+          number: sim.iccid || sim.idSim,
           provider: sim.provider,
-        }));
+        };
+      })
+      .filter(Boolean);
+      console.log("🔬 [Balance] Detalle de allSims:", allSims);
       console.log("✅ [Balance] mappedSims generados:", filtered.map(s => s.id));
       return filtered;
     }, [allSims]);
            
 
     const fetchSubscriberData = async (sim: any, uuid: string) => {
-    const id = sim.iccid;
-    console.log("🔄 [Balance] fetchSubscriberData llamada con:", { id, uuid });
-  
-    if (!sim || !id) return;
+    const id = sim.idSim || sim.iccid;
+    console.log("👁 3️⃣ fetchSubscriberData con ID:", id, "y UUID:", uuid);  
+    if (!sim || !id) {
+      console.warn("❌ [Balance] SIM inválida en fetchSubscriberData:", sim);
+      return;
+    }
     if (isFetching.current) {
       console.log("⏳ [Balance] Ya se está haciendo fetch");
       return;
@@ -146,24 +162,22 @@ const BalanceScreen = () => {
         return;
       }
   
-      const isSelectedSimStillValid = uniqueSims.some(s => s.iccid === selectedSimId);
-      const fallbackSim = uniqueSims.find(s => s.provider !== "tottoli");
-  
-      if (!isSelectedSimStillValid) {
-        if (fallbackSim) {
-          console.log(`🔁 [DeleteSim] Seleccionando fallback SIM: ${fallbackSim.iccid}`);
-          await AsyncStorage.setItem("currentICCID", fallbackSim.iccid);
-          dispatch(updateCurrentSim(fallbackSim.iccid));
-          setSelectedSimId(fallbackSim.iccid);
-          await fetchSubscriberData(fallbackSim, uuid);
-        } else {
-          console.warn("⚠️ [DeleteSim] Solo quedan SIMs tipo tottoli. Redirigiendo...");
-          await AsyncStorage.removeItem("currentICCID");
-          dispatch(resetSimState());
-          setSelectedSimId(null);
-          router.replace("/home");
-        }
+      const fallbackSim = uniqueSims.find(sim => sim.provider !== "tottoli");
+
+      if (fallbackSim && fallbackSim.idSim) {
+        console.log(`🔁 [DeleteSim] Seleccionando fallback SIM: ${fallbackSim.idSim}`);
+        await AsyncStorage.setItem("currentICCID", String(fallbackSim.idSim));
+        dispatch(updateCurrentSim(fallbackSim));
+        setSelectedSimId(String(fallbackSim.idSim));
+        await fetchSubscriberData(fallbackSim, uuid);
+      } else {
+        console.warn("⚠️ [DeleteSim] No hay fallback válido. Redirigiendo...");
+        await AsyncStorage.removeItem("currentICCID");
+        dispatch(resetSimState());
+        setSelectedSimId(null);
+        router.replace("/home");
       }
+
     } catch (error) {
       console.error("🚨 [DeleteSim] Error eliminando SIM:", error);
     } finally {
@@ -173,16 +187,38 @@ const BalanceScreen = () => {
   
   
   useEffect(() => {
+    console.log("👁 4️⃣ useEffect [deviceUUID, allSims]");
     if (!deviceUUID || !allSims.length) return;
-    console.log("📋 [Balance] SIMs disponibles tras eliminación:", allSims.map(s => s.iccid));
+    console.log("📋 [Balance] SIMs disponibles tras eliminación:", allSims.map(s => s.iccid || s.idSim));
 
-    if (!currentSim || currentSim.provider === "tottoli") {
-    console.warn("🔄 [Balance] No hay SIM seleccionada válida, eligiendo una automáticamente...");
+  //   if (!currentSim || currentSim.provider === "tottoli") {
+  //   console.warn("🔄 [Balance] No hay SIM seleccionada válida, eligiendo una automáticamente...");
+  //   const validSim = allSims.find((s) => s.provider !== "tottoli");
+
+  //   if (validSim) {
+  //     console.log("✅ [Balance] Seleccionando SIM válida:", validSim.idSim);
+  //     dispatch(updateCurrentSim(validSim.idSim));
+  //     fetchSubscriberData(validSim, deviceUUID);
+  //   } else {
+  //     console.warn("❌ [Balance] No hay SIM válida disponible, redirigiendo...");
+  //     dispatch(resetSimState());
+  //     router.replace("/home");
+  //   }
+  // }
+    // 1) si la sim activa es 'tottoli', ya lanzaste router.replace en el otro useEffect,
+  //    aquí simplemente salimos sin tocar nada
+  if (currentSim?.provider === "tottoli") {
+    return;
+  }
+
+  // 2) si no hay currentSim, elegimos un fallback
+  if (!currentSim) {
+    console.warn("🔄 [Balance] No hay SIM seleccionada, eligiendo una automáticamente...");
     const validSim = allSims.find((s) => s.provider !== "tottoli");
-
+    
     if (validSim) {
-      console.log("✅ [Balance] Seleccionando SIM válida:", validSim.iccid);
-      dispatch(updateCurrentSim(validSim.iccid));
+      console.log("✅ [Balance] Seleccionando SIM válida:", validSim.idSim);
+      dispatch(updateCurrentSim(validSim.idSim));
       fetchSubscriberData(validSim, deviceUUID);
     } else {
       console.warn("❌ [Balance] No hay SIM válida disponible, redirigiendo...");
@@ -203,16 +239,19 @@ const BalanceScreen = () => {
   }, []);
 
   useEffect(() => {
-    if (!selectedSimId && currentSim?.iccid) {
-      console.log("🎯 [Balance] Reseteando selectedSimId desde currentSim:", currentSim.iccid);
-      setSelectedSimId(currentSim.iccid);
+    if (currentSim) {
+      const id = currentSim.idSim || currentSim.iccid;
+      if (id && selectedSimId !== String(id)) {
+        console.log("👁 5️⃣ Forzando selectedSimId:", id);
+        setSelectedSimId(String(id));
+      }
     }
-  }, [currentSim, selectedSimId]);  
+  }, [currentSim, selectedSimId]);
+  
   
   useEffect(() => {
     if (!deviceUUID || !currentSim || currentSim.provider === "tottoli") return;
-  
-    console.log("📡 [Balance] currentSim actualizado, haciendo fetch:", currentSim.iccid);
+    console.log("👁 6️⃣ Ejecutando fetch por currentSim:", currentSim);
     fetchSubscriberData(currentSim, deviceUUID);
   }, [currentSim, deviceUUID]);
   
@@ -249,7 +288,7 @@ const BalanceScreen = () => {
           selectedId={selectedSimId}
           onSelectSim={async (id) => {
             console.log("📤 [Balance] onSelectSim invocado con id:", id);
-            const sim = allSims.find((s) => s.iccid === id);
+            const sim = allSims.find((s) => String(s.idSim || s.iccid) === id);
             console.log("🔎 [Balance] SIM encontrada en allSims:", sim);
             if (!sim || !deviceUUID) return;
 
@@ -263,10 +302,10 @@ const BalanceScreen = () => {
               return;
             }
 
-            console.log("🔁 [Balance] SIM válida, haciendo fetch:", sim.iccid);
+            console.log("🔁 [Balance] SIM válida, haciendo fetch:", sim.idSim);
             await fetchSubscriberData(sim, deviceUUID);
-            dispatch(updateCurrentSim(sim.iccid));
-            setSelectedSimId(sim.iccid);
+            dispatch(updateCurrentSim(sim.idSim || sim.iccid));
+            setSelectedSimId(String(sim.idSim || sim.iccid));
           }}
         />
 
@@ -319,7 +358,7 @@ const BalanceScreen = () => {
               setShowDeleteModal(false);
             }
           }}
-          simName={allSims.find((sim) => sim.iccid === selectedSimId)?.simName}
+          simName={allSims.find((sim) => String(sim.idSim || sim.iccid) === selectedSimId)?.simName || allSims.find((sim) => String(sim.iccid) === selectedSimId)?.name}
           isDarkMode={isDarkMode}
           t={t}
           baseMsg="pages.deleteSimModal"

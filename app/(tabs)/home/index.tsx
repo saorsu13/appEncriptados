@@ -39,6 +39,7 @@ import { listSubscriber } from "@/api/subscriberApi";
 import { getDeviceUUID } from "@/utils/getUUID";
 import { setSims } from "@/features/sims/simSlice";
 import { useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 
 
 const Home = () => {
@@ -58,6 +59,8 @@ const Home = () => {
   const [versionFetched, setVersionFetched] = useState("");
   const [refreshing, setRefreshing] = useState(false);
  
+  const [isSimFetchComplete, setIsSimFetchComplete] = useState(false);
+
   const isSimsReady = sims.length > 0;
   
   useEffect(() => {
@@ -103,6 +106,18 @@ const Home = () => {
       console.log("🔄 [Home] Forzando fetch de SIMs desde backend");
       const uuid = await getDeviceUUID();
       const simsRaw = await listSubscriber(uuid);
+
+      
+      if (!Array.isArray(simsRaw) || simsRaw.length === 0) {
+        console.warn("🚫 [Home] No hay SIMs disponibles. Reset del estado y logout");
+  
+        await AsyncStorage.removeItem("currentICCID");
+        dispatch(setSims([]));              
+        dispatch(updateCurrentSim(null));   
+        setIsSimFetchComplete(true);
+        return;
+      }
+      
       const parsedSims = simsRaw.map((sim) => ({
         idSim: String(sim.iccid),
         simName: sim.name,
@@ -110,14 +125,31 @@ const Home = () => {
         iccid: String(sim.iccid),
         code: sim.id ?? 0,
       }));
-  
+
       console.log("📦 [Home] SIMs seteadas en Redux:", parsedSims.map(s => s.idSim));
       dispatch(setSims(parsedSims));
+      console.log("✅ [Home] Ya seteé sims en Redux, marcando isSimFetchComplete");
+      setIsSimFetchComplete(true);
     };
   
     fetchSims();
   }, []);
-    
+
+  useEffect(() => {
+    const simId = Array.isArray(params?.simId) ? params.simId[0] : params?.simId;
+  
+    if (!simId || !isSimsReady || !simId.match(/^\d+$/)) return;
+  
+    const sim = sims.find((s) => s.idSim === simId || s.iccid === simId);
+    if (sim) {
+      console.log("📲 [Home] SIM pasada por params:", simId);
+      dispatch(updateCurrentSim(sim.idSim || sim.iccid));
+      AsyncStorage.setItem("currentICCID", simId);
+    } else {
+      console.warn("🚫 [Home] SIM por params no encontrada en lista actual:", simId);
+    }
+  }, [params?.simId, isSimsReady]);
+  
   useEffect(() => {
     const restoreSimIfNeeded = async () => {
       console.log("🧠 [restoreSimIfNeeded] Evaluando restauración de SIM...");
@@ -148,7 +180,7 @@ const Home = () => {
         setSelectedSimIdVisual(storedId);
       } else if (sims.length > 0) {
         console.log("❓ [restoreSimIfNeeded] SIM no válida, usando fallback:", sims[0]);
-        const fallback = sims[0];
+        const fallback = sims.find(s => s.provider !== "tottoli");
         await AsyncStorage.setItem("currentICCID", fallback.iccid);
         dispatch(updateCurrentSim(fallback.idSim));
       }
@@ -194,17 +226,27 @@ const Home = () => {
   });
   
   useEffect(() => {
-    if (!currentSim) return;
+    if (!currentSim) {
+      console.log("🔄 [Home] No hay SIM activa → limpio selección visual");
+      setSelectedSimIdVisual(null);
+      return;
+    }
+  
+    const id = currentSim.idSim;
+    console.log("🚀 [Home] Sincronizando seleccionado:", id);
+    setSelectedSimIdVisual(id);
+  
     const payload: BalanceRequest = {
       id: Number(currentSim.idSim),
       country: "CA",
       currencyCode: "CAD",
     };
+  
     console.log("🚀 [Home] Ejecutando mutate con SIM actual:", payload);
     mutation.mutate(payload);
-  }, [currentSim]);
+  }, [currentSim?.idSim]);
   
-
+  
 const versionQuery = useQuery({
     queryKey: ["getVersion"],
     queryFn: () => getVersion("fantasma"),
@@ -242,55 +284,55 @@ const versionQuery = useQuery({
     }
   }, [versionFetched, hasShownModal, areVersionsEqual]);
 
-  useEffect(() => {
-    if (currentSim?.idSim) {
-      const timeout = setTimeout(() => {
-        const payload: BalanceRequest = {
-          id: Number(currentSim.idSim),
-          country: "CA",
-          currencyCode: "CAD",
-        };
-        console.log("🚀 [Home] Ejecutando mutate con SIM actual (delay):", payload);
-        mutation.mutate(payload);
-      }, 100); 
-  
-      return () => clearTimeout(timeout);
-    }
-  }, [currentSim?.idSim]);
   
   const onUserSelectSim = async (newIdSim: string) => {
     console.log("📲 [Home] Usuario seleccionó SIM:", newIdSim);
+
+    const simSeleccionada = sims.find((s) => String(s.idSim || s.iccid) === newIdSim);
+
+    if (!simSeleccionada) {
+      console.warn("🚫 [Home] SIM seleccionada no encontrada en la lista");
+      return;
+    }
+  
+    if (simSeleccionada.provider === "tottoli") {
+      console.warn("⛔️ [Home] SIM tipo 'tottoli' seleccionada desde visual. Evitando navegación a /balance");
+      router.replace("/home");
+      return;
+    }
+
     dispatch(updateCurrentSim(newIdSim));
     await AsyncStorage.setItem("currentICCID", newIdSim);
     setSelectedSimIdVisual(newIdSim);
   };  
 
-  if (!isSimsReady) {
-    console.log("⏳ [Home] Esperando carga de SIMs...");
+
+  if (!isSimFetchComplete) {
+    console.log("🕐 [Home] Esperando que termine fetch de SIMs...");
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#00AEEF" />
       </View>
     );
   }
-
+  
   if (!isLoggedIn || !currentSim) {
+    console.log("🔐 [Home] Usuario no autenticado o sin SIM, mostrando SignIn");
     return <SignIn />;
   }
-///////////////////////////////////////////////////////////////////////////
 
   const onRefresh = () => {
     console.log("🔄 [Home] Refetching balance para SIM:", currentSim?.idSim);
     setRefreshing(true);
   
-    if (!currentSim) return;
+    if (!currentSim || currentSim.provider === "tottoli") return;
   
     const payload: BalanceRequest = {
       id: Number(currentSim.idSim),
       country: "CA",
       currencyCode: "CAD",
     };
-  
+    console.log("🚀 [Home] Ejecutando mutate con SIM actual:", payload);
     mutation.mutate(payload, {
       onSettled: () => {
         console.log("✅ [Home] Finalizó refetch");
@@ -298,15 +340,8 @@ const versionQuery = useQuery({
       },
     });
   };
-  
-  if (!isLoggedIn || !currentSim) {
-    console.log("🔐 [Home] Usuario no autenticado o sin SIM, mostrando SignIn");
-    return <SignIn />;
-  }
-  
+
   ///////////////////////////////////////////////////////////////////////////
-
-
   return (
     <ScrollView
           style={{ backgroundColor: colors.background }}

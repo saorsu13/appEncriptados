@@ -120,7 +120,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
             <Text style={styles.modalTitle}>{t(`${baseMsg}.simList`)}</Text>
             <FlatList
               data={orderedSims}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => {
                 const isSixDigitSim = item.id.length === 6;
                 const simImage = isSixDigitSim
@@ -165,12 +165,10 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                             : { width: 25, height: 25, resizeMode: 'contain' }
                         }
                       />
-                      <Text
-                        style={styles.simNumber}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {item.number.length >= 6 ? "·".repeat(item.number.length - 6) + item.number.slice(-6) : item.number}
+                      <Text style={styles.simNumber}>
+                        {item.number && item.number.length >= 6
+                          ? "·".repeat(item.number.length - 6) + item.number.slice(-6)
+                          : item.number || "—"}
                       </Text>
                     </View>
               
