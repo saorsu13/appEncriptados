@@ -99,7 +99,7 @@ const SignIn = () => {
           setHasRedirectedFromTottoli(false);
           setHasAlreadyRedirected(true);
           router.replace("/home");
-        });        
+        });
       } catch (error) {
         console.error("🔥 Error general en onSubmit:", error);
       } finally {

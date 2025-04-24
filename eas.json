@@ -7,14 +7,14 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
+        "buildType": "app-bundle",
         "gradleCommand": ":app:assembleRelease"
       }
     },
     "production-android": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     },
     "development": {
@@ -25,7 +25,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
+        "buildType": "app-bundle",
         "gradleCommand": ":app:assembleRelease"
       }
     },
@@ -33,7 +33,7 @@
       "developmentClient": false,
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "env": {
       "EAS_NO_PREBUILD": "1",

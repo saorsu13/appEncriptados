@@ -28,8 +28,6 @@ const HeaderEncrypted = ({
   const { simId } = useLocalSearchParams<{ simId?: string }>();
   const simToUse = simId || currentSim;
   const resolvedSimId = simId ?? (typeof currentSim === "object" ? currentSim?.iccid : currentSim);
-
-  if (!simId && !currentSim) return null;
   
   const resolvedOwner = owner ?? Constants.expoConfig.owner;
 

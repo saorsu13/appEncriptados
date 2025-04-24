@@ -403,6 +403,7 @@ const styles = StyleSheet.create({
   },
   containerHeaderTitle: {
     textAlign: "center",
+    color: "white",
     fontFamily: theme.textVariants.input,
     ...theme.textVariants.buttonGroup,
   },

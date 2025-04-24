@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  TouchableHighlight,
+  TouchableOpacity,
   View,
   Text,
   StyleSheet,
@@ -26,17 +26,16 @@ import { getDeviceUUID } from "../../../utils/getUUID";
 
 // Componentes UI
 import Dropdown from "@/components/molecules/Dropdown/Dropdown";
-import CopyLabel from "@/components/molecules/CopyLabel/CopyLabel";
 import SkeletonContent from "@/components/molecules/SkeletonContent";
 import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 
 // Tema
-import theme from "@/config/theme";
+import { ThemeCustom } from "@/config/theme2"
 import { ThemeMode } from "@/context/theme";
+import { useTheme } from "@shopify/restyle";
 
 // Tipos
 import type { Currency } from "@/api/simbalance";
-import CopySim from "@/components/molecules/CopyLabel/CopySim";
 
 interface SimCountryProps {
   sim: string;
@@ -51,12 +50,12 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
   const dispatch = useAppDispatch();
   const globalCurrency = useAppSelector((s) => s.currency.currency);
   const currentSim = useAppSelector((state) => state.sims.currentSim);
-
   const { openModal } = useModalAdminSims();
   const queryClient = useQueryClient();
   const [uuid, setUUID] = useState<string | null>(null);
-
   const sims = useAppSelector((state) => state.sims.sims);
+  const pathname = usePathname();
+  const { colors } = useTheme<ThemeCustom>();
 
   useEffect(() => {
     getDeviceUUID().then((resolvedUUID) => {
@@ -64,15 +63,11 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
     });
   }, []);
 
-  useEffect(() => {
-  }, [sims]);
-
-  useEffect(() => {
-  }, [currentSim]);
+  useEffect(() => { }, [sims]);
+  useEffect(() => { }, [currentSim]);
 
   const selectedSim = sims.find((s) => s.idSim === currentSim?.idSim);
   const simText = selectedSim?.iccid || currentSim?.iccid || sim;
-  const pathname = usePathname();
 
   useEffect(() => {
     const provider = selectedSim?.provider?.toLowerCase?.() || "";
@@ -121,11 +116,30 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
     return null;
   };
 
+  const dynamicDropdownButton = {
+    backgroundColor:
+      themeMode === ThemeMode.Dark ? colors.backgroundSecondary : colors.blueLight,
+    borderColor:
+      themeMode === ThemeMode.Dark ? colors.strokeBorder : colors.strokeBorder,
+    borderWidth: 0.4,
+    borderRadius: 8,
+    paddingVertical: 12.7,
+    paddingHorizontal: 12,
+    marginTop: 5,
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.simContainer}>
-        <TouchableHighlight
-          underlayColor="transparent"
+        <Text
+          allowFontScaling={false}
+          style={[styles.simLabel, themeMode === ThemeMode.Light && { color: colors.gray }]}
+        >
+          {t("pages.home.currentSim")}
+        </Text>
+
+        <TouchableOpacity
+          style={dynamicDropdownButton}
           onPress={() => {
             const safeSims = sims
               .filter((sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string")
@@ -140,22 +154,20 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
             });
           }}
         >
-          <View style={styles.simButtonContent}>
+          <View style={styles.dropdownContent}>
             <Text
               allowFontScaling={false}
-              style={[styles.textSim, themeMode === ThemeMode.Light && { color: theme.lightMode.colors.gray }]}
+              style={[
+                styles.simName,
+                { color: colors.primaryText } // ✅ Color dinámico según tema
+              ]}
             >
-              {t("pages.home.currentSim")}
+              {currentSim?.simName || sim}
             </Text>
-            <IconSvg type="arrowupicon" height={25} width={25} />
+            <Image source={getSimIcon(selectedSim)} style={styles.simIcon} />
+            <IconSvg type="arrowupicon" height={20} width={20} />
           </View>
-        </TouchableHighlight>
-
-        <CopySim
-          simName={currentSim?.simName || sim}
-          simId={currentSim?.idSim || sim}
-          logo={getSimIcon(selectedSim)}
-        />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.dropdownContainer}>
@@ -190,18 +202,29 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   simContainer: {
-    width: "44%",
+    width: "48%",
     flexDirection: "column",
     rowGap: 10,
   },
-  simButtonContent: {
+  simLabel: {
+    fontSize: 14,
+    fontWeight: "400",
+  },
+  dropdownContent: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
-  textSim: {
-    flex: 1,
-    ...theme.textVariants.descriptionCard,
-    color: theme.colors.selectLabel,
+  simName: {
+    fontSize: 15,
+    fontWeight: "400",
+    marginLeft: 5,
+  },
+  simIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+    marginHorizontal: 8,
   },
   dropdownContainer: {
     width: "50%",

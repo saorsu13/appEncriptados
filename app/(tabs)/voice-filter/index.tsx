@@ -4,7 +4,6 @@ import { View, StyleSheet, Text, ScrollView, Pressable } from "react-native";
 import { useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import HeaderPage from "@/components/molecules/HeaderPage/HeaderPage";
 import SoundsFilter from "@/components/organisms/SoundsFilter/SoundsFilter";
 import ModalInfo from "@/components/molecules/ModalInfo";
 import CustomSwitch from "@/components/atoms/Switch";
@@ -18,6 +17,8 @@ import IconSvg from "@/components/molecules/IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeMode } from "@/context/theme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
+import { useTheme } from "@shopify/restyle";
+import { ThemeCustom } from "@/config/theme2";
 
 import { useFocusEffect } from "expo-router";
 
@@ -36,6 +37,7 @@ const VoiceFilter = () => {
   const query = useChangeVoice();
   const baseMsg = "pages.voiceFilter";
   const { themeMode } = useDarkModeTheme();
+  const { colors } = useTheme<ThemeCustom>();
 
   useFocusEffect(
     useCallback(() => {
@@ -107,21 +109,18 @@ const VoiceFilter = () => {
 
   return (
     <ScrollView
-      style={
-        themeMode === ThemeMode.Dark
-          ? null
-          : { backgroundColor: theme.lightMode.colors.white }
-      }
+      style={{ backgroundColor: colors.background }}
     >
+
       <HeaderEncrypted owner="encriptados" iconBack="/home" />
       <View
         style={[
           themeMode === ThemeMode.Dark
             ? styles.containerBody
             : {
-                ...styles.containerBody,
-                backgroundColor: theme.lightMode.colors.white,
-              },
+              ...styles.containerBody,
+              backgroundColor: theme.lightMode.colors.white,
+            },
         ]}
       >
         <View
@@ -129,9 +128,9 @@ const VoiceFilter = () => {
             themeMode === ThemeMode.Dark
               ? styles.descriptionCard
               : {
-                  ...styles.descriptionCard,
-                  backgroundColor: theme.lightMode.colors.blueDark,
-                },
+                ...styles.descriptionCard,
+                backgroundColor: theme.lightMode.colors.blueDark,
+              },
           ]}
         >
           <IconSvg
@@ -146,9 +145,9 @@ const VoiceFilter = () => {
               themeMode === ThemeMode.Dark
                 ? styles.descriptionTitle
                 : {
-                    ...styles.descriptionTitle,
-                    color: theme.lightMode.colors.white,
-                  },
+                  ...styles.descriptionTitle,
+                  color: theme.lightMode.colors.white,
+                },
             ]}
           >
             {t(`${baseMsg}.description.title`)}
@@ -173,9 +172,9 @@ const VoiceFilter = () => {
                 themeMode === ThemeMode.Dark
                   ? styles.titleSection
                   : {
-                      ...styles.titleSection,
-                      color: theme.lightMode.colors.gray,
-                    },
+                    ...styles.titleSection,
+                    color: theme.lightMode.colors.gray,
+                  },
               ]}
             >
               {t(`${baseMsg}.titleFilters`)}
@@ -185,9 +184,9 @@ const VoiceFilter = () => {
                 themeMode === ThemeMode.Dark
                   ? styles.switchWrapper
                   : {
-                      ...styles.switchWrapper,
-                      backgroundColor: theme.lightMode.colors.blueDark,
-                    },
+                    ...styles.switchWrapper,
+                    backgroundColor: theme.lightMode.colors.blueDark,
+                  },
               ]}
             >
               <Text allowFontScaling={false} style={{ color: "white" }}>
