@@ -251,6 +251,7 @@ const BalanceScreen = () => {
   
   useEffect(() => {
     if (!deviceUUID || !currentSim || currentSim.provider === "tottoli") return;
+    lastFetchedSimId.current = null;
     console.log("👁 6️⃣ Ejecutando fetch por currentSim:", currentSim);
     fetchSubscriberData(currentSim, deviceUUID);
   }, [currentSim, deviceUUID]);

@@ -304,6 +304,12 @@ const versionQuery = useQuery({
     dispatch(updateCurrentSim(newIdSim));
     await AsyncStorage.setItem("currentICCID", newIdSim);
     setSelectedSimIdVisual(newIdSim);
+
+    console.log("🏁 [Home] Telco-vision seleccionada → navegando a Balance");
+   router.replace({
+     pathname: "/balance",
+     params: { simId: newIdSim }
+   });
   };  
 
 

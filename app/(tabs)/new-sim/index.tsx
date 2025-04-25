@@ -40,7 +40,7 @@ import { getDeviceUUID } from "@/utils/getUUID";
 import { createSubscriber } from "@/api/subscriberApi";
 
 // Redux slices
-import { addSim } from "@/features/sims/simSlice";
+import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 
 // Componentes
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
@@ -159,12 +159,15 @@ async function handleRequestCode() {
 
     if (result.code === "duplicate_iccid" || result.id) {
       console.log("🎉 [new-sim] SIM creada o duplicada, mostrando modal de éxito");
+      dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
+      dispatch(updateCurrentSim(formik.values.simNumber));
+      await AsyncStorage.setItem("currentICCID", formik.values.simNumber);
 
       showModal?.(); 
       setModalSuccessVisible(true); 
-      dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
+
       router.replace({
-        pathname: "/home",
+        pathname: isSim19Digits ? "/balance" : "/home",
         params: {
           simId: formik.values.simNumber, 
           refetchSims: "true"
