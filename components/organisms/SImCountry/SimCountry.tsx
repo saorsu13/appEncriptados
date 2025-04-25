@@ -36,6 +36,7 @@ import { useTheme } from "@shopify/restyle";
 
 // Tipos
 import type { Currency } from "@/api/simbalance";
+import theme from "@/config/theme";
 
 interface SimCountryProps {
   sim: string;
@@ -131,15 +132,24 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
   return (
     <View style={styles.container}>
       <View style={styles.simContainer}>
-        <Text
-          allowFontScaling={false}
-          style={[styles.simLabel, themeMode === ThemeMode.Light && { color: colors.gray }]}
-        >
-          {t("pages.home.currentSim")}
-        </Text>
-
+  <Text
+    allowFontScaling={false}
+    style={[
+      styles.labelText,
+      themeMode === ThemeMode.Dark
+        ? { color: theme.colors.selectLabel }
+        : { color: theme.lightMode.colors.gray },
+    ]}
+  >
+    {t("pages.home.currentSim")}
+  </Text>
         <TouchableOpacity
-          style={dynamicDropdownButton}
+          style={[
+            styles.dropdownPicker,
+            themeMode === ThemeMode.Dark
+              ? styles.pickerDark
+              : styles.pickerLight,
+          ]}
           onPress={() => {
             const safeSims = sims
               .filter((sim) => typeof sim.idSim === "string" && sim.iccid && typeof sim.iccid === "string")
@@ -159,7 +169,9 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
               allowFontScaling={false}
               style={[
                 styles.simName,
-                { color: colors.primaryText } // ✅ Color dinámico según tema
+                themeMode === ThemeMode.Dark
+                  ? styles.pickerTextDark
+                  : styles.pickerTextLight,
               ]}
             >
               {currentSim?.simName || sim}
@@ -168,6 +180,7 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
             <IconSvg type="arrowupicon" height={20} width={20} />
           </View>
         </TouchableOpacity>
+
       </View>
 
       <View style={styles.dropdownContainer}>
@@ -198,17 +211,20 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     justifyContent: "space-between",
-    columnGap: 8,
+    alignItems: "flex-end",
+    gap: 8,
     zIndex: 10,
+    paddingTop: 6,
   },
   simContainer: {
-    width: "48%",
+    width: "47%",
     flexDirection: "column",
-    rowGap: 10,
+    rowGap: 6,
   },
-  simLabel: {
-    fontSize: 14,
-    fontWeight: "400",
+  labelText: {
+    fontSize: 13,
+    fontWeight: "300",
+    marginBottom: 10,
   },
   dropdownContent: {
     flexDirection: "row",
@@ -225,6 +241,7 @@ const styles = StyleSheet.create({
     height: 24,
     resizeMode: "contain",
     marginHorizontal: 8,
+    borderRadius: 10,
   },
   dropdownContainer: {
     width: "50%",
@@ -233,5 +250,28 @@ const styles = StyleSheet.create({
     width: 200,
     flexDirection: "row",
     marginTop: 34,
+  },
+  dropdownPicker: {
+    borderWidth: 0.5,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderColor: theme.colors.borderSelect,
+    height: 50,
+    justifyContent: "center",
+  },
+  pickerDark: {
+    backgroundColor: theme.colors.darkBlack01,
+  },
+  pickerLight: {
+    backgroundColor: theme.lightMode.colors.blueLight,
+  },
+  pickerTextDark: {
+    color: theme.colors.selectText,
+    ...theme.textVariants.select,
+  },
+  pickerTextLight: {
+    color: theme.lightMode.colors.blueDark,
+    ...theme.textVariants.select,
   },
 });
