@@ -132,17 +132,17 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
   return (
     <View style={styles.container}>
       <View style={styles.simContainer}>
-  <Text
-    allowFontScaling={false}
-    style={[
-      styles.labelText,
-      themeMode === ThemeMode.Dark
-        ? { color: theme.colors.selectLabel }
-        : { color: theme.lightMode.colors.gray },
-    ]}
-  >
-    {t("pages.home.currentSim")}
-  </Text>
+        <Text
+          allowFontScaling={false}
+          style={[
+            styles.labelText,
+            themeMode === ThemeMode.Dark
+              ? { color: theme.colors.selectLabel }
+              : { color: theme.lightMode.colors.gray },
+          ]}
+        >
+          {t("pages.home.currentSim")}
+        </Text>
         <TouchableOpacity
           style={[
             styles.dropdownPicker,
@@ -165,20 +165,23 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
           }}
         >
           <View style={styles.dropdownContent}>
-            <Text
-              allowFontScaling={false}
-              style={[
-                styles.simName,
-                themeMode === ThemeMode.Dark
-                  ? styles.pickerTextDark
-                  : styles.pickerTextLight,
-              ]}
-            >
-              {currentSim?.simName || sim}
-            </Text>
-            <Image source={getSimIcon(selectedSim)} style={styles.simIcon} />
+            <View style={styles.textIconGroup}>
+              <Text
+                allowFontScaling={false}
+                style={[
+                  styles.simName,
+                  themeMode === ThemeMode.Dark
+                    ? styles.pickerTextDark
+                    : styles.pickerTextLight,
+                ]}
+              >
+                {currentSim?.simName || sim}
+              </Text>
+              <Image source={getSimIcon(selectedSim)} style={styles.simIcon} />
+            </View>
             <IconSvg type="arrowupicon" height={20} width={20} />
           </View>
+
         </TouchableOpacity>
 
       </View>
@@ -231,6 +234,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  textIconGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   simName: {
     fontSize: 15,
     fontWeight: "400",
@@ -241,7 +248,7 @@ const styles = StyleSheet.create({
     height: 24,
     resizeMode: "contain",
     marginHorizontal: 8,
-    borderRadius: 10,
+    borderRadius: 6,
   },
   dropdownContainer: {
     width: "50%",
