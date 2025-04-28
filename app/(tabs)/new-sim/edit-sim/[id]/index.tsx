@@ -33,6 +33,8 @@ import useModalAll from "@/hooks/useModalAll";
 import { useModalAdminSims } from "@/context/modaladminsims";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
+import { determineType } from "@/utils/utils";
+import { getSubscriberData} from "@/api/subscriberApi";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
@@ -73,9 +75,11 @@ const Login = () => {
         name: values.simName,
         uuid,
       });
+      const old = await getSubscriberData(params.id, uuid);
+      const provider = old.provider || (params.id.length === 19 ? "telco-vision" : "tottoli");
 
       await updateSubscriber(params.id, uuid, {
-        provider: "tottoli",
+        provider,
         name: values.simName,
       });
       
@@ -94,8 +98,9 @@ const Login = () => {
         textConfirm: t("modalSimActivate.goToPanel"),
         title: t("modalSimActivate.changeNameSimTitle"),
         onConfirm: () => {
+          const isTelcoVision = params.id.length === 19;
           router.replace({
-            pathname: "/home",
+            pathname: isTelcoVision ? "/balance" : "/home",
             params: {
               simId: params.id,
               refetchSims: "true",
