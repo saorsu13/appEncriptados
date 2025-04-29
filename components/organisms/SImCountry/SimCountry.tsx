@@ -189,7 +189,6 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
             </View>
             <IconSvg type="arrowupicon" height={20} width={20} />
           </View>
-
         </TouchableOpacity>
 
       </View>

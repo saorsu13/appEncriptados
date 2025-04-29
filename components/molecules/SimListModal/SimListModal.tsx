@@ -127,7 +127,7 @@ const SimListModal = () => {
                       >
                         <Ionicons
                           name="create-outline"
-                          size={20}
+                          size={22}
                           color={themeMode === ThemeMode.Dark ? "black" : "#1E1E1E"}
                         />
                       </TouchableOpacity>

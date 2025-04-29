@@ -139,7 +139,14 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
 
                 return (
                   <TouchableOpacity
-                    style={styles.simItem}
+                    style={[
+                      styles.simItem,
+                      {
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      },
+                    ]}
                     onPress={async () => {
                       console.log("🖱 [SimCurrencySelector] SIM seleccionada en modal:", item);
                       setSimModalVisible(false);
@@ -163,9 +170,28 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                     }}
 
                   >
-                    <View style={styles.simInfo}>
-                      <View style={styles.simNameContainer}>
-                        <Text style={styles.simName}>{item.name}</Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                    >
+
+                      <View
+                        style={[
+                          styles.simNameContainer,
+                          { flexShrink: 1, minWidth: 0 },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.simName, { flexShrink: 1 }]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.name}
+                        </Text>
                       </View>
                       <Image
                         source={simImage}
@@ -181,7 +207,6 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                           : item.number || "—"}
                       </Text>
                     </View>
-              
                       <TouchableOpacity
                         onPress={() => {
                           console.log("✏️ [SimCurrencySelector] Editar SIM:", item.id);
@@ -190,10 +215,11 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                             `/balance/new-sim-encrypted/edit-sim-encrypted/${item.id}`
                           );
                         }}
+                        style={{ marginLeft: 5 }}
                       >
                         <Ionicons
                           name="create-outline"
-                          size={20}
+                          size={22}
                           color={isDarkMode ? "black" : "#1E1E1E"}
                         />
                       </TouchableOpacity>
