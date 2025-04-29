@@ -99,7 +99,7 @@ const Login = () => {
       const updatedSim = parsed.find(s => s.idSim === params.id)!;
 
       
-      dispatch(updateCurrentSim(updatedSim));
+      dispatch(updateCurrentSim(updatedSim.idSim));
       await AsyncStorage.setItem("currentICCID", updatedSim.idSim);
       console.log("✅ [edit-sim] SIM actualizada en AsyncStorage y store:", params.id);
 

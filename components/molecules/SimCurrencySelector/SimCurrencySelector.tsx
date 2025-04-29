@@ -172,7 +172,6 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                       </Text>
                     </View>
               
-                    {!isSixDigitSim && (
                       <TouchableOpacity
                         onPress={() => {
                           console.log("✏️ [SimCurrencySelector] Editar SIM:", item.id);
@@ -188,7 +187,6 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                           color={isDarkMode ? "black" : "#1E1E1E"}
                         />
                       </TouchableOpacity>
-                    )}
                   </TouchableOpacity>
                 );
               }}              

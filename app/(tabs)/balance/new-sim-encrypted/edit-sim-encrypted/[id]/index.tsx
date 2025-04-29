@@ -31,8 +31,9 @@ import { useDispatch } from "react-redux";
 import { updateSimName } from "@/features/sims/simSlice";
 import { updateSubscriber } from "@/api/subscriberApi";
 import { useDeviceUUID } from "@/hooks/useDeviceUUID";
+import { getDeviceUUID } from "@/utils/getUUID";
 
-import { listSubscriber } from "@/api/subscriberApi";
+import { listSubscriber, getSubscriberData } from "@/api/subscriberApi";
 import { setSims, updateCurrentSim } from "@/features/sims/simSlice";
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
@@ -60,6 +61,9 @@ const Login = () => {
   });
 
   const handleSubmit = async (values) => {
+    const uuid = await getDeviceUUID();
+    const old = await getSubscriberData(params.id, uuid);
+    const provider = old.provider;
     console.log("✏️ [EditSim] Submitting update for SIM:", params.id);
     try {
       setIsLoading(true);
@@ -68,8 +72,8 @@ const Login = () => {
         return;
       }
 
-      await updateSubscriber(params.id, deviceUUID, {
-        provider: "telco-vision",
+      await updateSubscriber(params.id, uuid, {
+        provider,
         name: values.simName,
       });
 
@@ -86,17 +90,22 @@ const Login = () => {
         onConfirm: async () => {
           console.log("📦 [EditSim] Guardando ICCID y redirigiendo");
           await AsyncStorage.setItem("currentICCID", params.id);
-
           const updatedSims = await listSubscriber(deviceUUID);
-          const uniqueSims = Array.isArray(updatedSims)
-            ? Array.from(new Map(updatedSims.map((sim: any) => [sim.iccid, sim])).values())
-            : [];
-
-          dispatch(setSims(uniqueSims));
-
+          dispatch(setSims(updatedSims));
           dispatch(updateCurrentSim(params.id));
 
-          router.replace("/balance");
+
+          if (provider === "tottoli") {
+            router.replace("/home");
+          } else {
+            router.replace({
+              pathname: "/balance",
+              params: {
+                simId: params.id,
+                refetchSims: "true",
+              },
+            });
+          }          
           formik.resetForm();
         },
       });
