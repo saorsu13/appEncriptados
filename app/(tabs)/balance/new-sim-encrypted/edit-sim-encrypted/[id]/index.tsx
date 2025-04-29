@@ -61,23 +61,29 @@ const Login = () => {
   });
 
   const handleSubmit = async (values) => {
-    const uuid = await getDeviceUUID();
-    const old = await getSubscriberData(params.id, uuid);
-    const provider = old.provider;
-    console.log("✏️ [EditSim] Submitting update for SIM:", params.id);
+
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
+      const uuid = await getDeviceUUID();
+      const old = await getSubscriberData(params.id, uuid);
+      const provider = old.provider;
+      console.log("✏️ [EditSim] Submitting update for SIM:", params.id);
+
       if (!deviceUUID) {
         console.warn("❌ [EditSim] UUID no disponible para actualizar SIM");
         return;
       }
-
-      await updateSubscriber(params.id, uuid, {
-        provider,
-        name: values.simName,
-      });
-
+      await updateSubscriber(params.id, uuid, {provider,name: values.simName });
       console.log("✅ [EditSim] SIM actualizada:", values.simName);
+      dispatch(updateSimName({ idSim: params.id, newName: values.simName }));
+      dispatch(updateCurrentSim(params.id));
+      await AsyncStorage.setItem("currentICCID", params.id);
+
+      if (provider === "tottoli") {
+        router.replace("/home");
+        return;
+      }
 
       showModal({
         type: "confirm",
@@ -88,29 +94,15 @@ const Login = () => {
         title: t("modalSimActivate.changeNameSimTitle"),
 
         onConfirm: async () => {
-          console.log("📦 [EditSim] Guardando ICCID y redirigiendo");
-          await AsyncStorage.setItem("currentICCID", params.id);
-          const updatedSims = await listSubscriber(deviceUUID);
-          dispatch(setSims(updatedSims));
-          dispatch(updateCurrentSim(params.id));
-
-
-          if (provider === "tottoli") {
-            router.replace("/home");
-          } else {
             router.replace({
               pathname: "/balance",
               params: {
                 simId: params.id,
-                refetchSims: "true",
-              },
+                refetchSims: "true"},
             });
-          }          
           formik.resetForm();
         },
       });
-
-      dispatch(updateSimName({ idSim: params.id, newName: formik.values.simName }));
     } catch (error) {
       console.error("🚨 [EditSim] Error al actualizar el subscriber:", error);
     } finally {

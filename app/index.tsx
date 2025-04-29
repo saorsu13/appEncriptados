@@ -1,15 +1,18 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 import { useAuth } from "@/context/auth";
 import { InteractionManager } from "react-native";
+import { useRestoreSession } from "@/hooks/useRestoreSession";
 import { getHasRedirectedFromTottoli, setHasRedirectedFromTottoli } from "@/utils/redirectionControl";
 
 export default function Index() {
   const router = useRouter();
   const { isLoading, isLoggedIn, user } = useAuth();
+  const [uuid, setUuid] = useState<string | null>(null)
   const hasRedirectedRef = useRef(false);
-  
+  const { restoring } = useRestoreSession(uuid)
+
   useEffect(() => {
     console.log("🔄 [Index] useEffect → isLoading:", isLoading, "| hasRedirectedRef:", hasRedirectedRef.current);
     if (isLoading || hasRedirectedRef.current) return;
@@ -53,7 +56,7 @@ export default function Index() {
   
   
 
-  if (isLoading || !hasRedirectedRef.current) {
+  if (isLoading || restoring || !hasRedirectedRef.current) {
     console.log("⏳ [Index] Mostrando pantalla de carga...");
     return (
       <View style={{ flex: 1, backgroundColor: "black", justifyContent: "center", alignItems: "center" }}>

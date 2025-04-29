@@ -6,6 +6,7 @@ import { setSims } from "@/features/sims/simSlice";
 import { useAuth } from "@/context/auth";
 
 export function useRestoreSession(deviceUUID: string | null) {
+  const auth = useAuth()
   const [restoring, setRestoring] = useState(true);
   const [restoredProvider, setRestoredProvider] = useState<string | null>(null);
   const dispatch = useDispatch();
@@ -13,6 +14,8 @@ export function useRestoreSession(deviceUUID: string | null) {
   useEffect(() => {
     if (!deviceUUID) {
       console.warn("🔌 [useRestoreSession] No hay deviceUUID, cancelando restauración");
+      auth.signOut() 
+      setRestoring(false)
       return;
     } 
 

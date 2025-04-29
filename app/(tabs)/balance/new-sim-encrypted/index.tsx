@@ -50,10 +50,6 @@ const Login = () => {
     }, [])
   );
 
-  const [requestCodeModal, setRequestCodeModal] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
-  const [showAlertButton, setShowAlertButton] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [type, setType] = useState<any>(false);
@@ -107,8 +103,6 @@ const Login = () => {
       setModalSuccessVisible(true);
     } catch (error) {
       console.error("❌ [new-sim-tim] Error al crear SIM:", error);
-      setAlertMessage("Error al agregar la SIM");
-      setAlertType("error");
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +151,10 @@ const Login = () => {
       router.replace("/home");
     } else {
       console.log("➡️ [new-sim-tim] Redirigiendo a /balance");
-      router.replace("/balance");
+      router.replace({
+        pathname: "/balance",
+        params: { simId: iccid, refetchSims: "true" }
+      });
     }
   };
 
@@ -192,11 +189,6 @@ const Login = () => {
     setType(detectedType);
     console.log("🧠 [new-sim-tim] Tipo de SIM detectado:", detectedType);
   }, [formik.values.simNumber]);
-
-  useEffect(() => {
-    console.log("⚠️ [new-sim-tim] Mensaje de alerta:", alertMessage);
-    setShowAlertButton(!!alertMessage);
-  }, [alertMessage]);
 
   const handleInfoModal = () => {
     console.log("ℹ️ [new-sim-tim] Abriendo modal informativo");
@@ -282,19 +274,6 @@ const Login = () => {
             <Text style={{ marginTop: 10, alignSelf: "center", color: "#9A9A9A" }}>
               {t("pages.home.useFive")}
             </Text>
-
-            {showAlertButton && (
-              <AlertButton
-                onPress={() => {
-                  if (alertType === "success") {
-                    setAlertMessage("");
-                    router.replace("/balance");
-                  }
-                }}
-                message={alertMessage}
-                type={alertType as any}
-              />
-            )}
 
             <View style={styles.bottomButtonContainer}>
 
