@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import IconSvg from "../IconSvg/IconSvg";
-import { balanceStyles } from "@/app/(tabs)/balance/balanceStyles";
+import { balanceStyles } from "@/(styles)/balanceStyles";
 
 interface Props {
   visible: boolean;

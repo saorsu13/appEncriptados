@@ -1,4 +1,4 @@
-import { SIM_TYPES } from "@/app/mock";
+import { SIM_TYPES } from "@/(helpers)/mock";
 import theme from "@/config/theme";
 import { ThemeMode } from "@/context/theme";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";

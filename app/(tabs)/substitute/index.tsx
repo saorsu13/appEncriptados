@@ -36,7 +36,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   countries,
   countriesCodes,
-} from "@/components/organisms/SImCountry/countries";
+} from "@/components/organisms/SimCountry/countries";
 import Section from "@/components/molecules/SectionDistributors/Section";
 import SkeletonContent from "@/components/molecules/SkeletonContent";
 import { useModalPassword } from "@/context/modalpasswordprovider";

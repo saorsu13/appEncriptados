@@ -43,6 +43,9 @@ import RestoreSessionWrapper from "@/components/organisms/RestoreSession/Restore
 import { isFirstLaunch } from "@/utils/firstInstallCheck";
 import { getDeviceUUID } from "@/utils/getUUID";
 
+import { ModalProvider } from "@/context/modalContext";
+import ModalBasic from "@/components/molecules/AllModal/ModalBasic";
+
 SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
@@ -137,6 +140,8 @@ export default function RootLayout() {
                           <SafeAreaView style={styles.container}>
                             {showRequestPasswordComponent && <RequestPasswordComponent />}
                             <CountdownProvider>
+                            <ModalProvider>
+
                               <Stack
                                 screenOptions={{
                                   headerShown: false,
@@ -147,6 +152,7 @@ export default function RootLayout() {
                                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                                 <Stack.Screen name="index" options={{ headerShown: false }} />
                               </Stack>
+                              </ModalProvider>
                             </CountdownProvider>
                           </SafeAreaView>
                         </QueryClientProvider>
