@@ -83,10 +83,10 @@ export function useLogin() {
           });
           
         }
-
+        const backendName = subscriberRes.providers[0].name;
         auth?.signIn(
           {
-            simName: nameFromInput,
+            simName: backendName,
             idSim: nameFromInput.length === 6 ? backendImsi : backendIccid,
             code,
             provider: providerData,

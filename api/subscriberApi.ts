@@ -155,6 +155,7 @@ export const deleteSubscriber = async (iccid: string, uuid: string) => {
  * Lista todos los subscribers.
  */
 export const listSubscriber = async (uuid: string) => {
+  console.log("Consulta del endpoit listSubscriber")
   try {
     const response = await fetch(`${API_BASE_URL}/sims/uuid`, {
       method: "POST",

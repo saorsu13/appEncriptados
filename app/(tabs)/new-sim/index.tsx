@@ -51,6 +51,8 @@ import StepList from "@/components/molecules/StepList/StepList";
 import ModalInfo from "@/components/molecules/ModalInfo";
 import Alert from "@/components/molecules/Alert";
 import AlertButton from "@/components/molecules/AlertButton/AlertButton";
+import { setSims } from "@/features/sims/simSlice";
+import { listSubscriber } from "@/api/subscriberApi";
 
 const Login = () => {
   // Constantes
@@ -149,7 +151,7 @@ async function handleRequestCode() {
     const subscriberData = {
       iccid: formik.values.simNumber,
       provider: isSim19Digits ? "telco-vision" : "tottoli",
-      name: isSim19Digits ? "Sim" : "Sim",
+      name: "Sim",
       uuid: await getDeviceUUID(),
     };
     console.log("📦 [new-sim] Datos a enviar:", subscriberData);
@@ -159,20 +161,34 @@ async function handleRequestCode() {
 
     if (result.code === "duplicate_iccid" || result.id) {
       console.log("🎉 [new-sim] SIM creada o duplicada, mostrando modal de éxito");
-      dispatch(addSim({ idSim: formik.values.simNumber, simName: "SIM" }));
-      dispatch(updateCurrentSim(formik.values.simNumber));
-      await AsyncStorage.setItem("currentICCID", formik.values.simNumber);
-
       showModal?.(); 
       setModalSuccessVisible(true); 
 
+      const raw = await listSubscriber(subscriberData.uuid);
+      const parsed = raw.map(sim => ({
+        idSim: String(sim.iccid),
+        simName: sim.name,
+        provider: sim.provider,
+        iccid: String(sim.iccid),
+        code: sim.id ?? 0,
+      }));
+      dispatch(setSims(parsed));
+
+      const newSim = parsed.find(s => s.idSim === subscriberData.iccid)!;
+
+      dispatch(updateCurrentSim(newSim.idSim));
+      await AsyncStorage.setItem("currentICCID", newSim.idSim);
+
+      const isTelcoVision = newSim.provider === "telco-vision";
+
       router.replace({
-        pathname: isSim19Digits ? "/balance" : "/home",
+        pathname: isTelcoVision ? "/balance" : "/home",
         params: {
-          simId: formik.values.simNumber, 
+          simId: newSim.idSim, 
           refetchSims: "true"
         },
       });
+      formik.resetForm();
     } else {
       throw new Error("Failed to create");
     }
