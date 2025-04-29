@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "expo-router";
 import {
+  Platform,
   View,
   Text,
   TouchableOpacity,
@@ -50,7 +51,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
     console.log("🔃 [SimCurrencySelector] SIMs ordenadas:", ordenadas.map((s) => s.id));
     return ordenadas;
   }, [sims]);
-  
+
   const selectedSim = useMemo(() => {
     const encontrada = orderedSims.find((sim) => sim.id === selectedId) || null;
     console.log("🎯 [SimCurrencySelector] SIM seleccionada en useMemo:", encontrada);
@@ -63,7 +64,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
     console.log("📦 [SimCurrencySelector] Total SIMs recibidas:", sims.length);
   }, [selectedId, sims]);
 
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.selectorContainer}>
@@ -71,17 +72,26 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
         </Text>
         <TouchableOpacity
           style={styles.selector}
-          onPress={() =>{
+          onPress={() => {
             console.log("📂 [SimCurrencySelector] Abriendo modal de SIMs");
             setSimModalVisible(true);
-            }}
+          }}
         >
           <View style={styles.selectorContent}>
             <View style={styles.simNameContainer}>
-              <Text style={styles.selectorText}>
+              <Text
+                style={[styles.selectorText, { flexShrink: 1 }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                {...(
+                  Platform.OS === "android"
+                    ? { adjustsFontSizeToFit: true, minimumFontScale: 0.9 }
+                    : {}
+                )}
+              >
                 {selectedSim ? selectedSim.name : "Sim TIM"}
               </Text>
-            </View> 
+            </View>
             <Image
               source={
                 selectedSim
@@ -126,7 +136,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                 const simImage = isSixDigitSim
                   ? require("@/assets/images/adaptive-icon.png")
                   : item.logo;
-              
+
                 return (
                   <TouchableOpacity
                     style={styles.simItem}
@@ -141,17 +151,17 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                         router.replace({ pathname: "/home", params: { simId: item.id, refetchSims: "true" } });
                         return; // Evita seguir ejecutando cambios en Redux
                       }
-                      
+
                       if (item.id !== selectedId) {
                         console.log("🔁 [SimCurrencySelector] Cambiando SIM a:", item.id);
                         await AsyncStorage.setItem("currentICCID", item.id);
                         console.log("💾 [SimCurrencySelector] Guardada en AsyncStorage");
                         onSelectSim?.(item.id);
-                      }else {
+                      } else {
                         console.log("⏹ [SimCurrencySelector] SIM ya estaba seleccionada:", item.id);
                       }
                     }}
-                    
+
                   >
                     <View style={styles.simInfo}>
                       <View style={styles.simNameContainer}>
@@ -171,7 +181,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                           : item.number || "—"}
                       </Text>
                     </View>
-              
+
                     {!isSixDigitSim && (
                       <TouchableOpacity
                         onPress={() => {
@@ -191,7 +201,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                     )}
                   </TouchableOpacity>
                 );
-              }}              
+              }}
             />
             <TouchableOpacity
               style={styles.addSimButton}
