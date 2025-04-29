@@ -149,7 +149,7 @@ const SimCurrencySelector: React.FC<Props> = ({ sims, selectedId, onSelectSim })
                         setSimModalVisible(false);
                         await AsyncStorage.setItem("currentICCID", item.id);
                         router.replace({ pathname: "/home", params: { simId: item.id, refetchSims: "true" } });
-                        return; // Evita seguir ejecutando cambios en Redux
+                        return;
                       }
 
                       if (item.id !== selectedId) {
