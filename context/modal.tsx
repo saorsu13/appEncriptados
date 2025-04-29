@@ -8,6 +8,7 @@ import React, {
 import ModalBasic from "@/components/molecules/AllModal/ModalBasic";
 import ModalInfo from "@/components/molecules/ModalInfo";
 
+
 export type ModalType = "alert" | "confirm" | "error" | "help";
 
 type ModalContextType = {

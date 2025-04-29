@@ -10,7 +10,7 @@ import {
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import SignIn from "@/components/organisms/SignIn/SignIn";
-import SimCountry from "@/components/organisms/SImCountry/SimCountry";
+import SimCountry from "@/components/organisms/SimCountry/SimCountry";
 import { useAuth } from "@/context/auth";
 import { updateCurrentSim } from "@/features/sims/simSlice";
 import { useDispatch } from "react-redux";

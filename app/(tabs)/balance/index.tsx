@@ -3,7 +3,7 @@ import { View, ScrollView, ActivityIndicator } from "react-native";
 import { Stack } from "expo-router";
 import { useTheme } from "@shopify/restyle";
 import { ThemeCustom } from "@/config/theme2";
-import { balanceStyles } from "./balanceStyles";
+import { balanceStyles } from "../../../(styles)/balanceStyles";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import HeaderEncrypted from "@/components/molecules/HeaderEncrypted/HeaderEncrypted";
 import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";

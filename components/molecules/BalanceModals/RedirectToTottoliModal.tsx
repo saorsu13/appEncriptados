@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { useDispatch } from "react-redux";
 import IconSvg from "../IconSvg/IconSvg";
 import { resetSimState } from "@/features/sims/simSlice";
-import { balanceStyles } from "@/app/(tabs)/balance/balanceStyles";
+import { balanceStyles } from "@/(styles)/balanceStyles";
 
 interface Props {
   visible: boolean;

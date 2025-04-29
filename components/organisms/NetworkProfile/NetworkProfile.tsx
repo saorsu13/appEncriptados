@@ -6,7 +6,7 @@ import {
   buttonSg,
   buttonsR1R2,
   SIM_TYPES,
-} from "@/app/mock";
+} from "@/(helpers)/mock";
 import { useTranslation } from "react-i18next";
 import Label from "@/components/atoms/Label/Label";
 

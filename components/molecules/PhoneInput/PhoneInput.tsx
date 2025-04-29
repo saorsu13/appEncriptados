@@ -7,7 +7,7 @@ import IconSvg from "../IconSvg/IconSvg";
 import {
   countriesPhone,
   getCountryFlagByCode,
-} from "@/components/organisms/SImCountry/countries";
+} from "@/components/organisms/SimCountry/countries";
 
 type props = {
   label?: string;
