@@ -74,28 +74,48 @@ const Home = () => {
         console.log("🔁 [Home] Refetching SIM list por flag de params");
         const uuid = await getDeviceUUID();
         const simsRaw = await listSubscriber(uuid);
-        const parsedSims = simsRaw.map((sim) => ({
+        const parsed = simsRaw.map((sim) => ({
           idSim: String(sim.iccid),
           simName: sim.name,
           provider: sim.provider,
           iccid: String(sim.iccid),
           code: sim.id ?? 0,
         }));
-        console.log("📦 [Home] Lista de SIMs actualizada desde backend:", parsedSims);
-        dispatch(setSims(parsedSims));
-      }
+        console.log("📦 [Home] Lista de SIMs actualizada desde backend:", parsed );
+        dispatch(setSims(parsed ));
   
-      if (simId && sims.length) {
-        const sim = sims.find((s) => s.iccid === simId);
-        if (sim) {
-          console.log("📲 [Home] SIM pasada por params:", simId);
-          dispatch(updateCurrentSim(simId));
-          await AsyncStorage.setItem("currentICCID", simId);
+      if (simId) {
+        const refreshed = parsed.find((s) => s.idSim === simId);
+        if (refreshed) {
+          console.log("♻️ [Home] Restaurando SIM desde params:", refreshed);
+          dispatch(updateCurrentSim(refreshed.idSim));
+          await AsyncStorage.setItem("currentICCID", refreshed.idSim);
+          setSelectedSimIdVisual(refreshed.idSim);
+
+          if (refreshed.provider === "telco-vision") {
+            router.replace({
+              pathname: "/balance",
+              params: { simId: refreshed.idSim },
+            });
+            return;
+          }
         } else {
-          console.warn("🚫 [Home] SIM no encontrada en lista actual");
+          console.warn("🚫 [Home] SIM por params no encontrada en lista actual");
         }
       }
-    };
+    }
+
+    if (simId && sims.length) {
+      const existing = sims.find((s) => s.idSim === simId || s.iccid === simId);
+      if (existing) {
+        console.log("📲 [Home] SIM pasada por params (sin refetch):", existing);
+        dispatch(updateCurrentSim(existing.idSim));
+        setSelectedSimIdVisual(existing.idSim);
+      } else {
+        console.warn("🚫 [Home] SIM no encontrada en lista actual");
+      }
+    }
+  };
   
     syncSimData();
   }, [params?.simId, params?.refetchSims, sims.length]);

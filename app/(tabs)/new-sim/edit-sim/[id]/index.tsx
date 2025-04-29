@@ -35,6 +35,9 @@ import { RouteProp, useRoute } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { determineType } from "@/utils/utils";
 import { getSubscriberData} from "@/api/subscriberApi";
+import { listSubscriber } from "@/api/subscriberApi";
+import { setSims, updateCurrentSim } from "@/features/sims/simSlice";
+
 
 const LoginHeaderImage = require("@/assets/images/new-sim-hero-edit.png");
 type RootStackParamList = {
@@ -82,14 +85,24 @@ const Login = () => {
         provider,
         name: values.simName,
       });
+
+      const raw = await listSubscriber(uuid);
+      const parsed = raw.map(sim => ({
+        idSim: String(sim.iccid),
+        simName: sim.name, 
+        provider: sim.provider,
+        iccid: String(sim.iccid),
+        code: sim.id ?? 0,
+      }));
+      dispatch(setSims(parsed));
+
+      const updatedSim = parsed.find(s => s.idSim === params.id)!;
+
       
-      await AsyncStorage.setItem("currentICCID", params.id);
-      dispatch({
-        type: "sims/updateCurrentSim",
-        payload: params.id,
-      });
+      dispatch(updateCurrentSim(updatedSim));
+      await AsyncStorage.setItem("currentICCID", updatedSim.idSim);
       console.log("✅ [edit-sim] SIM actualizada en AsyncStorage y store:", params.id);
-    
+
       showModal({
         type: "confirm",
         buttonColorConfirm: colors.primaryColor,
@@ -97,17 +110,17 @@ const Login = () => {
         buttonColorCancel: colors.danger,
         textConfirm: t("modalSimActivate.goToPanel"),
         title: t("modalSimActivate.changeNameSimTitle"),
-        onConfirm: () => {
-          const isTelcoVision = params.id.length === 19;
-          router.replace({
+        onConfirm: async () => {
+          const isTelcoVision = updatedSim.provider === "telco-vision";
+          await router.replace({
             pathname: isTelcoVision ? "/balance" : "/home",
-            params: {
-              simId: params.id,
-              refetchSims: "true",
+            params: 
+            { 
+              simId: updatedSim.idSim, 
+              refetchSims: "true" 
             },
           });
-          console.log("🚀 [edit-sim] Redirigiendo a Home con SIM ID:", params.id);
-        formik.resetForm();
+          formik.resetForm();
       },
     });
     } catch (err) {

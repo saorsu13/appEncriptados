@@ -13,6 +13,7 @@ import { addSim, updateCurrentSim } from "@/features/sims/simSlice";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { listSubscriber } from "@/api/subscriberApi";
 import { getDeviceUUID } from "../utils/getUUID";
+import { setSims } from "@/features/sims/simSlice";
 
 
 export const MIN_PASSWORD_LENGTH = 10;
@@ -143,17 +144,25 @@ export function AuthProvider({
   );
 
   useEffect(() => {
-    userPromise.then(({ user, balance }) => {
+    userPromise.then(async ({ user, balance }) => {
       if (user && user.idSim) {
+        const uuid = await getDeviceUUID();
+        const raw = await listSubscriber(uuid);
+        const parsed = raw.map(sim => ({
+          idSim: Number(sim.iccid),
+          simName: sim.name,
+          provider: sim.provider,
+          code: sim.id ?? 0,
+        }));
+        dispatch(setSims(parsed));
+
+        dispatch(updateCurrentSim(String(user.idSim)));
+
+        await storeUser(user, balance);
         setUser(user);
         setBalance(balance);
+        setIsLoggedIn(true);
         console.log("📲 [AuthProvider] Agregando SIM al store:", user);
-        dispatch(addSim(user));
-        // dispatch(updateCurrentSim(user.idSim));
-        if (!modalRequiredPassword) {
-          console.log("🔓 [AuthProvider] Usuario autenticado sin requerir contraseña");
-          setIsLoggedIn(true);
-        }
       } else {
         console.warn("🚫 [AuthProvider] Usuario no válido. Reiniciando estado.");
         setUser(null);
@@ -174,11 +183,18 @@ export function AuthProvider({
           newProviders: ProviderType[] = [],
           userBalance?: string
         ) => {
-          console.log("🔐 [signIn] Usuario iniciando sesión:", user);
+          console.log("🔐 [signIn] Usuario iniciando sesión:", user.simName);
           setBalance(userBalance ?? null);
           setUser(user);
           setProviders(newProviders);
-          dispatch(addSim(user));
+          dispatch(addSim({
+            idSim: String(user.idSim),
+            simName: user.simName,
+            provider: user.provider ?? "unknown",
+            iccid: String(user.idSim),
+            code: user.code,
+          }));
+          dispatch(updateCurrentSim(String(user.idSim)));
           // dispatch(updateCurrentSim(user.idSim));
           storeUser(user, userBalance);
           setIsLoggedIn(true);
