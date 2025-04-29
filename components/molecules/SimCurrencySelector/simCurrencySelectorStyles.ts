@@ -8,7 +8,6 @@ export const getStyles = (isDarkMode: boolean) =>
       width: "100%",
     },
     selectorContainer: {
-      width: "55%",
       minHeight: 50,
     },
     label: {
@@ -30,14 +29,18 @@ export const getStyles = (isDarkMode: boolean) =>
     selectorContent: {
       flexDirection: "row",
       alignItems: "center",
+      ...(Platform.OS === "android"
+               ? { flexShrink: 1, minWidth: 0 }    // solo permitimos que encoja, no que crezca
+               : {}),
     },
     selectorText: {
       color: isDarkMode ? "white" : "#1E1E1E",
-      fontSize: 15,
+      fontSize: 12,
     },
     icon: {
       width: 24,
       height: 24,
+      marginRight: 10,
       resizeMode: "contain",
     },
     modalBackground: {
@@ -72,6 +75,9 @@ export const getStyles = (isDarkMode: boolean) =>
       alignItems: "center",
     },
     simNameContainer: {
+      ...(Platform.OS === "android"
+               ? { flexShrink: 1, minWidth: 0 }
+               : {}),
       backgroundColor: isDarkMode ? "#363636" : "#C6EDFF",
       borderRadius: 10,
       paddingHorizontal: 10,
