@@ -59,7 +59,6 @@ const Login = () => {
 
   const { showModal } = useModalAll();
 
-  const { openModal } = useModalAdminSims();
 
   const dispatch = useDispatch();
 
@@ -86,6 +85,7 @@ const Login = () => {
         name: values.simName,
       });
 
+      
       const raw = await listSubscriber(uuid);
       const parsed = raw.map(sim => ({
         idSim: String(sim.iccid),
@@ -106,13 +106,14 @@ const Login = () => {
       showModal({
         type: "confirm",
         buttonColorConfirm: colors.primaryColor,
+        description: t("modalSimActivate.changeNameSimText"),
         oneButton: true,
         buttonColorCancel: colors.danger,
         textConfirm: t("modalSimActivate.goToPanel"),
         title: t("modalSimActivate.changeNameSimTitle"),
-        onConfirm: async () => {
+        onConfirm: () => {
           const isTelcoVision = updatedSim.provider === "telco-vision";
-          await router.replace({
+          router.replace({
             pathname: isTelcoVision ? "/balance" : "/home",
             params: 
             { 
@@ -325,7 +326,3 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 });
-
-export const unstable_settings = {
-  unmountOnBlur: true,
-};

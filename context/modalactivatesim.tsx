@@ -6,8 +6,8 @@ interface ModalActivateSimContextType {
   hideModal: () => void;
   currentSimCode: number | null;
   setCurrentSimCode: (code: number | null) => void;
-  currentIdSim: number | null;
-  setCurrentIdSim: (code: number | null) => void;
+  currentIdSim: string | null;
+  setCurrentIdSim: (id: string | null) => void;
   typeOfProcess: ProcessType | undefined;
   setTypeOfProcess: (type: ProcessType | undefined) => void;
 }
@@ -27,7 +27,7 @@ export const ModalActivateSimProvider: React.FC<
 > = ({ children }) => {
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
   const [currentSimCode, setCurrentSimCode] = useState<number | null>(null);
-  const [currentIdSim, setCurrentIdSim] = useState<number | null>(null);
+  const [currentIdSim, setCurrentIdSim] = useState<string | null>(null);  
   const [typeOfProcess, setTypeOfProcess] = useState<ProcessType | undefined>(
     undefined
   );

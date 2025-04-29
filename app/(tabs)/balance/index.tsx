@@ -10,7 +10,7 @@ import TopUpCard from "@/components/molecules/TopUpCard/TopUpCard";
 import { useAuth } from "@/context/auth";
 import SignIn from "@/components/organisms/SignIn/SignIn";
 import { useAppSelector } from "@/hooks/hooksStoreRedux";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import SimCurrencySelector from "@/components/molecules/SimCurrencySelector/SimCurrencySelector";
 import { updateCurrentSim, resetSimState } from "@/features/sims/simSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -30,9 +30,11 @@ const BalanceScreen = () => {
   const { colors } = useTheme<ThemeCustom>();
   const { themeMode } = useDarkModeTheme();
   const isDarkMode = themeMode === "dark";
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, signOut } = useAuth();
   const dispatch = useDispatch();
   const router = useRouter();
+  const params = useLocalSearchParams<{ simId?: string }>();
+  const simId = Array.isArray(params.simId) ? params.simId[0] : params.simId;
 
   const currentSim = useAppSelector((state) => state.sims.currentSim);
   const allSims = useAppSelector((state) => state.sims.sims);
@@ -49,11 +51,11 @@ const BalanceScreen = () => {
 
   
   useEffect(() => {
-    if (currentSim?.provider === "tottoli") {
+    if (!simId && currentSim?.provider === "tottoli") {
       console.log("👁 1️⃣ useEffect [currentSim] iniciado →", currentSim);
       router.replace('/home');
     }
-  }, [currentSim]);
+  }, [currentSim, simId]);
 
   const BackgroundWrapper = isDarkMode ? View : require("expo-linear-gradient").LinearGradient;
   const backgroundProps = isDarkMode
@@ -81,7 +83,7 @@ const BalanceScreen = () => {
           }
           return {
           id,
-          name: sim.simName || sim.name || "SIM sin nombre",
+          name: sim.simName || sim.name || "Sim",
           logo: require("@/assets/images/tim_icon_app_600px_negativo 1.png"),
           number: sim.iccid || sim.idSim,
           provider: sim.provider,
@@ -156,6 +158,7 @@ const BalanceScreen = () => {
   
       if (uniqueSims.length === 0) {
         console.warn("❌ [DeleteSim] No quedan SIMs. Redirigiendo a /home");
+        signOut();
         await AsyncStorage.removeItem("currentICCID");
         dispatch(resetSimState());
         router.replace("/home");

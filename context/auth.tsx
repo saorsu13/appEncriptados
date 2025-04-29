@@ -14,6 +14,7 @@ import { useAppSelector } from "@/hooks/hooksStoreRedux";
 import { listSubscriber } from "@/api/subscriberApi";
 import { getDeviceUUID } from "../utils/getUUID";
 import { setSims } from "@/features/sims/simSlice";
+import { resetModalUpdate } from "@/features/settings/settingsSlice";
 
 
 export const MIN_PASSWORD_LENGTH = 10;
@@ -21,7 +22,8 @@ const ALWAYS_REQUIRE_LOGIN = false;
 
 export type User = {
   simName: string;
-  idSim: number;
+  idSim: string;
+  iccid: string;
   code: number;
   provider?: string;
 } & Partial<UserInfo>;
@@ -108,7 +110,8 @@ export const loadUser = async (): Promise<{ user: User | null; balance: string |
 
     const restoredUser: User = {
       simName: sims[0].name,
-      idSim: Number(sims[0].iccid),
+      idSim: sims[0].iccid,
+      iccid: sims[0].iccid,
       code: 0,
       provider: sims[0].provider,
     };
@@ -149,14 +152,15 @@ export function AuthProvider({
         const uuid = await getDeviceUUID();
         const raw = await listSubscriber(uuid);
         const parsed = raw.map(sim => ({
-          idSim: Number(sim.iccid),
-          simName: sim.name,
+          idSim: sim.iccid,
+          simName: sim.name ?? sim.iccid,
           provider: sim.provider,
           code: sim.id ?? 0,
+          iccid: sim.iccid, 
         }));
         dispatch(setSims(parsed));
 
-        dispatch(updateCurrentSim(String(user.idSim)));
+        dispatch(updateCurrentSim(user.idSim));
 
         await storeUser(user, balance);
         setUser(user);
@@ -188,14 +192,14 @@ export function AuthProvider({
           setUser(user);
           setProviders(newProviders);
           dispatch(addSim({
-            idSim: String(user.idSim),
+            idSim: user.idSim,    
             simName: user.simName,
             provider: user.provider ?? "unknown",
-            iccid: String(user.idSim),
+            iccid: user.iccid,
             code: user.code,
           }));
-          dispatch(updateCurrentSim(String(user.idSim)));
-          // dispatch(updateCurrentSim(user.idSim));
+          dispatch(updateCurrentSim(user.iccid));  
+          AsyncStorage.setItem("currentICCID", user.iccid);
           storeUser(user, userBalance);
           setIsLoggedIn(true);
         },
@@ -207,6 +211,7 @@ export function AuthProvider({
           setProviders([]);
           setBalance(null);
           deleteUser();
+          dispatch(resetModalUpdate(false));
         },
         user,
         isLoggedIn,

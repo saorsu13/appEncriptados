@@ -1,21 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { Text, View, InteractionManager } from "react-native";
 import { useAuth } from "@/context/auth";
-import { InteractionManager } from "react-native";
 import { useRestoreSession } from "@/hooks/useRestoreSession";
 import { getHasRedirectedFromTottoli, setHasRedirectedFromTottoli } from "@/utils/redirectionControl";
+import { getDeviceUUID } from "@/utils/getUUID";
 
 export default function Index() {
   const router = useRouter();
   const { isLoading, isLoggedIn, user } = useAuth();
+
   const [uuid, setUuid] = useState<string | null>(null)
-  const hasRedirectedRef = useRef(false);
+
   const { restoring } = useRestoreSession(uuid)
 
+  const hasRedirectedRef = useRef(false);
+
   useEffect(() => {
-    console.log("🔄 [Index] useEffect → isLoading:", isLoading, "| hasRedirectedRef:", hasRedirectedRef.current);
-    if (isLoading || hasRedirectedRef.current) return;
+    getDeviceUUID().then((id) => {
+      setUuid(id);
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log("🔄 [Index] useEffect → isLoading:", isLoading, 
+      "restoring:", restoring,
+      "hasRedirected:", hasRedirectedRef.current
+    );
+    if (isLoading || restoring || hasRedirectedRef.current) return;
   
     InteractionManager.runAfterInteractions(async () => {
       console.log("🔍 [Index] Autenticado:", isLoggedIn, "SIM:", user?.idSim, "Provider:", user?.provider);
@@ -52,7 +64,7 @@ export default function Index() {
   
       hasRedirectedRef.current = true;
     });
-  }, [isLoading, isLoggedIn, user?.idSim, user?.provider]);
+  }, [isLoading, restoring, isLoggedIn, user?.idSim, user?.provider]);
   
   
 

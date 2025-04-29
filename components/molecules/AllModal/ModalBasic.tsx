@@ -8,7 +8,8 @@ import {
   Dimensions,
 } from "react-native";
 
-import { ModalType, useModal } from "@/context/modalContext";
+import { ModalType, useModal } from "@/context/modal";
+
 import IconSvg from "../IconSvg/IconSvg";
 import { useDarkModeTheme } from "@/hooks/useDarkModeTheme";
 import { ThemeMode } from "@/context/theme";
@@ -33,35 +34,35 @@ const ModalBasic = () => {
   const windowWidth = Dimensions.get("window").width;
 
   const handleConfirm = () => {
-    onConfirmAction();
+    onConfirmAction && onConfirmAction();
     hideModal();
   };
 
   const handleCancel = () => {
-    onCancelAction();
+    onCancelAction && onCancelAction();
     hideModal();
   };
 
   const renderIcon = (type: ModalType) => {
     switch (type) {
       case "confirm":
-        return <IconSvg type="confirm" height={60} width={60} />;
+        return <IconSvg type={"confirm"} height={60} width={60} />;
       case "alert":
-        return <IconSvg type="alert" height={60} width={60} />;
+        return <IconSvg type={"alert"} height={60} width={60} />;
       case "error":
-        return <IconSvg type="error" height={60} width={60} />;
+        return <IconSvg type={"error"} height={60} width={60} />;
       default:
         return null;
     }
   };
 
   const { themeMode } = useDarkModeTheme();
-  if (!modalVisible) return null;
+
 
   return (
     <Modal
       animationType="fade"
-      transparent
+      transparent={true}
       visible={modalVisible}
       onRequestClose={handleCancel}
     >
@@ -70,7 +71,10 @@ const ModalBasic = () => {
           style={[
             themeMode === ThemeMode.Dark
               ? styles.modalView
-              : { ...styles.modalView, backgroundColor: theme.lightMode.colors.white },
+              : {
+                  ...styles.modalView,
+                  backgroundColor: theme.lightMode.colors.white,
+                },
             { width: windowWidth * 0.9 },
           ]}
         >
@@ -80,7 +84,10 @@ const ModalBasic = () => {
             style={[
               themeMode === ThemeMode.Dark
                 ? styles.modalText
-                : { ...styles.modalText, color: theme.lightMode.colors.blueDark },
+                : {
+                    ...styles.modalText,
+                    color: theme.lightMode.colors.blueDark,
+                  },
             ]}
           >
             {modalTitle}
@@ -91,7 +98,12 @@ const ModalBasic = () => {
           <View style={styles.buttonContainer}>
             {oneButton ? (
               <Pressable
-                style={[styles.button, { backgroundColor: buttonColorConfirm || "green" }]}
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: buttonColorConfirm || "green",
+                  },
+                ]}
                 onPress={handleConfirm}
               >
                 <Text allowFontScaling={false} style={styles.textStyle}>
@@ -101,7 +113,12 @@ const ModalBasic = () => {
             ) : (
               <>
                 <Pressable
-                  style={[styles.button, { backgroundColor: buttonColorConfirm || "red" }]}
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: buttonColorConfirm || "red",
+                    },
+                  ]}
                   onPress={handleConfirm}
                 >
                   <Text allowFontScaling={false} style={styles.textStyle}>
@@ -113,7 +130,8 @@ const ModalBasic = () => {
                     styles.button,
                     {
                       backgroundColor:
-                        buttonColorCancel || styles.buttonCancel.backgroundColor,
+                        buttonColorCancel ||
+                        styles.buttonCancel.backgroundColor,
                     },
                     styles.buttonMarginTop,
                   ]}
@@ -146,7 +164,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
@@ -178,6 +199,9 @@ const styles = StyleSheet.create({
   },
   buttonCancel: {
     backgroundColor: "#CB0808",
+  },
+  buttonConfirm: {
+    backgroundColor: "#10B4E7",
   },
   textStyle: {
     color: "white",

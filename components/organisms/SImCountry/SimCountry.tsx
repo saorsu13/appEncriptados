@@ -70,6 +70,14 @@ const SimCountry: React.FC<SimCountryProps> = ({ sim, country, handleCountry, on
   const selectedSim = sims.find((s) => s.idSim === currentSim?.idSim);
   const simText = selectedSim?.iccid || currentSim?.iccid || sim;
 
+
+  const getDisplaySim = (num: string) =>
+    num.length === 19
+      ? "·".repeat(num.length - 6) + num.slice(-6)
+      : num;
+  
+  const displaySim = getDisplaySim(simText);
+  
   useEffect(() => {
     const provider = selectedSim?.provider?.toLowerCase?.() || "";
     if (provider === "telco-vision" && pathname !== "/balance") {

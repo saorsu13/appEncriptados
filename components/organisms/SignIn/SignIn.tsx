@@ -43,6 +43,7 @@ const LoginHeaderImage = require("@/assets/images/login-header.png");
 const LoginHeaderImageLight = require("@/assets/images/login-header-light.png");
 
 const SignIn = () => {
+  const { signIn } = useAuth();
   const { setCurrentIdSim, setTypeOfProcess } = useModalActivateSim();
   const { isLoggedIn, isLoading: authLoading, user } = useAuth();
   const [localLoading, setLocalLoading] = useState(false);
@@ -70,7 +71,8 @@ const SignIn = () => {
     initialValues: { simNumber: "" },
     validationSchema,
     onSubmit: async (values) => {
-      setCurrentIdSim(values.simNumber);
+      const simNumber = values.simNumber;
+      setCurrentIdSim(simNumber);
       try {
         setLocalLoading(true);
 
@@ -80,7 +82,7 @@ const SignIn = () => {
           return;
         }
 
-        const response = await loginQuery.loginRequest(values.simNumber, 0, values.simNumber);
+        const response = await loginQuery.loginRequest(simNumber, 0, simNumber);
 
         if (response?.error) {
           console.warn("⚠️ Error durante loginRequest:", response.error);
@@ -88,18 +90,44 @@ const SignIn = () => {
           return;
         }
 
-        const provider = response?.data?.provider;
-        if (!provider) {
-          console.warn("⚠️ Provider no reconocido o ausente:", provider);
-          setRequestCodeModal(true);
-          return;
+        interface LoginData {
+          provider: string;
+          iccid: string;
+          idSim?: string;
+          code: number;
+          simName?: string;
         }
-        InteractionManager.runAfterInteractions(() => {
-          console.log("🔁 [SignIn] Redirigiendo a Home. La lógica decidirá si ir a /balance.");
-          setHasRedirectedFromTottoli(false);
-          setHasAlreadyRedirected(true);
+        const { provider, iccid, idSim, code, simName } = response.data as LoginData;
+
+        const finalIccid = idSim ?? iccid ?? simNumber;
+
+        setCurrentIdSim(finalIccid);
+
+        signIn(
+          {
+            simName: simName || "Sim",
+            idSim: finalIccid,
+            iccid: finalIccid,
+            provider,
+            code,
+          },
+          [],
+          null
+        );
+        console.log("🔁 [SignIn] Redirigiendo a Home. La lógica decidirá si ir a /balance.");
+        setHasRedirectedFromTottoli(false);
+        setHasAlreadyRedirected(true);
+
+        if (provider === "telco-vision") {
+          console.log("🔀 [SignIn] Telco-vision → Balance");
+          router.replace({
+            pathname: "/balance",
+            params: { simId: finalIccid },
+          });
+        } else {
+          console.log("🔀 [SignIn] Tottoli → Home");
           router.replace("/home");
-        });
+        }
       } catch (error) {
         console.error("🔥 Error general en onSubmit:", error);
       } finally {

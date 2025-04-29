@@ -55,7 +55,9 @@ const Home = () => {
   const baseMsg = "pages.home";
   const params = useLocalSearchParams();
 
-  const [selectedSimIdVisual, setSelectedSimIdVisual] = useState(currentSim?.idSim ?? null);
+  const [selectedSimIdVisual, setSelectedSimIdVisual] = useState<string | null>(
+    currentSim?.idSim ?? null
+  );
   const [versionFetched, setVersionFetched] = useState("");
   const [refreshing, setRefreshing] = useState(false);
  
@@ -266,6 +268,16 @@ const Home = () => {
     mutation.mutate(payload);
   }, [currentSim?.idSim]);
   
+  useEffect(() => {
+    if (currentSim?.provider === "telco-vision") {
+      console.log("🚀 [Home] Provider telco-vision detectado → navegando a /balance");
+      router.replace({
+        pathname: "/balance",
+        params: { simId: currentSim.idSim },
+      });
+    }
+  }, [currentSim]);
+  
   
 const versionQuery = useQuery({
     queryKey: ["getVersion"],
@@ -333,6 +345,17 @@ const versionQuery = useQuery({
   };  
 
 
+  useEffect(() => {
+    if (isSimFetchComplete && isLoggedIn && currentSim?.provider === "telco-vision") {
+      console.log("🚀 [Home] Condición cumplida → navegando a /balance");
+      router.replace({
+        pathname: "/balance",
+        params: { simId: currentSim.idSim },
+      });
+    }
+  }, [isSimFetchComplete, isLoggedIn, currentSim?.provider, currentSim?.idSim]);
+
+
   if (!isSimFetchComplete) {
     console.log("🕐 [Home] Esperando que termine fetch de SIMs...");
     return (
@@ -383,12 +406,17 @@ const versionQuery = useQuery({
 
       <View style={styles.container}>
 
-        <SimCountry
-          sim={selectedSimIdVisual}
-          country={"ca-CAD"}
-          handleCountry={() => {}}
-          onSelectSim={onUserSelectSim}
-        />
+        {selectedSimIdVisual ? (
+          <SimCountry
+            sim={selectedSimIdVisual}
+            country="ca-CAD"
+            handleCountry={() => {}}
+            onSelectSim={onUserSelectSim}
+          />
+        ) : (
+          // Aquí podrías mostrar un loader o simplemente nada
+          <ActivityIndicator size="small" color="#00AEEF" />
+        )}
         {mutation.data && <BalanceDetails data={mutation.data} />}
 
         <NetworkProfile />
